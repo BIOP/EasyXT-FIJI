@@ -200,14 +200,16 @@ public class EasyXT {
         return data;
     }
 
-    public static void main( String[] args ) {
+    public static void main( String[] args ) throws Error {
         try {
             //ISpotsPrx spots = e.getSpotsObject( "Spots From neutro" );
 
             ImageJ ij = new ImageJ();
             ij.setVisible(true);
 
-            ISurfacesPrx surf = EasyXT.getSurfaces( "Surfaces 1" );
+            ISurfacesPrx surf = SurfacesDetector.Channel(1).setLowerThreshold(200).build().detect();
+
+            //ISurfacesPrx surf = EasyXT.getSurfaces( "Surfaces 1" );
             EasyXT.getSurfaceMask( surf ).show();
 
         } catch ( Error error ) {

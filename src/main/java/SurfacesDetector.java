@@ -1,3 +1,4 @@
+import Imaris.Error;
 import Imaris.IDataSetPrx;
 import Imaris.ISurfacesPrx;
 
@@ -8,6 +9,15 @@ import Imaris.ISurfacesPrx;
  * - DetectSurfaces
  * - DetectSurfaceRegionGrowing TODO: implement and explain how the builder switch or not to this function
  * - DetectSurfacesRegionGrowingWithUpperThreshold TODO: implement and explain how the builder switch or not to this function
+ *
+ * The Builder is tuned to allow for an invisible switch between these functions depending on the builder methods calls
+ * If an upper threshold is set {
+ *     calling DetectSurfacesRegionGrowingWithUpperThreshold
+ * } else if any of the seed detection parameters is set {
+ *     calling DetectSurfaceRegionGrowing
+ * } else {
+ *     calling DetectSurfaces
+ * }
  *
  * Authors
  * Nicolas Chiaruttini, nicolas.chiaruttini@epfl.ch
@@ -34,8 +44,10 @@ public class SurfacesDetector {
     Integer aChannelIndex;
     Float aSmoothFilterWidth;
     Float aLocalContrastFilterWidth;
-    Boolean aIntensityThresholdAutomatic;
-    Float aIntensityThresholdManual;
+
+    Boolean  	aIntensityLowerThresholdAutomatic; //Boolean aIntensityThresholdAutomatic;
+    Float  	aIntensityLowerThresholdManual; //Float aIntensityThresholdManual;
+
     String aSurfaceFiltersString;
 
     // Additional fields from Imaris API - DetectSurfacesRegionGrowing
@@ -53,8 +65,8 @@ public class SurfacesDetector {
     //  If aIntensityUpperThresholdAutomatic is true, aIntensityUpperThresholdManual is ignored.
 
     Boolean 	aLowerThresholdEnabled;
-    Boolean  	aIntensityLowerThresholdAutomatic;
-    Float  	aIntensityLowerThresholdManual;
+    //Boolean  	aIntensityLowerThresholdAutomatic;
+    //Float  	aIntensityLowerThresholdManual;
     Boolean  	aUpperThresholdEnabled;
     Boolean  	aIntensityUpperThresholdAutomatic;
     Float  	aIntensityUpperThresholdManual;
@@ -64,14 +76,11 @@ public class SurfacesDetector {
     String name;
     Integer[] color;
 
-    public void detect() throws Imaris.Error {
+    public ISurfacesPrx detect() throws Imaris.Error {
 
         ISurfacesPrx surfaces;
 
-        if ((aLowerThresholdEnabled!=null)||
-            (aIntensityLowerThresholdAutomatic!=null)||
-            (aIntensityLowerThresholdManual!=null)||
-            (aUpperThresholdEnabled!=null)||
+        if ((aUpperThresholdEnabled!=null)||
             (aIntensityUpperThresholdAutomatic!=null)||
             (aIntensityUpperThresholdManual!=null)) {
             // DetectSurfacesRegionGrowingWithUpperThreshold
@@ -92,6 +101,8 @@ public class SurfacesDetector {
             //		string  	aSeedsFiltersString,
             //		string  	aSurfaceFiltersString
             //	)
+
+            // Need to deal with a Lower Threshold Enabled TODO
 
             surfaces = EasyXT.getApp().GetImageProcessing().DetectSurfacesRegionGrowingWithUpperThreshold(aDataSet,
                     aRegionsOfInterest,
@@ -173,24 +184,30 @@ public class SurfacesDetector {
             //surfaces.SetColor ( annoying stuff to convert )
         }
 
+        return surfaces;
     }
 
+    // Removes a bit of the verbosity
+    public static SurfacesDetectorBuilder Channel(int indexChannel ) throws Error {
+        return SurfacesDetectorBuilder.aSurfacesDetector(indexChannel);
+    }
 
     public static final class SurfacesDetectorBuilder {
+
         IDataSetPrx aDataSet;
         int[][] aRegionsOfInterest;
         Integer aChannelIndex;
-        Float aSmoothFilterWidth;
-        Float aLocalContrastFilterWidth;
-        Boolean aIntensityThresholdAutomatic;
-        Float aIntensityThresholdManual;
+        Float aSmoothFilterWidth = new Float(0); // Default with disables smoothing
+        Float aLocalContrastFilterWidth = new Float(0); // aLocalContrastFilterWidth is equal to zero, local contrast is disabled.
+        //Boolean aIntensityThresholdAutomatic = new Boolean(true);  // If aIntensityThresholdAutomatic is true, aIntensityThresholdManual is ignored.
+        //Float aIntensityThresholdManual = new Float(0); // Disabled by default because aIntensityThresholdAutomatic is true by default
         String aSurfaceFiltersString;
         Float  	aSeedsEstimateDiameter;
         Boolean aSeedsSubtractBackground;
         String  aSeedsFiltersString;
         Boolean 	aLowerThresholdEnabled;
-        Boolean  	aIntensityLowerThresholdAutomatic;
-        Float  	aIntensityLowerThresholdManual;
+        Boolean  	aIntensityLowerThresholdAutomatic = new Boolean(true);
+        Float  	aIntensityLowerThresholdManual = new Float(0);
         Boolean  	aUpperThresholdEnabled;
         Boolean  	aIntensityUpperThresholdAutomatic;
         Float  	aIntensityUpperThresholdManual;
@@ -198,97 +215,79 @@ public class SurfacesDetector {
         Integer[] color;
         String name;
 
-        private SurfacesDetectorBuilder() throws Imaris.Error {
+        private SurfacesDetectorBuilder(int channelIndex) throws Imaris.Error {
             // default values
             aDataSet = EasyXT.getApp().GetDataSet();
+            this.aChannelIndex = channelIndex;
         }
 
-        public static SurfacesDetectorBuilder aSurfacesDetector() throws Imaris.Error  {
-            return new SurfacesDetectorBuilder();
+        public static SurfacesDetectorBuilder aSurfacesDetector(int channelIndex) throws Imaris.Error  {
+            return new SurfacesDetectorBuilder(channelIndex);
         }
 
-        public SurfacesDetectorBuilder aDataSet(IDataSetPrx aDataSet) {
+        public SurfacesDetectorBuilder setDataSet(IDataSetPrx aDataSet) {
             this.aDataSet = aDataSet;
             return this;
         }
 
-        public SurfacesDetectorBuilder aRegionsOfInterest(int[][] aRegionsOfInterest) {
+        public SurfacesDetectorBuilder setROI(int[][] aRegionsOfInterest) {
             this.aRegionsOfInterest = aRegionsOfInterest;
             return this;
         }
 
-        public SurfacesDetectorBuilder aChannelIndex(Integer aChannelIndex) {
-            this.aChannelIndex = aChannelIndex;
+        public SurfacesDetectorBuilder setSmoothingWidth(double aSmoothFilterWidth) {
+            this.aSmoothFilterWidth = new Float(aSmoothFilterWidth);
             return this;
         }
 
-        public SurfacesDetectorBuilder aSmoothFilterWidth(Float aSmoothFilterWidth) {
-            this.aSmoothFilterWidth = aSmoothFilterWidth;
+        public SurfacesDetectorBuilder setLocalContrastFilterWidth(double aLocalContrastFilterWidth) {
+            this.aLocalContrastFilterWidth = new Float(aLocalContrastFilterWidth);
             return this;
         }
 
-        public SurfacesDetectorBuilder aLocalContrastFilterWidth(Float aLocalContrastFilterWidth) {
-            this.aLocalContrastFilterWidth = aLocalContrastFilterWidth;
-            return this;
-        }
-
-        public SurfacesDetectorBuilder aIntensityThresholdAutomatic(Boolean aIntensityThresholdAutomatic) {
-            this.aIntensityThresholdAutomatic = aIntensityThresholdAutomatic;
-            return this;
-        }
-
-        public SurfacesDetectorBuilder aIntensityThresholdManual(Float aIntensityThresholdManual) {
-            this.aIntensityThresholdManual = aIntensityThresholdManual;
-            return this;
-        }
-
-        public SurfacesDetectorBuilder aSurfaceFiltersString(String aSurfaceFiltersString) {
+        public SurfacesDetectorBuilder setSurfaceFilter(String aSurfaceFiltersString) {
             this.aSurfaceFiltersString = aSurfaceFiltersString;
             return this;
         }
 
-        public SurfacesDetectorBuilder aSeedsEstimateDiameter(Float aSeedsEstimateDiameter) {
-            this.aSeedsEstimateDiameter = aSeedsEstimateDiameter;
+        public SurfacesDetectorBuilder setSeedsDiameter(double aSeedsEstimateDiameter) {
+            this.aSeedsEstimateDiameter = new Float(aSeedsEstimateDiameter);
             return this;
         }
 
-        public SurfacesDetectorBuilder aSeedsSubtractBackground(Boolean aSeedsSubtractBackground) {
+        public SurfacesDetectorBuilder isSeedsSubtractBackground(Boolean aSeedsSubtractBackground) {
             this.aSeedsSubtractBackground = aSeedsSubtractBackground;
             return this;
         }
 
-        public SurfacesDetectorBuilder aSeedsFiltersString(String aSeedsFiltersString) {
+        public SurfacesDetectorBuilder setSeedsFilter(String aSeedsFiltersString) {
             this.aSeedsFiltersString = aSeedsFiltersString;
             return this;
         }
 
-        public SurfacesDetectorBuilder aLowerThresholdEnabled(Boolean aLowerThresholdEnabled) {
-            this.aLowerThresholdEnabled = aLowerThresholdEnabled;
+        public SurfacesDetectorBuilder enableAutomaticLowerThreshold() {
+            this.aIntensityLowerThresholdAutomatic = true;
+            this.aLowerThresholdEnabled = true;
             return this;
         }
 
-        public SurfacesDetectorBuilder aIntensityLowerThresholdAutomatic(Boolean aIntensityLowerThresholdAutomatic) {
-            this.aIntensityLowerThresholdAutomatic = aIntensityLowerThresholdAutomatic;
+        public SurfacesDetectorBuilder setLowerThreshold(double aIntensityLowerThresholdManual) {
+            this.aIntensityLowerThresholdManual = new Float(aIntensityLowerThresholdManual);
+            this.aLowerThresholdEnabled = true;
+            this.aIntensityLowerThresholdAutomatic = false;
             return this;
         }
 
-        public SurfacesDetectorBuilder aIntensityLowerThresholdManual(Float aIntensityLowerThresholdManual) {
-            this.aIntensityLowerThresholdManual = aIntensityLowerThresholdManual;
+        public SurfacesDetectorBuilder enableAutomaticUpperThreshold() {
+            this.aIntensityUpperThresholdAutomatic = true;
+            this.aUpperThresholdEnabled = true;
             return this;
         }
 
-        public SurfacesDetectorBuilder aUpperThresholdEnabled(Boolean aUpperThresholdEnabled) {
-            this.aUpperThresholdEnabled = aUpperThresholdEnabled;
-            return this;
-        }
-
-        public SurfacesDetectorBuilder aIntensityUpperThresholdAutomatic(Boolean aIntensityUpperThresholdAutomatic) {
-            this.aIntensityUpperThresholdAutomatic = aIntensityUpperThresholdAutomatic;
-            return this;
-        }
-
-        public SurfacesDetectorBuilder aIntensityUpperThresholdManual(Float aIntensityUpperThresholdManual) {
-            this.aIntensityUpperThresholdManual = aIntensityUpperThresholdManual;
+        public SurfacesDetectorBuilder setUpperThreshold(double aIntensityUpperThresholdManual) {
+            this.aIntensityUpperThresholdManual = new Float(aIntensityUpperThresholdManual);
+            this.aUpperThresholdEnabled = true;
+            this.aIntensityUpperThresholdAutomatic = false;
             return this;
         }
 
@@ -313,9 +312,7 @@ public class SurfacesDetector {
             surfacesDetector.aIntensityUpperThresholdManual = this.aIntensityUpperThresholdManual;
             surfacesDetector.color = this.color;
             surfacesDetector.name = this.name;
-            surfacesDetector.aIntensityThresholdAutomatic = this.aIntensityThresholdAutomatic;
             surfacesDetector.aSeedsEstimateDiameter = this.aSeedsEstimateDiameter;
-            surfacesDetector.aIntensityThresholdManual = this.aIntensityThresholdManual;
             surfacesDetector.aSeedsFiltersString = this.aSeedsFiltersString;
             surfacesDetector.aSurfaceFiltersString = this.aSurfaceFiltersString;
             surfacesDetector.aIntensityLowerThresholdAutomatic = this.aIntensityLowerThresholdAutomatic;

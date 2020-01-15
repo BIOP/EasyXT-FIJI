@@ -35,6 +35,14 @@ public class EasyXT {
         app = lib.GetApplication( id );
     }
 
+    public static ImarisLib getLib() {
+        return lib;
+    }
+
+    public static IApplicationPrx getApp() {
+        return app;
+    }
+
     private static Class<?> getType( IDataItemPrx object ) throws Error {
         IFactoryPrx factory = app.GetFactory( );
 

@@ -208,18 +208,39 @@ public class EasyXT {
             ij.setVisible(true);
 
             // Makes a surface detector and detect the surface
-            /*
+
             ISurfacesPrx surf = SurfacesDetector.Channel(1)
                     .setSmoothingWidth(5)
-                    .setLowerThreshold(200)
-                    .setName("My Surfance")
+                    .setLowerThreshold(20)
+                    .setName("My Surface")
                     .setColor(new Integer[]{255,120,45})
                     .build()
                     .detect();
-             */
 
-            ISurfacesPrx surf = EasyXT.getSurfaces( "Nurse Cell Nuclei" );
+            // Adds the surface to the scene
+            //EasyXT.getApp().GetSurpassScene().AddChild(surf,0);
+
+
+            // Gets an existing surface
+
+            //surf = EasyXT.getSurfaces( "My surface" );
+
+            // Display surfaces
+
             EasyXT.getSurfaceMask( surf ).show();
+
+
+            ISpotsPrx spots = SpotsDetector.Channel(2)
+                                .setDiameter(5)
+                                .isSubtractBackground(true)
+                                .setName("Spot from FIJI")
+                                .build()
+                                .detect();
+
+            // Adds the spots to the scene
+            EasyXT.getApp().GetSurpassScene().AddChild(spots,0);
+
+            //EasyXT.getSpots
 
         } catch ( Error error ) {
             out.println( "ERROR:"+ error.mDescription);

@@ -207,9 +207,18 @@ public class EasyXT {
             ImageJ ij = new ImageJ();
             ij.setVisible(true);
 
-            ISurfacesPrx surf = SurfacesDetector.Channel(1).setLowerThreshold(200).build().detect();
+            // Makes a surface detector and detect the surface
+            /*
+            ISurfacesPrx surf = SurfacesDetector.Channel(1)
+                    .setSmoothingWidth(5)
+                    .setLowerThreshold(200)
+                    .setName("My Surfance")
+                    .setColor(new Integer[]{255,120,45})
+                    .build()
+                    .detect();
+             */
 
-            //ISurfacesPrx surf = EasyXT.getSurfaces( "Surfaces 1" );
+            ISurfacesPrx surf = EasyXT.getSurfaces( "Nurse Cell Nuclei" );
             EasyXT.getSurfaceMask( surf ).show();
 
         } catch ( Error error ) {

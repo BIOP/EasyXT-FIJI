@@ -291,12 +291,12 @@ public class SurfacesDetector {
             return this;
         }
 
-        public SurfacesDetectorBuilder color(Integer[] color) {
+        public SurfacesDetectorBuilder setColor(Integer[] color) {
             this.color = color;
             return this;
         }
 
-        public SurfacesDetectorBuilder name(String name) {
+        public SurfacesDetectorBuilder setName(String name) {
             this.name = name;
             return this;
         }

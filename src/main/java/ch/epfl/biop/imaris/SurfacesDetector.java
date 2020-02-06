@@ -1,3 +1,5 @@
+package ch.epfl.biop.imaris;
+
 import Imaris.Error;
 import Imaris.IDataSetPrx;
 import Imaris.ISurfacesPrx;

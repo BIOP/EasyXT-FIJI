@@ -1,5 +1,10 @@
+package ch.epfl.biop.imaris;
+
+import Ice.ObjectPrx;
 import Imaris.*;
 import Imaris.Error;
+import ImarisServer.IServerPrx;
+import com.bitplane.xt.IceClient;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.plugin.HyperStackConverter;
@@ -14,13 +19,15 @@ import java.util.*;
 
 import static java.lang.System.out;
 
+// TODO Comment
 public class EasyXT {
-    private static ImarisLib lib;
     private static IApplicationPrx app;
-
-    private static  Map<tType,Integer> datatype;
+    private static IceClient mIceClient = null;
+    private static Map<tType, Integer> datatype;
+    private static String mEndPoints = "default -p 4029";
 
     static {
+        System.out.println( "Initializing EasyXT" );
         Map<tType, Integer> tmap = new HashMap<>( 4 );
         tmap.put( tType.eTypeUInt8, 8 );
         tmap.put( tType.eTypeUInt16, 16 );
@@ -29,31 +36,65 @@ public class EasyXT {
 
         datatype = Collections.unmodifiableMap( tmap );
 
-        lib = new ImarisLib( );
-        int id = lib.GetServer( ).GetObjectID( 0 );
-        app = lib.GetApplication( id );
+        mIceClient = new IceClient( "ImarisServer", mEndPoints, 10000 );
+        app = getApp( mIceClient.GetServer( ), 0 );
+
+        Runtime.getRuntime( ).addShutdownHook(
+                new Thread( new Runnable( ) {
+                    @Override
+                    public void run( ) {
+                        out.println( "Closing ICE Connection from Imaris..." );
+                        CloseIceClient( );
+                        out.println( "Done." );
+
+                    }
+                } )
+
+        );
     }
 
-    public static ImarisLib getLib() {
-        return lib;
+    // TODO Refactor & Comment
+    private static IceClient GetIceClient( ) {
+        if ( mIceClient == null ) {
+            mIceClient = new IceClient( "ImarisServer", mEndPoints, 10000 );
+        }
+
+        return mIceClient;
     }
 
-    public static IApplicationPrx getApp() {
+    // TODO Refactor & Comment
+    private static void CloseIceClient( ) {
+        if ( mIceClient != null ) {
+            mIceClient.Terminate( );
+            mIceClient = null;
+        }
+    }
+
+    // TODO Refactor & Comment
+    private static IApplicationPrx getApp( IServerPrx var0, int var1 ) {
+        ObjectPrx var2 = var0.GetObject( var1 );
+        return IApplicationPrxHelper.checkedCast( var2 );
+    }
+
+    // TODO Rename to getImaris?
+    public static IApplicationPrx getApp( ) {
         return app;
     }
 
+    // TODO Comment
     private static Class<?> getType( IDataItemPrx object ) throws Error {
         IFactoryPrx factory = app.GetFactory( );
 
-        if (factory.IsSpots( object )) {
+        if ( factory.IsSpots( object ) ) {
             return ISpots.class;
         }
-        if (factory.IsSurfaces( object )) {
+        if ( factory.IsSurfaces( object ) ) {
             return ISurfaces.class;
         }
         return null;
     }
 
+    // TODO Comment
     public static IDataItemPrx getObject( String name, Class<? extends IDataItem> cls ) throws Error {
 
         IDataContainerPrx parent = app.GetSurpassScene( );
@@ -62,8 +103,8 @@ public class EasyXT {
         for ( int i = 0; i < nChildren; i++ ) {
             IDataItemPrx child = parent.GetChild( i );
 
-            String aname = child.GetName();
-            Class acls = getType(child);
+            String aname = child.GetName( );
+            Class acls = getType( child );
             //out.println( acls == cls );
             if ( aname.equals( name ) )
                 return parent.GetChild( i );
@@ -89,60 +130,63 @@ public class EasyXT {
 
     // TODO: Allow easy getting and setting of images per channel
 
-    public static ISurfacesPrx getSurfaces( String name )  throws Error {
-        IDataItemPrx object = getObject( name,  ISurfaces.class);
+    // TODO Comment
+    public static ISurfacesPrx getSurfaces( String name ) throws Error {
+        IDataItemPrx object = getObject( name, ISurfaces.class );
         ISurfacesPrx surf = app.GetFactory( ).ToSurfaces( object );
         return surf;
     }
 
+    // TODO Comment
     public static ImagePlus getImagePlus( IDataSetPrx dataset ) throws Error {
 
-        int nc = dataset.GetSizeC();;
-        int nz = dataset.GetSizeZ();
-        int nt = dataset.GetSizeT();
+        int nc = dataset.GetSizeC( );
+        ;
+        int nz = dataset.GetSizeZ( );
+        int nt = dataset.GetSizeT( );
 
-        int w = dataset.GetSizeX();
-        int h = dataset.GetSizeY();
+        int w = dataset.GetSizeX( );
+        int h = dataset.GetSizeY( );
         ImarisCalibration cal = new ImarisCalibration( dataset );
         int bitdepth = getBitDepth( dataset );
 
-        ImageStack stack = ImageStack.create( w,h,nc*nz*nt, bitdepth );
-        ImagePlus imp = new ImagePlus( app.GetCurrentFileName(), stack );
+        ImageStack stack = ImageStack.create( w, h, nc * nz * nt, bitdepth );
+        ImagePlus imp = new ImagePlus( app.GetCurrentFileName( ), stack );
         imp.setDimensions( nc, nz, nt );
 
-            for( int c=0; c<nc; c++ ) {
-                for( int z=0; z<nz; z++ ) {
-                    for( int t=0; t<nt; t++ ) {
-                        int idx = imp.getStackIndex( c+1, z+1, t+1 );
-                        ImageProcessor ip;
-                        switch (bitdepth) {
-                            case 8:
-                                byte[] datab = dataset.GetDataSubVolumeAs1DArrayBytes( 0, 0, z, c, t, w, h, 1 );
-                                ip = new ByteProcessor( w, h, datab, null );
-                                stack.setProcessor( ip, idx );
-                                break;
-                            case 16:
-                                short[] datas = dataset.GetDataSubVolumeAs1DArrayShorts( 0, 0, z, c, t, w, h, 1 );
-                                ip = new ShortProcessor( w, h, datas, null );
-                                stack.setProcessor( ip, idx );
-                                break;
-                            case 32:
-                                float[] dataf = dataset.GetDataSubVolumeAs1DArrayFloats( 0, 0, z, c, t, w, h, 1 );
-                                ip = new FloatProcessor( w, h, dataf, null );
-                                stack.setProcessor( ip, idx );
-                                break;
-                        }
+        for ( int c = 0; c < nc; c++ ) {
+            for ( int z = 0; z < nz; z++ ) {
+                for ( int t = 0; t < nt; t++ ) {
+                    int idx = imp.getStackIndex( c + 1, z + 1, t + 1 );
+                    ImageProcessor ip;
+                    switch ( bitdepth ) {
+                        case 8:
+                            byte[] datab = dataset.GetDataSubVolumeAs1DArrayBytes( 0, 0, z, c, t, w, h, 1 );
+                            ip = new ByteProcessor( w, h, datab, null );
+                            stack.setProcessor( ip, idx );
+                            break;
+                        case 16:
+                            short[] datas = dataset.GetDataSubVolumeAs1DArrayShorts( 0, 0, z, c, t, w, h, 1 );
+                            ip = new ShortProcessor( w, h, datas, null );
+                            stack.setProcessor( ip, idx );
+                            break;
+                        case 32:
+                            float[] dataf = dataset.GetDataSubVolumeAs1DArrayFloats( 0, 0, z, c, t, w, h, 1 );
+                            ip = new FloatProcessor( w, h, dataf, null );
+                            stack.setProcessor( ip, idx );
+                            break;
                     }
                 }
             }
+        }
         imp.setStack( stack );
         imp.setCalibration( cal );
 
-        imp = HyperStackConverter.toHyperStack( imp, nc,nz,nt );
+        imp = HyperStackConverter.toHyperStack( imp, nc, nz, nt );
         return imp;
 
     }
-
+    // TODO Comment
     public static int getBitDepth( IDataSetPrx dataset ) throws Error {
         tType type = dataset.GetType( );
         // Thanks NICO
@@ -154,42 +198,45 @@ public class EasyXT {
         return getImagePlus( channel, dataset );
     }*/
 
+    // TODO Comment
     public static ImagePlus getSurfaceMask( ISurfacesPrx surface ) throws Error {
         // Check if there are channels
-        ImarisCalibration cal = new ImarisCalibration( app.GetDataSet() );
+        ImarisCalibration cal = new ImarisCalibration( app.GetDataSet( ) );
 
-        IDataSetPrx final_dataset = app.GetDataSet().Clone();
+        IDataSetPrx final_dataset = app.GetDataSet( ).Clone( );
         final_dataset.SetSizeC( 1 );
         final_dataset.SetType( tType.eTypeUInt8 );
 
         // Loop through each timepoint, and get the dataset, then replace
-        for ( int t=0; t<cal.tSize; t++ ) {
+        for ( int t = 0; t < cal.tSize; t++ ) {
             IDataSetPrx one_timepoint = getSurfaceDataset( surface, 1.0, t );
-            final_dataset.SetDataVolumeAs1DArrayBytes(one_timepoint.GetDataVolumeAs1DArrayBytes ( 0, 0) , 0, t );
+            final_dataset.SetDataVolumeAs1DArrayBytes( one_timepoint.GetDataVolumeAs1DArrayBytes( 0, 0 ), 0, t );
         }
 
         return getImagePlus( final_dataset );
 
     }
 
+    // TODO Comment
     public static ImagePlus getSurfaceMask( ISurfacesPrx surface, int timepoint ) throws Error {
         return getSurfaceMask( surface, 1.0, timepoint );
     }
 
+    // TODO Comment
     public static ImagePlus getSurfaceMask( ISurfacesPrx surface, double downsample, int timepoint ) throws Error {
 
-        ImarisCalibration cal = new ImarisCalibration( app.GetDataSet() ).getDownsampled( downsample );
+        ImarisCalibration cal = new ImarisCalibration( app.GetDataSet( ) ).getDownsampled( downsample );
 
-        IDataSetPrx data = surface.GetMask ( (float) cal.xOrigin, (float) cal.yOrigin, (float) cal.zOrigin,
-                                             (float)cal.xEnd, (float) cal.yEnd, (float) cal.zEnd,
-                                              cal.xSize, cal.ySize, cal.zSize, timepoint );
+        IDataSetPrx data = surface.GetMask( (float) cal.xOrigin, (float) cal.yOrigin, (float) cal.zOrigin,
+                (float) cal.xEnd, (float) cal.yEnd, (float) cal.zEnd,
+                cal.xSize, cal.ySize, cal.zSize, timepoint );
 
         ImagePlus imp = getImagePlus( data );
         imp.setCalibration( cal );
 
         return imp;
     }
-
+    // TODO Comment
     public static IDataSetPrx getSurfaceDataset( ISurfacesPrx surface, double downsample, int timepoint ) throws Error {
         ImarisCalibration cal = new ImarisCalibration( app.GetDataSet( ) ).getDownsampled( downsample );
 
@@ -199,8 +246,13 @@ public class EasyXT {
         return data;
     }
 
+    // TODO Comment
     public static void main( String[] args ) throws Error {
+        ImageJ ij = new ImageJ( );
+        ij.ui( ).showUI( );
+        /*
         try {
+
             //ISpotsPrx spots = e.getSpotsObject( "Spots From neutro" );
 
             // Arrange
@@ -210,7 +262,7 @@ public class EasyXT {
             //ij.setVisible(true);
 
             // Makes a surface detector and detect the surface
-
+            /*
             ISurfacesPrx surf = SurfacesDetector.Channel(0)
                     .setSmoothingWidth(5)
                     .setLowerThreshold(20)
@@ -232,7 +284,7 @@ public class EasyXT {
             EasyXT.getSurfaceMask( surf ).show();
 
 
-            /*ISpotsPrx spots = SpotsDetector.Channel(2)
+            /*ISpotsPrx spots = ch.epfl.biop.imaris.SpotsDetector.Channel(2)
                                 .setDiameter(5)
                                 .isSubtractBackground(true)
                                 .setName("Spot from FIJI")
@@ -240,31 +292,35 @@ public class EasyXT {
                                 .detect();
 
             // Adds the spots to the scene
-            EasyXT.getApp().GetSurpassScene().AddChild(spots,0);*/
+            EasyXT.getApp().GetSurpassScene().AddChild(spots,0);
 
             //EasyXT.getSpots
 
         } catch ( Error error ) {
             out.println( "ERROR:"+ error.mDescription);
         }
+        */
     }
 
-    public ISpotsPrx getSpots ( String name )  throws Error {
-        IDataItemPrx object = getObject( name,  ISpots.class);
-        ISpotsPrx spot = app.GetFactory().ToSpots( object );
+    // TODO Comment
+    public ISpotsPrx getSpots( String name ) throws Error {
+        IDataItemPrx object = getObject( name, ISpots.class );
+        ISpotsPrx spot = app.GetFactory( ).ToSpots( object );
         return spot;
     }
 
-    public void addChannel() {
-        }
+    // TODO Comment
+    public void addChannel( ) {
+    }
 
-
+    // TODO Comment
     public enum ItemClass {
-        SPOTS( ISpotsPrx.class),
-        SURFACES(ISurfaces.class);
+        SPOTS( ISpotsPrx.class ),
+        SURFACES( ISurfaces.class );
 
         Class cls;
-        ItemClass(Class cls) {
+
+        ItemClass( Class cls ) {
             this.cls = cls;
         }
 

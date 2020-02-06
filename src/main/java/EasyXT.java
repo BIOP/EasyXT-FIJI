@@ -1,7 +1,5 @@
 import Imaris.*;
 import Imaris.Error;
-import ImarisServer.IServerPrx;
-import ij.ImageJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.plugin.HyperStackConverter;
@@ -9,6 +7,7 @@ import ij.process.ByteProcessor;
 import ij.process.FloatProcessor;
 import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
+import net.imagej.ImageJ;
 
 import java.util.*;
 
@@ -204,12 +203,15 @@ public class EasyXT {
         try {
             //ISpotsPrx spots = e.getSpotsObject( "Spots From neutro" );
 
+            // Arrange
+            // create the ImageJ application context with all available services
             ImageJ ij = new ImageJ();
-            ij.setVisible(true);
+            ij.ui().showUI();
+            //ij.setVisible(true);
 
             // Makes a surface detector and detect the surface
 
-            ISurfacesPrx surf = SurfacesDetector.Channel(1)
+            ISurfacesPrx surf = SurfacesDetector.Channel(0)
                     .setSmoothingWidth(5)
                     .setLowerThreshold(20)
                     .setName("My Surface")
@@ -230,7 +232,7 @@ public class EasyXT {
             EasyXT.getSurfaceMask( surf ).show();
 
 
-            ISpotsPrx spots = SpotsDetector.Channel(2)
+            /*ISpotsPrx spots = SpotsDetector.Channel(2)
                                 .setDiameter(5)
                                 .isSubtractBackground(true)
                                 .setName("Spot from FIJI")
@@ -238,7 +240,7 @@ public class EasyXT {
                                 .detect();
 
             // Adds the spots to the scene
-            EasyXT.getApp().GetSurpassScene().AddChild(spots,0);
+            EasyXT.getApp().GetSurpassScene().AddChild(spots,0);*/
 
             //EasyXT.getSpots
 

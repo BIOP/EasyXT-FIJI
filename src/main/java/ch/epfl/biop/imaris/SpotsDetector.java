@@ -82,7 +82,7 @@ public class SpotsDetector {
             //		bool  	aRegionsCreateChannel
             //	)
 
-            spots = EasyXT.getApp().GetImageProcessing().DetectSpotsRegionGrowing(aDataSet,
+            spots = EasyXT.getImaris().GetImageProcessing().DetectSpotsRegionGrowing(aDataSet,
                     aRegionsOfInterest,
                     aChannelIndex,
                     aEstimateDiameter,
@@ -106,7 +106,7 @@ public class SpotsDetector {
 
                 // TODO Understand what happens with the Map<String, String> with detectspots2
 
-                spots = EasyXT.getApp().GetImageProcessing().DetectSpots2(aDataSet,
+                spots = EasyXT.getImaris().GetImageProcessing().DetectSpots2(aDataSet,
                         aRegionsOfInterest,
                         aChannelIndex,
                         aEstimateDiameter,
@@ -161,7 +161,7 @@ public class SpotsDetector {
 
         private SpotsDetectorBuilder(int channelIndex) throws Error {
             // default values
-            aDataSet = EasyXT.getApp().GetDataSet();
+            aDataSet = EasyXT.getImaris().GetDataSet();
             this.aChannelIndex = channelIndex;
         }
 

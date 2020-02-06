@@ -15,52 +15,88 @@ import ij.process.ShortProcessor;
 import net.imagej.ImageJ;
 
 import java.util.*;
+import java.util.function.Consumer;
+
+/**
+ * EasyXT static class:
+ *
+ * Wrap Imaris Extension API in a convenient way
+ *
+ */
 
 
-import static java.lang.System.out;
+// TODO: Statistics Manipulation methods
 
-// TODO Comment
+// TODO: Creating Spots and Surfaces
+
+// TODO: Detecting Spots and Surfaces, with tracking
+
+// TODO: Convert spots to channel
+
+// TODO: Mask Channel using spots or surfaces
+
+// TODO: Creating Spots And Surfaces
+
+// TODO: Find way to batch process OpenImage() with doc
+
+// TODO: Make Documentation
+
+// TODO: Allow easy getting and setting of images per channel
+
+
 public class EasyXT {
     private static IApplicationPrx app;
-    private static IceClient mIceClient = null;
-    private static Map<tType, Integer> datatype;
+    private static IceClient mIceClient;
+    public static Map<tType, Integer> datatype;
     private static String mEndPoints = "default -p 4029";
 
+    /**
+     * Standard logger
+     */
+    private static Consumer<String> log = (str) -> System.out.println("EasyXT : "+str);
+
+    /**
+     * Error logger
+     */
+    private static Consumer<String> errlog = (str) -> System.err.println("EasyXT : "+str);
+
+    /**
+     * Static initialisation :
+     * Gets the Imaris server
+     * Ensure the connection is closed on JVM closing
+     */
     static {
-        System.out.println( "Initializing EasyXT" );
+        log.accept( "Initializing EasyXT" );
+        // Populate static map : Imaris Type -> Bit Depth
         Map<tType, Integer> tmap = new HashMap<>( 4 );
-        tmap.put( tType.eTypeUInt8, 8 );
-        tmap.put( tType.eTypeUInt16, 16 );
-        tmap.put( tType.eTypeFloat, 32 );
-        tmap.put( tType.eTypeUnknown, -1 );
+        tmap.put( tType.eTypeUInt8, 8 );    // Unsigned integer, 8  bits : 0..255
+        tmap.put( tType.eTypeUInt16, 16 );  // Unsigned integer, 16 bits : 0..65535
+        tmap.put( tType.eTypeFloat, 32 );   // Float 32 bits
+        tmap.put( tType.eTypeUnknown, -1 ); // ? Something else
 
         datatype = Collections.unmodifiableMap( tmap );
 
         mIceClient = new IceClient( "ImarisServer", mEndPoints, 10000 );
-        app = getApp( mIceClient.GetServer( ), 0 );
+        app = getImaris( mIceClient.GetServer( ), 0 );
 
+        // Closing connection on jvm close
         Runtime.getRuntime( ).addShutdownHook(
-                new Thread( new Runnable( ) {
-                    @Override
-                    public void run( ) {
-                        out.println( "Closing ICE Connection from Imaris..." );
-                        CloseIceClient( );
-                        out.println( "Done." );
-
-                    }
-                } )
+                new Thread(() -> {
+                    log.accept( "Closing ICE Connection from Imaris..." );
+                    CloseIceClient( );
+                    log.accept( "Done." );
+                })
 
         );
     }
 
     // TODO Refactor & Comment
-    private static IceClient GetIceClient( ) {
+    /* private static IceClient GetIceClient( ) {
         if ( mIceClient == null ) {
             mIceClient = new IceClient( "ImarisServer", mEndPoints, 10000 );
         }
-
         return mIceClient;
-    }
+    }*/
 
     // TODO Refactor & Comment
     private static void CloseIceClient( ) {
@@ -71,20 +107,27 @@ public class EasyXT {
     }
 
     // TODO Refactor & Comment
-    private static IApplicationPrx getApp( IServerPrx var0, int var1 ) {
+    private static IApplicationPrx getImaris(IServerPrx var0, int var1 ) {
         ObjectPrx var2 = var0.GetObject( var1 );
         return IApplicationPrxHelper.checkedCast( var2 );
     }
 
-    // TODO Rename to getImaris?
-    public static IApplicationPrx getApp( ) {
+    /**
+     * Returns instance of Imaris App
+     * @return
+     */
+    public static IApplicationPrx getImaris( ) {
         return app;
     }
 
-    // TODO Comment
+    /**
+     * Helper method : returns the class of an Imaris Object
+     * @param object
+     * @return class of the contained object
+     * @throws Error
+     */
     private static Class<?> getType( IDataItemPrx object ) throws Error {
         IFactoryPrx factory = app.GetFactory( );
-
         if ( factory.IsSpots( object ) ) {
             return ISpots.class;
         }
@@ -112,24 +155,6 @@ public class EasyXT {
         return null;
     }
 
-    // TODO: Statistics Manipulation methods
-
-    // TODO: Creating Spots and Surfaces
-
-    // TODO: Detecting Spots and Surfaces, with tracking
-
-    // TODO: Convert spots to channel
-
-    // TODO: Mask Channel using spots or surfaces
-
-    // TODO: Creating Spots And Surfaces
-
-    // TODO: Find way to batch process OpenImage() with doc
-
-    // TODO: Make Documentation
-
-    // TODO: Allow easy getting and setting of images per channel
-
     // TODO Comment
     public static ISurfacesPrx getSurfaces( String name ) throws Error {
         IDataItemPrx object = getObject( name, ISurfaces.class );
@@ -137,7 +162,14 @@ public class EasyXT {
         return surf;
     }
 
-    // TODO Comment
+    /**
+     * Returns an ImagePlus image of a dataset
+     * TODO : add a way to select only a subpart of it
+     *
+     * @param dataset
+     * @return
+     * @throws Error
+     */
     public static ImagePlus getImagePlus( IDataSetPrx dataset ) throws Error {
 
         int nc = dataset.GetSizeC( );
@@ -147,6 +179,8 @@ public class EasyXT {
 
         int w = dataset.GetSizeX( );
         int h = dataset.GetSizeY( );
+
+
         ImarisCalibration cal = new ImarisCalibration( dataset );
         int bitdepth = getBitDepth( dataset );
 
@@ -186,7 +220,14 @@ public class EasyXT {
         return imp;
 
     }
-    // TODO Comment
+
+    /**
+     * Returns bitdepth of a dataset.
+     * See {@link EasyXT#datatype}
+     * @param dataset
+     * @return
+     * @throws Error
+     */
     public static int getBitDepth( IDataSetPrx dataset ) throws Error {
         tType type = dataset.GetType( );
         // Thanks NICO
@@ -236,6 +277,7 @@ public class EasyXT {
 
         return imp;
     }
+
     // TODO Comment
     public static IDataSetPrx getSurfaceDataset( ISurfacesPrx surface, double downsample, int timepoint ) throws Error {
         ImarisCalibration cal = new ImarisCalibration( app.GetDataSet( ) ).getDownsampled( downsample );
@@ -246,63 +288,12 @@ public class EasyXT {
         return data;
     }
 
-    // TODO Comment
-    public static void main( String[] args ) throws Error {
-        ImageJ ij = new ImageJ( );
-        ij.ui( ).showUI( );
-        /*
-        try {
-
-            //ISpotsPrx spots = e.getSpotsObject( "Spots From neutro" );
-
-            // Arrange
-            // create the ImageJ application context with all available services
-            ImageJ ij = new ImageJ();
-            ij.ui().showUI();
-            //ij.setVisible(true);
-
-            // Makes a surface detector and detect the surface
-            /*
-            ISurfacesPrx surf = SurfacesDetector.Channel(0)
-                    .setSmoothingWidth(5)
-                    .setLowerThreshold(20)
-                    .setName("My Surface")
-                    .setColor(new Integer[]{255,120,45})
-                    .build()
-                    .detect();
-
-            // Adds the surface to the scene
-            //EasyXT.getApp().GetSurpassScene().AddChild(surf,0);
-
-
-            // Gets an existing surface
-
-            //surf = EasyXT.getSurfaces( "My surface" );
-
-            // Display surfaces
-
-            EasyXT.getSurfaceMask( surf ).show();
-
-
-            /*ISpotsPrx spots = ch.epfl.biop.imaris.SpotsDetector.Channel(2)
-                                .setDiameter(5)
-                                .isSubtractBackground(true)
-                                .setName("Spot from FIJI")
-                                .build()
-                                .detect();
-
-            // Adds the spots to the scene
-            EasyXT.getApp().GetSurpassScene().AddChild(spots,0);
-
-            //EasyXT.getSpots
-
-        } catch ( Error error ) {
-            out.println( "ERROR:"+ error.mDescription);
-        }
-        */
-    }
-
-    // TODO Comment
+    /**
+     *
+     * @param name
+     * @return
+     * @throws Error
+     */
     public ISpotsPrx getSpots( String name ) throws Error {
         IDataItemPrx object = getObject( name, ISpots.class );
         ISpotsPrx spot = app.GetFactory( ).ToSpots( object );

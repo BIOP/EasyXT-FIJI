@@ -4,15 +4,20 @@ import Imaris.Error;
 import Imaris.IDataSetPrx;
 import ij.measure.Calibration;
 
+/**
+ * Extension of ImageJ calibration:
+ * Easy way to set ImageJ calibration from an Imaris dataset
+ * by using a custom constructor
+ */
 public class ImarisCalibration extends Calibration {
     public final double xEnd, yEnd, zEnd;
     public int xSize, ySize, zSize, cSize, tSize;
 
     public ImarisCalibration( IDataSetPrx dataset ) throws Error {
 
-        // YES Bitch, I know it's supposed to be pixels... BUT
+        // I know it's supposed to be pixels... BUT
         // why is it double then?
-        // Makes no sense se here I do what I want
+        // Makes no sense so here I do what I want
         this.xOrigin = dataset.GetExtendMinX();
         this.yOrigin = dataset.GetExtendMinY();
         this.zOrigin = dataset.GetExtendMinZ();
@@ -28,9 +33,9 @@ public class ImarisCalibration extends Calibration {
         this.cSize = dataset.GetSizeC();
         this.tSize = dataset.GetSizeT();
 
-        this.pixelWidth  = Math.abs( this.xEnd - this.xOrigin  ) / this.xSize;
-        this.pixelHeight = Math.abs( this.yEnd - this.yOrigin  ) / this.ySize;
-        this.pixelDepth  = Math.abs( this.zEnd - this.zOrigin  ) / this.zSize;
+        this.pixelWidth  = Math.abs( this.xEnd - this.xOrigin ) / this.xSize;
+        this.pixelHeight = Math.abs( this.yEnd - this.yOrigin ) / this.ySize;
+        this.pixelDepth  = Math.abs( this.zEnd - this.zOrigin ) / this.zSize;
 
         this.setUnit( dataset.GetUnit() );
         this.setTimeUnit( "s" );

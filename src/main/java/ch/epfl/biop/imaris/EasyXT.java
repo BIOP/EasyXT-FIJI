@@ -5,19 +5,19 @@ import Imaris.*;
 import Imaris.Error;
 import ImarisServer.IServerPrx;
 import com.bitplane.xt.IceClient;
+import ij.CompositeImage;
+import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.plugin.HyperStackConverter;
-import ij.process.ByteProcessor;
-import ij.process.FloatProcessor;
-import ij.process.ImageProcessor;
-import ij.process.ShortProcessor;
+import ij.process.*;
 import net.imagej.ImageJ;
 
 import java.awt.*;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.IntStream;
 
 /**
  * EasyXT static class:
@@ -217,8 +217,23 @@ public class EasyXT {
         }
         imp.setStack( stack );
         imp.setCalibration( cal );
-
         imp = HyperStackConverter.toHyperStack( imp, nc, nz, nt );
+
+        // Set LookUpTables
+        if (imp instanceof CompositeImage) {
+
+            LUT[] luts = new LUT[nc];
+
+            for (int c=0;c<nc;c++) {
+                Color color = EasyXT.getColorFromInt(dataset.GetChannelColorRGBA(c));
+                luts[c] = LUT.createLutFromColor(color);
+            }
+
+            ((CompositeImage)imp).setLuts(luts);
+        } else if (nc==1) {
+            imp.setLut(LUT.createLutFromColor(EasyXT.getColorFromInt(dataset.GetChannelColorRGBA(0))));
+        }
+
         return imp;
 
     }
@@ -256,8 +271,20 @@ public class EasyXT {
             final_dataset.SetDataVolumeAs1DArrayBytes( one_timepoint.GetDataVolumeAs1DArrayBytes( 0, 0 ), 0, t );
         }
 
-        return getImagePlus( final_dataset );
+        // Get raw ImagePlus
+        ImagePlus impSurface = getImagePlus( final_dataset );
 
+        // Multiply by 255 to allow to use ImageJ binary functions
+        int nProcessor = impSurface.getStack().getSize();
+        IntStream.range(0, nProcessor).parallel().forEach(index -> {
+            impSurface.getStack().getProcessor(index+1).multiply(255);
+        });
+
+        // Set LUT and display range
+        impSurface.setLut(LUT.createLutFromColor(EasyXT.getColorFromInt(surface.GetColorRGBA())));
+        impSurface.setDisplayRange(0,255);
+
+        return impSurface;
     }
 
     // TODO Comment

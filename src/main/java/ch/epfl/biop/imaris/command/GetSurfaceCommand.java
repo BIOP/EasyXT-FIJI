@@ -28,13 +28,6 @@ public class GetSurfaceCommand implements Command{
             ISurfacesPrx surfprx = EasyXT.getSurfaces( surfaceName );
             // Display surfaces
             surface = EasyXT.getSurfaceMask( surfprx );
-            surface.setLut(LUT.createLutFromColor(EasyXT.getColorFromInt(surfprx.GetColorRGBA())));
-            surface.setDisplayRange(0,255);
-            // Multiply by 255 to allow to use ImageJ binary functions
-            int nProcessor = surface.getStack().getSize();
-            IntStream.range(0, nProcessor).parallel().forEach(index -> {
-                surface.getStack().getProcessor(index+1).multiply(255);
-            });
 
         } catch (Error error) {
             error.printStackTrace();

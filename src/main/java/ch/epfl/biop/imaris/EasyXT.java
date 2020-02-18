@@ -14,6 +14,8 @@ import ij.process.ImageProcessor;
 import ij.process.ShortProcessor;
 import net.imagej.ImageJ;
 
+import java.awt.*;
+import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -318,5 +320,18 @@ public class EasyXT {
         public Class getType( ) {
             return this.cls;
         }
+    }
+
+    public static Color getColorFromInt(int color) {
+        byte[] bytes = ByteBuffer.allocate(4).putInt(color).array();
+        int[] colorArray = new int[3];
+        colorArray[0] = bytes[3] & 0xFF;
+        colorArray[1] = bytes[2] & 0xFF;
+        colorArray[2] = bytes[1] & 0xFF;
+        return getColorIntFromIntArray(colorArray);
+    }
+
+    public static Color getColorIntFromIntArray(int[] color) {
+        return new Color(color[0], color[1], color[2]);
     }
 }

@@ -182,8 +182,7 @@ public class SurfacesDetector {
 
 
         if (color!=null) {
-            // TODO
-            //surfaces.SetColor ( annoying stuff to convert )
+            surfaces.SetColorRGBA( color[0] + (color[1] * 256) + (color[2] * 256 * 256 ) );
         }
 
         return surfaces;

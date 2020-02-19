@@ -175,7 +175,6 @@ public class EasyXT {
     public static ImagePlus getImagePlus( IDataSetPrx dataset ) throws Error {
 
         int nc = dataset.GetSizeC( );
-        ;
         int nz = dataset.GetSizeZ( );
         int nt = dataset.GetSizeT( );
 
@@ -228,15 +227,64 @@ public class EasyXT {
                 Color color = EasyXT.getColorFromInt(dataset.GetChannelColorRGBA(c));
                 luts[c] = LUT.createLutFromColor(color);
             }
-
+            // TODO : transfer min max
             ((CompositeImage)imp).setLuts(luts);
         } else if (nc==1) {
+            // TODO : transfer min max
             imp.setLut(LUT.createLutFromColor(EasyXT.getColorFromInt(dataset.GetChannelColorRGBA(0))));
         }
 
         return imp;
 
     }
+
+    /**
+     * Set data from an ImagePlus image into a dataset
+     * TODO : add a way to select only a subpart of it
+     *
+     * @param dataset
+     * @return
+     * @throws Error
+     */
+    public static void setImagePlus( IDataSetPrx dataset, ImagePlus imp ) throws Error {
+
+        int nc = dataset.GetSizeC( );
+        int nz = dataset.GetSizeZ( );
+        int nt = dataset.GetSizeT( );
+
+        int w = dataset.GetSizeX( );
+        int h = dataset.GetSizeY( );
+
+
+        ImarisCalibration cal = new ImarisCalibration( dataset );
+        int bitdepth = getBitDepth( dataset );
+
+        for ( int c = 0; c < nc; c++ ) {
+            for ( int z = 0; z < nz; z++ ) {
+                for ( int t = 0; t < nt; t++ ) {
+                    int idx = imp.getStackIndex( c + 1, z + 1, t + 1 );
+                    ImageProcessor ip  = imp.getStack().getProcessor(idx);
+                    switch ( bitdepth ) {
+                        case 8:
+                            /*System.out.println("c "+c+" z "+ z+" t "+t);
+                            byte[] datab = dataset.GetDataSubVolumeAs1DArrayBytes( 0, 0, z, c, t, w, h, 1 );
+                            System.out.println("Length i = "+datab.length);
+                            System.out.println("Length "+((byte[])ip.getPixels()).length);*/
+                            //(byte[]) ip.getPixels()
+                            dataset.SetDataSubVolumeAs1DArrayBytes(((byte[]) ip.getPixels()), 0, 0, z, c, t, w, h, 1);
+                            break;
+                        case 16:
+                            dataset.SetDataSubVolumeAs1DArrayShorts((short[]) ip.getPixels(), 0, 0, z, c, t, w, h, 1);
+                            break;
+                        case 32:
+                            dataset.SetDataSubVolumeAs1DArrayFloats((float[]) ip.getPixels(), 0, 0, z, c, t, w, h, 1);
+                            break;
+                    }
+                }
+            }
+        }
+    }
+
 
     /**
      * Returns bitdepth of a dataset.
@@ -256,8 +304,7 @@ public class EasyXT {
         return getImagePlus( channel, dataset );
     }*/
 
-    // TODO Comment
-    public static ImagePlus getSurfaceMask( ISurfacesPrx surface ) throws Error {
+    public static IDataSetPrx getSurfaceDataset(ISurfacesPrx surface ) throws Error {
         // Check if there are channels
         ImarisCalibration cal = new ImarisCalibration( app.GetDataSet( ) );
 
@@ -271,8 +318,14 @@ public class EasyXT {
             final_dataset.SetDataVolumeAs1DArrayBytes( one_timepoint.GetDataVolumeAs1DArrayBytes( 0, 0 ), 0, t );
         }
 
+        return final_dataset;
+    }
+
+    // TODO Comment
+    public static ImagePlus getSurfaceMask( ISurfacesPrx surface ) throws Error {
+
         // Get raw ImagePlus
-        ImagePlus impSurface = getImagePlus( final_dataset );
+        ImagePlus impSurface = getImagePlus( getSurfaceDataset(surface) );
 
         // Multiply by 255 to allow to use ImageJ binary functions
         int nProcessor = impSurface.getStack().getSize();
@@ -283,8 +336,29 @@ public class EasyXT {
         // Set LUT and display range
         impSurface.setLut(LUT.createLutFromColor(EasyXT.getColorFromInt(surface.GetColorRGBA())));
         impSurface.setDisplayRange(0,255);
+        impSurface.setTitle(surface.GetName());
 
         return impSurface;
+    }
+
+    // TODO Comment
+    public static void setSurfaceMask( ISurfacesPrx surface, ImagePlus imp ) throws Error {
+
+        // Divide by 255 to allow to use ImageJ binary functions
+        int nProcessor = imp.getStack().getSize();
+        IntStream.range(0, nProcessor).parallel().forEach(index -> {
+            imp.getStack().getProcessor(index+1).multiply(1.0/255.0);
+        });
+
+        IDataSetPrx dataset = EasyXT.getSurfaceDataset(surface);
+        surface.RemoveAllSurfaces();
+        EasyXT.setImagePlus(dataset, imp);
+        surface.AddSurface(dataset,0);
+
+        IntStream.range(0, nProcessor).parallel().forEach(index -> {
+            imp.getStack().getProcessor(index+1).multiply(255);
+        });
+
     }
 
     // TODO Comment

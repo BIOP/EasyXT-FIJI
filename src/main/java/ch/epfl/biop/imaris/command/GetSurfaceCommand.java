@@ -4,13 +4,10 @@ import Imaris.Error;
 import Imaris.ISurfacesPrx;
 import ch.epfl.biop.imaris.EasyXT;
 import ij.ImagePlus;
-import ij.process.LUT;
 import org.scijava.ItemIO;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-
-import java.util.stream.IntStream;
 
 @Plugin(type = Command.class, menuPath = "EasyXT>Surface>Get Surface from Imaris")
 public class GetSurfaceCommand implements Command{

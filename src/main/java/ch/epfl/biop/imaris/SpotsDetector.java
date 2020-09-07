@@ -11,8 +11,8 @@ import Imaris.ISpotsPrx;
  * - DetectSpots2()
  * - DetectSpotsRegionGrowing() TODO: implement and explain how the builder switch or not to this function
  *
- * DetectSpotsWithRegions() not supported -> replaced by DetectSpotsRegionGrowing() T
- * DetectSpots() obsolete -> replaced by DetectSpots2()
+ * DetectSpotsWithRegions() not supported -&gt; replaced by DetectSpotsRegionGrowing() T
+ * DetectSpots() obsolete -&gt; replaced by DetectSpots2()
  *
  * The Builder is tuned to allow for an invisible switch between these functions depending on the builder methods calls
  *

@@ -243,7 +243,6 @@ public class EasyXT {
      * TODO : add a way to select only a subpart of it
      *
      * @param dataset
-     * @return
      * @throws Error
      */
     public static void setImagePlus( IDataSetPrx dataset, ImagePlus imp ) throws Error {

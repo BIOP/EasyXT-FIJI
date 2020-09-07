@@ -23,3 +23,6 @@ To work on the repository :
     3. `C:\Program Files\Bitplane\Imaris x64 9.5.1\XT\rtmatlab\ImarisLib.jar`
 4. Run Imaris
 5. Ready to go ! - You can run the EasyXT Main method
+
+## Documentation
+https://biop.github.io/EasyXT-FIJI/javadoc/apidocs/

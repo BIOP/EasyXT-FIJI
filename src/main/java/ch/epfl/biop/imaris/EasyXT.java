@@ -9,6 +9,7 @@ import ij.CompositeImage;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
+import ij.measure.Calibration;
 import ij.plugin.HyperStackConverter;
 import ij.process.*;
 import net.imagej.ImageJ;
@@ -25,11 +26,6 @@ import java.util.stream.IntStream;
  * Wrap Imaris Extension API in a convenient way
  *
  */
-
-
-// TODO: Statistics Manipulation methods
-
-// TODO: Creating Spots and Surfaces
 
 // TODO: Detecting Spots and Surfaces, with tracking
 
@@ -90,6 +86,8 @@ public class EasyXT {
                 })
 
         );
+
+        log.accept( "Initialization Done. Ready to call EasyXT" );
     }
 
     // TODO Refactor & Comment
@@ -135,6 +133,9 @@ public class EasyXT {
         }
         if ( factory.IsSurfaces( object ) ) {
             return ISurfaces.class;
+        }
+        if ( factory.IsVolume( object ) ) {
+            return IVolume.class;
         }
         return null;
     }
@@ -241,6 +242,7 @@ public class EasyXT {
     /**
      * Set data from an ImagePlus image into a dataset
      * TODO : add a way to select only a subpart of it
+     * TODO : Return a new dataset or the existing dataset?
      *
      * @param dataset
      * @return
@@ -285,25 +287,131 @@ public class EasyXT {
         }
     }
 
+    public static IDataSetPrx getCurrentDataset() throws Error { return EasyXT.getImaris().GetDataSet(); }
+    public static void setCurrentDataset( IDataSetPrx dataset ) throws Error { EasyXT.getImaris().SetDataSet( dataset ); }
 
     /**
-     * Returns bitdepth of a dataset.
-     * See {@link EasyXT#datatype}
+     * Adds the selected ImagePlus to the provided IDatasetPrx by appending it as new channels
+     * This will work only if the ImagePlus is not larger than the IDatasetPrx
+     * @param imp the image to add to the current dataset
+     * @throws Error an imaris error object
+     */
+    public static void addChannels( ImagePlus imp ) throws Error {
+
+        // Ensure that the image is not larger than the dataset
+        IDataSetPrx dataset = EasyXT.getCurrentDataset( );
+        if ( !( dataset.GetSizeX( ) >= imp.getWidth( ) && dataset.GetSizeY( ) >= imp.getHeight( ) && dataset.GetSizeZ( ) >= imp.getNSlices( ) && dataset.GetSizeT( ) >= imp.getNFrames( ) ) ) {
+            errlog.accept( "Dataset and ImagePlus do not have the same size in XYZT" );
+            errlog.accept( "  Dataset\t(X,\tY,\tZ,\tT):\t ("+dataset.GetSizeX( )+",\t"+dataset.GetSizeY( )+",\t"+dataset.GetSizeZ( )+",\t"+dataset.GetSizeT( )+")");
+            errlog.accept( "  Image\t(X,\tY,\tZ,\tT):\t ("+imp.getWidth( )+",\t"+imp.getHeight( )+",\t"+imp.getNSlices( )+",\t"+imp.getNFrames( )+")");
+            return;
+        }
+        addChannels( dataset, imp, 0,0,0 );
+    }
+
+    public static void addChannels( IDataSetPrx dataset, ImagePlus imp) throws Error {
+        addChannels( dataset, imp, 0,0,0 );
+    }
+
+    /**
+     * Adds the selected ImagePlus to the provided IDatasetPrx by appending it as new channels
+     * The user can define the start location XYZ in pixels
+     * @param imp
      * @param dataset
-     * @return
+     * @param xstart
+     * @param ystart
+     * @param zstart
      * @throws Error
      */
-    public static int getBitDepth( IDataSetPrx dataset ) throws Error {
-        tType type = dataset.GetType( );
-        // Thanks NICO
-        return datatype.get( type );
+    public static void addChannels( IDataSetPrx dataset, ImagePlus imp, int xstart, int ystart, int zstart ) throws Error {
+
+        // Allow this only if images have the same bit depth
+        int bitdepth = getBitDepth( dataset );
+
+        // TODO : Is this necessary? Perhaps Imaris does not care adding into to floats?
+        if( bitdepth != imp.getBitDepth() ) {
+            errlog.accept( "addChannels: Dataset and ImagePlus do not have the same bit depth ("+bitdepth+"-bit vs "+imp.getBitDepth()+"-bit respectively)" );
+        }
+        // Get the extents of the image
+        Calibration cal = imp.getCalibration();
+
+        int w = imp.getWidth();
+        int h = imp.getHeight();
+
+        int nz = imp.getNSlices();
+        int nt = imp.getNFrames();
+        int nc = imp.getNChannels( );
+
+        int ndc = dataset.GetSizeC();
+
+        // TODO : Check that the xyzt bounds of the imageplus do not exceed the bounds of the dataset OR enlarge the dataset as needed
+
+        // Enlarge the dataset
+        dataset.SetSizeC( ndc+nc );
+
+        // Now loop through the dimensions of the ImagePlus to add data
+        for ( int c = 0; c < nc; c++ ) {
+            int idx = imp.getStackIndex( c + 1, 1, 1 );
+            int color = imp.getStack( ).getProcessor( idx ).getColorModel( ).getRGB( 255 );
+
+            dataset.SetChannelColorRGBA( c, color );
+
+            for ( int z = 0; z < nz; z++ ) {
+                for ( int t = 0; t < nt; t++ ) {
+                    idx = imp.getStackIndex( c + 1, z + 1, t + 1 );
+                    ImageProcessor ip  = imp.getStack().getProcessor(idx);
+                    switch ( bitdepth ) {
+                        case 8:
+                            dataset.SetDataSubVolumeAs1DArrayBytes(((byte[]) ip.getPixels()), xstart, ystart, zstart+z, c+ndc, t, w, h, 1);
+                            break;
+                        case 16:
+                            dataset.SetDataSubVolumeAs1DArrayShorts((short[]) ip.getPixels(), xstart, ystart, zstart+z, c+ndc, t, w, h, 1);
+                            break;
+                        case 32:
+                            dataset.SetDataSubVolumeAs1DArrayFloats((float[]) ip.getPixels(), xstart, ystart, zstart+z, c+ndc, t, w, h, 1);
+                            break;
+                    }
+                }
+            }
+        }
     }
+
+    /**
+     * Adds the provided Object to the Main Imaris Scene
+     * @param item the item (Spot, Surface, Folder to add
+     * @throws Error
+     */
+    public static void addToScene( IDataContainerPrx item) throws Error {
+        app.GetSurpassScene().AddChild( item, -1 );
+    }
+
+    /**
+     * Adds the provided item as the last child to the provided parent object
+     * @param parent The parent object
+     * @param item the item to add as a child
+     * @throws Error
+     */
+    public static void addToScene( IDataContainerPrx parent, IDataItemPrx item) throws Error {
+        parent.AddChild( item, -1 );
+    }
+
+    public static IDataContainerPrx createGroup( String groupName ) throws Error {
+        IDataContainerPrx group = app.GetFactory().CreateDataContainer( );
+        group.SetName( groupName );
+        return group;
+    }
+
 
   /*  public ImagePlus getChannelImage(int channel ) throws Error {
         IDataSetPrx dataset = app.GetDataSet( );
         return getImagePlus( channel, dataset );
     }*/
 
+    /*
+     * Surface Related functions
+     */
+
+    // TODO Comment
     public static IDataSetPrx getSurfaceDataset(ISurfacesPrx surface ) throws Error {
         // Check if there are channels
         ImarisCalibration cal = new ImarisCalibration( app.GetDataSet( ) );
@@ -391,21 +499,22 @@ public class EasyXT {
         return data;
     }
 
-    /**
+    /*
+     * Spot Related Functions
      *
-     * @param name
-     * @return
-     * @throws Error
      */
+
+    // TODO Comment
     public ISpotsPrx getSpots( String name ) throws Error {
         IDataItemPrx object = getObject( name, ISpots.class );
         ISpotsPrx spot = app.GetFactory( ).ToSpots( object );
         return spot;
     }
 
-    // TODO Comment
-    public void addChannel( ) {
-    }
+
+    /**
+     * Helpers
+     */
 
     // TODO Comment
     public enum ItemClass {
@@ -423,6 +532,7 @@ public class EasyXT {
         }
     }
 
+    // TODO Comment
     public static Color getColorFromInt(int color) {
         byte[] bytes = ByteBuffer.allocate(4).putInt(color).array();
         int[] colorArray = new int[3];
@@ -432,7 +542,22 @@ public class EasyXT {
         return getColorIntFromIntArray(colorArray);
     }
 
+    // TODO Comment
     public static Color getColorIntFromIntArray(int[] color) {
         return new Color(color[0], color[1], color[2]);
     }
+
+    /**
+     * Returns bitdepth of a dataset.
+     * See {@link EasyXT#datatype}
+     * @param dataset
+     * @return
+     * @throws Error
+     */
+    public static int getBitDepth( IDataSetPrx dataset ) throws Error {
+        tType type = dataset.GetType( );
+        // Thanks NICO
+        return datatype.get( type );
+    }
+
 }

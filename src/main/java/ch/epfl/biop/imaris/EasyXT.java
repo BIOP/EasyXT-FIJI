@@ -6,15 +6,14 @@ import Imaris.Error;
 import ImarisServer.IServerPrx;
 import com.bitplane.xt.IceClient;
 import ij.CompositeImage;
-import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.measure.Calibration;
 import ij.plugin.HyperStackConverter;
 import ij.process.*;
-import net.imagej.ImageJ;
 
 import java.awt.*;
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.function.Consumer;
@@ -505,7 +504,81 @@ public class EasyXT {
 
     /*
      * Spot Related Functions
+     * openImage, opens the file from filepath in a new imaris scene
      *
+     * @param filepath path  to an *.ims file
+     * @param options option string cf : xtinterface/structImaris_1_1IApplication.html/FileOpen
+     * @throws Error
+     */
+
+    public static void openImage(File filepath, String options) throws Error {
+        if (!filepath.exists()) {
+            errlog.accept(filepath + "doesn't exist");
+            return;
+        }
+
+        if (!filepath.isFile() ) {
+            errlog.accept(filepath + "is not a file");
+            return;
+        }
+
+        if (!filepath.getName().endsWith("ims") ) {
+            errlog.accept(filepath + "is not an imaris file, please convert your image first");
+            return;
+        }
+
+        app.FileOpen( filepath.getAbsolutePath(), options);
+
+    }
+
+    /**
+     * overloaded method , see {@link #openImage(File, String)}
+     *
+     * @param filepath to an *.ims file
+     * @throws Error
+     */
+
+    public static void openImage(File filepath) throws Error {
+
+        openImage(filepath, "");
+
+    }
+
+    /**
+     * saveImage, saves the current imaris scene to an imaris file
+     *
+     * @param filepath path to save ims file
+     * @param options option string cf : xtinterface/structImaris_1_1IApplication.html/FileSave
+     *                eg writer="BMPSeries". List of formats available: Imaris5, Imaris3, Imaris2,SeriesAdjustable,
+     *                TiffSeriesRGBA, ICS, OlympusCellR, OmeXml, BMPSeries, MovieFromSlices.
+     * @throws Error
+     */
+    public static void saveImage(File filepath, String options ) throws Error {
+        if (!filepath.getName().endsWith("ims") ) {
+            filepath = new File ( filepath.getAbsoluteFile()+".ims");
+            System.out.println("Saved as : "+filepath.getAbsoluteFile());
+        }
+        app.FileSave( filepath.getAbsolutePath(), options);
+
+    }
+
+    /**
+     * overloaded method , see {@link #saveImage(File, String)}
+     *
+     * @param filepath path to save ims file
+     * @throws Error
+     */
+    public static void saveImage(File filepath ) throws Error {
+
+        saveImage( filepath, "");
+
+    }
+
+    /**
+     *
+     * @param name
+     * @return
+     * @throws Error
      */
 
     // TODO Comment

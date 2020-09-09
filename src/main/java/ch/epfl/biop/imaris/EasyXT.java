@@ -6,14 +6,14 @@ import Imaris.Error;
 import ImarisServer.IServerPrx;
 import com.bitplane.xt.IceClient;
 import ij.CompositeImage;
-import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.plugin.HyperStackConverter;
 import ij.process.*;
-import net.imagej.ImageJ;
 
 import java.awt.*;
+//import java.io.File;
+import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.*;
 import java.util.function.Consumer;
@@ -390,6 +390,51 @@ public class EasyXT {
                 cal.xSize, cal.ySize, cal.zSize, timepoint );
         return data;
     }
+
+    /**
+     * openImage, opens the file from filepath in a new imaris scene
+     *
+     * @param filepath path  to an *.ims file
+     * @param options option string cf : xtinterface/structImaris_1_1IApplication.html/FileOpen
+     * @throws Error
+     */
+
+    public static void openImage(File filepath, String options) throws Error {
+        if (!filepath.exists()) {
+            errlog.accept(filepath + "doesn't exist");
+            return;
+        }
+
+        if (!filepath.isFile() ) {
+            errlog.accept(filepath + "is not a file");
+            return;
+        }
+
+        if (!filepath.getName().endsWith("ims") ) {
+            errlog.accept(filepath + "is not an imaris file, please convert your image first");
+            return;
+        }
+
+        app.FileOpen( filepath.getAbsolutePath(), options);
+
+    }
+
+    /**
+     * overloaded method , see {@link #openImage(File, String)}
+     *
+     * @param filepath to an *.ims file
+     * @throws Error
+     */
+
+    public static void openImage(File filepath) throws Error {
+
+        openImage(filepath, "");
+
+    }
+
+
+
+
 
     /**
      *

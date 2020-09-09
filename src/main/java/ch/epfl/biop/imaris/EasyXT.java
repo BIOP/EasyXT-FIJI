@@ -444,7 +444,7 @@ public class EasyXT {
     public static void saveImage(File filepath, String options ) throws Error {
         if (!filepath.getName().endsWith("ims") ) {
             filepath = new File ( filepath.getAbsoluteFile()+".ims");
-            System.out.println("Saved as : "filepath.getAbsoluteFile());
+            System.out.println("Saved as : "+filepath.getAbsoluteFile());
         }
         app.FileSave( filepath.getAbsolutePath(), options);
 

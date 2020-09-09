@@ -12,7 +12,6 @@ import ij.plugin.HyperStackConverter;
 import ij.process.*;
 
 import java.awt.*;
-//import java.io.File;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -461,8 +460,6 @@ public class EasyXT {
         saveImage( filepath, "");
 
     }
-
-
 
     /**
      *

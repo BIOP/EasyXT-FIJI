@@ -432,7 +432,35 @@ public class EasyXT {
 
     }
 
+    /**
+     * saveImage, saves the current imaris scene to an imaris file
+     *
+     * @param filepath path to save ims file
+     * @param options option string cf : xtinterface/structImaris_1_1IApplication.html/FileSave
+     *                eg writer="BMPSeries". List of formats available: Imaris5, Imaris3, Imaris2,SeriesAdjustable,
+     *                TiffSeriesRGBA, ICS, OlympusCellR, OmeXml, BMPSeries, MovieFromSlices.
+     * @throws Error
+     */
+    public static void saveImage(File filepath, String options ) throws Error {
+        if (!filepath.getName().endsWith("ims") ) {
+            filepath = new File ( filepath.getAbsoluteFile()+".ims");
+            System.out.println("Saved as : "filepath.getAbsoluteFile());
+        }
+        app.FileSave( filepath.getAbsolutePath(), options);
 
+    }
+
+    /**
+     * overloaded method , see {@link #saveImage(File, String)}
+     *
+     * @param filepath path to save ims file
+     * @throws Error
+     */
+    public static void saveImage(File filepath ) throws Error {
+
+        saveImage( filepath, "");
+
+    }
 
 
 

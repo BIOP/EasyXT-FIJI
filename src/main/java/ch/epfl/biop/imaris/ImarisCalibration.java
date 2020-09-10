@@ -11,7 +11,7 @@ import ij.measure.Calibration;
  */
 public class ImarisCalibration extends Calibration {
     public final double xEnd, yEnd, zEnd;
-    public int xSize, ySize, zSize, cSize, tSize, bitDepth;
+    public int xSize, ySize, zSize, cSize, tSize;
 
     public ImarisCalibration( IDataSetPrx dataset ) throws Error {
 
@@ -40,8 +40,6 @@ public class ImarisCalibration extends Calibration {
         this.setUnit( dataset.GetUnit() );
         this.setTimeUnit( "s" );
         this.frameInterval = dataset.GetTimePointsDelta();
-        
-        this.bitDepth = EasyXT.getBitDepth( dataset );
     }
 
     public ImarisCalibration getDownsampled( double downsample ) {

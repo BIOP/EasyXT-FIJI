@@ -20,7 +20,6 @@ public class AllGetters {
         // Single spot
         ISpotsPrx spotByName = EasyXT.getSpots( "Spots 1" );
         ISpotsPrx spotByPosition = EasyXT.getSpots( 1 ); // 0 based
-        ISpotsPrx spotByBoth = EasyXT.getSpots( 1 ); // 0 based
 
         // All Spots in Scene
         List<ISpotsPrx> spotsList = EasyXT.getAllSpots( );
@@ -28,7 +27,6 @@ public class AllGetters {
         // Single surface
         ISurfacesPrx surfaceByName = EasyXT.getSurfaces( "Surfaces 1" );
         ISurfacesPrx surfaceByPosition = EasyXT.getSurfaces( 1 ); // 0 based
-        ISurfacesPrx surfaceByBoth = EasyXT.getSurfaces( "Surfaces 2", 1 ); // 0 based
 
         // All Surfaces in Scene
         List<ISurfacesPrx> surfacesList = EasyXT.getAllSurfaces( );

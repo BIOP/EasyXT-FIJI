@@ -58,29 +58,6 @@ public class EasyXT {
      */
     private static Consumer<String> errlog = ( str ) -> System.err.println( "EasyXT : " + str );
 
-
-    public static IDataItemPrx castToType( ObjectPrx item ) throws Error {
-        IFactoryPrx factory = app.GetFactory( );
-
-        if ( factory.IsSpots( item ) ) {
-            return factory.ToSpots( item );
-        }
-        if ( factory.IsSurfaces( item ) ) {
-            return factory.ToSurfaces( item );
-        }
-        if ( factory.IsVolume( item ) ) {
-            return factory.ToVolume( item );
-        }
-        if ( factory.IsLightSource( item ) ) {
-            return factory.ToLightSource( item );
-        }
-        if ( factory.IsFrame( item ) ) {
-            return factory.ToFrame( item );
-        }
-
-        return null;
-    }
-
     /**
      * Static initialisation :
      * Gets the Imaris server
@@ -112,7 +89,6 @@ public class EasyXT {
         log.accept( "Initialization Done. Ready to call EasyXT" );
     }
 
-
     // TODO Refactor & Comment
     private static void CloseIceClient( ) {
         if ( mIceClient != null ) {
@@ -121,9 +97,30 @@ public class EasyXT {
         }
     }
 
+    static IDataItemPrx castToType( ObjectPrx item ) throws Error {
+        IFactoryPrx factory = app.GetFactory( );
+
+        if ( factory.IsSpots( item ) ) {
+            return factory.ToSpots( item );
+        }
+        if ( factory.IsSurfaces( item ) ) {
+            return factory.ToSurfaces( item );
+        }
+        if ( factory.IsVolume( item ) ) {
+            return factory.ToVolume( item );
+        }
+        if ( factory.IsLightSource( item ) ) {
+            return factory.ToLightSource( item );
+        }
+        if ( factory.IsFrame( item ) ) {
+            return factory.ToFrame( item );
+        }
+        return null;
+    }
+
     // TODO Refactor & Comment
-    private static IApplicationPrx getImaris( IServerPrx var0, int var1 ) {
-        ObjectPrx var2 = var0.GetObject( var1 );
+    private static IApplicationPrx getImaris( IServerPrx server, int var1 ) {
+        ObjectPrx var2 = server.GetObject( var1 );
         return IApplicationPrxHelper.checkedCast( var2 );
     }
 
@@ -136,69 +133,125 @@ public class EasyXT {
         return app;
     }
 
+    /**
+     * Return the first item with the selected name. Returns null if not found
+     * @param name the name of the item in the Imaris Scene
+     * @return the requested item, null if not found
+     * @throws Error an Imaris Error Object
+     */
     public static IDataItemPrx getItem( String name ) throws Error {
-        List<IDataItemPrx> items = new ItemQuery.ItemQueryBuilder( ).setName( name )
-                .build( )
-                .get( );
-        return items.size( ) > 0 ? items.get( 0 ) : null;
+        ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setName( name )
+                .build( );
+
+        List<IDataItemPrx> items = query.get( );
+
+        if (items.size() > 0)
+            return items.get( 0 );
+
+        log.accept( "No Items with name " + name + " found inside " + getName( query.getParent( ) ) );
+        return null;
     }
 
+    /**
+     * Returns nth item of a given type
+     * @param type its type, as defined by the enum {@link ItemQuery.ItemType}
+     * @param position the 0-based position of the object
+     * @return the requested item, null if not found
+     * @throws Error an Imaris Error Object
+     */
+    public static IDataItemPrx getItem( String type, int position ) throws Error {
 
-    // TODO Comment
-    public static IDataItemPrx getItem( String name, String type ) throws Error {
-        ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setName( name ).setType( type ).setPosition( 0 ).build( );
+        ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setPosition(  position ).setType( type ).build( );
         List<IDataItemPrx> items = query.get( );
 
         if ( items.size( ) >= query.getPosition( ) )
             return items.get( query.getPosition( ) );
+
+        log.accept( "No Items of type "+type+" found at position "+position+" inside "+ getName( query.getParent() ) );
         return null;
     }
 
+    /**
+     * Returns the first item that matches the given ItemQuery
+     * @param query the specific query
+     * @return the requested item, null if not found
+     * @throws Error an Imaris Error Object
+     */
     private static IDataItemPrx getItem( ItemQuery query ) throws Error {
         List<IDataItemPrx> items = query.get( );
+
         if ( items.size( ) > 0 ) return items.get( 0 );
+
+        log.accept( "No Item matches query "+query.toString() );
         return null;
     }
 
-    public static ISpotsPrx getSpots( String name, int position ) throws Error {
-        ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setName( name ).setType( "Spots" ).setPosition( position ).build( );
-        return (ISpotsPrx) getItem( query );
-    }
-
+    /**
+     * Get the first spots object with the given name
+     * @param name the name of the spots object to get. Returns the first spots object if there are multiple spots
+     *             with the same name (Don't do that)
+     * @return the requested spots, null if not found
+     * @throws Error an Imaris Error Object
+     */
     public static ISpotsPrx getSpots( String name ) throws Error {
         ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setName( name ).setType( "Spots" ).build( );
         return (ISpotsPrx) getItem( query );
     }
 
+    /**
+     * Get the n-th spots object in the scene
+     * @param position the 0-based position of the spots. a value of 2 would try to return the 3rd spots object
+     * @return the requested spots, null if not found
+     * @throws Error an Imaris Error Object
+     */
     public static ISpotsPrx getSpots( int position ) throws Error {
         ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setType( "Spots" ).setPosition( position ).build( );
         return (ISpotsPrx) getItem( query );
     }
 
-    public static ISurfacesPrx getSurfaces( String name, int position ) throws Error {
-        ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setName( name ).setType( "Surfaces" ).setPosition( position ).build( );
-        return (ISurfacesPrx) getItem( query );
-    }
-
+    /**
+     * Get the first surfaces object with the given name
+     * @param name the name of the surfaces object to get. Returns the first surfaces object if there are multiple
+     *             surfaces with the same name (Don't do that)
+     * @return the requested surfaces, null if not found
+     * @throws Error an Imaris Error Object
+     */
     public static ISurfacesPrx getSurfaces( String name ) throws Error {
         ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setName( name ).setType( "Surfaces" ).build( );
         return (ISurfacesPrx) getItem( query );
     }
-
+    /**
+     * Get the first surfaces object with the given name
+     * @param position the 0-based position of the surfaces. a value of 2 would try to return the 3rd surfaces object
+     * @return the requested surfaces, null if not found
+     * @throws Error an Imaris Error Object
+     */
     public static ISurfacesPrx getSurfaces( int position ) throws Error {
         ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setType( "Surfaces" ).setPosition( position ).build( );
         return (ISurfacesPrx) getItem( query );
     }
 
+    /**
+     * Get all items of the requested type
+     * @param type the type, defined by a String. See {@link ItemQuery.ItemType}
+     * @return a list containins the objects
+     * @throws Error an Imaris Error Object
+     */
     public static List<IDataItemPrx> getAll( String type ) throws Error {
         ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setType( type ).build( );
         return query.get( );
     }
 
+    /**
+     * Get all spots objects in the main scene as a list
+     * @return the spots as a list
+     * @throws Error an Imaris Error Object
+     */
     public static List<ISpotsPrx> getAllSpots( ) throws Error {
         ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setType( "Spots" ).build( );
         List<IDataItemPrx> items = query.get( );
 
+        // Explicitly cast
         List<ISpotsPrx> spots = items.stream( ).map( item -> {
             return (ISpotsPrx) item;
         } ).collect( Collectors.toList( ) );
@@ -206,10 +259,16 @@ public class EasyXT {
         return spots;
     }
 
+    /**
+     * Get all surfaces objects in the main scene as a list
+     * @return the surfaces as a list
+     * @throws Error an Imaris Error Object
+     */
     public static List<ISurfacesPrx> getAllSurfaces( ) throws Error {
         ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setType( "Surfaces" ).build( );
         List<IDataItemPrx> items = query.get( );
 
+        // Explicitly cast
         List<ISurfacesPrx> surfs = items.stream( ).map( item -> {
             return (ISurfacesPrx) item;
         } ).collect( Collectors.toList( ) );
@@ -221,7 +280,6 @@ public class EasyXT {
 
     /**
      * Returns an ImagePlus image of a dataset TODO : add a way to select only a subpart of it
-     *
      * @param dataset
      * @return
      * @throws Error
@@ -353,9 +411,8 @@ public class EasyXT {
     }
 
     /**
-     * Adds the selected ImagePlus to the provided IDatasetPrx by appending it as new channels This will work only if
-     * the ImagePlus is not larger than the IDatasetPrx
-     *
+     * Adds the selected ImagePlus to the current Dataset by appending it as new channels
+     * If the dataset is visible in the Imaris Scene, this is a lot slower
      * @param imp the image to add to the current dataset
      * @throws Error an Imaris Error object
      */
@@ -367,18 +424,27 @@ public class EasyXT {
         addChannels( dataset, imp, 0, 0, 0, 0 );
     }
 
+    /**
+     * Adds the selected ImagePlus to the provided IDatasetPrx by appending it as new channels
+     *
+     * @param dataset
+     * @param imp the image to add to the current dataset
+     * @throws Error an Imaris Error object
+     */
     public static void addChannels( IDataSetPrx dataset, ImagePlus imp ) throws Error {
         addChannels( dataset, imp, 0, 0, 0, 0 );
     }
 
     /**
-     * Adds the selected ImagePlus to the provided IDatasetPrx by appending each channel of the ImagePlus as new
-     * channels into the provided IDataSetPrx, at a given starting location in XYCZT Sanity checks performed: Ensure
-     * ImagePlus dimensions are not larger than the provided dataset dimensions (including provided starting locations).
-     * Throws an Error if larger than the dataset. Ensure consistent bit-depth between ImagePlus and IDataSetPrx. throws
-     * Error if otherwise Ensure consistent voxel size (ignore framerate) between ImagePlus and Dataset. Issues warning
-     * if otherwise The user can define the start location XYZT in pixel coordinates
-     *
+     * <p>Adds the selected ImagePlus to the provided IDatasetPrx by appending each channel of the ImagePlus as new
+     * channels into the provided IDataSetPrx, at a given starting location in XYCZT </p>
+     * <p>Sanity checks performed:</p>
+     * <ul>
+     *     <li>Ensure ImagePlus dimensions are not larger than the provided dataset dimensions (including provided starting locations). Throws an Error if larger than the dataset. </li>
+     *     <li>Ensure consistent bit-depth between ImagePlus and IDataSetPrx. throws Error if otherwise</li>
+     *     <li>Ensure consistent voxel size (ignore framerate) between ImagePlus and Dataset. Issues warning if otherwise</li>
+     *</ul>
+     * The user can define the start location XYZT in pixel coordinates
      * @param imp     the image from which to extract the channels to append
      * @param dataset the receiver dataset
      * @param xstart  start X position, in pixels (from top-left in ImageJ, will translate to bottom-left in Imaris)
@@ -465,13 +531,10 @@ public class EasyXT {
         }
     }
 
-    /*
-     * Surface Related functions
-     */
+    // Scene Related methods
 
     /**
      * Adds the provided Item to the Main Imaris Scene
-     *
      * @param item the item (Spot, Surface, Folder) to add
      * @throws Error an Imaris Error Object
      */
@@ -481,7 +544,6 @@ public class EasyXT {
 
     /**
      * Adds the provided item as the last child to the provided parent item
-     *
      * @param parent The parent item
      * @param item   the item to add as a child
      * @throws Error an Imaris Error Object
@@ -492,7 +554,6 @@ public class EasyXT {
 
     /**
      * Removes the provided item from its parent
-     *
      * @param item the item in question
      * @throws Error an Imaris Error Object
      */
@@ -502,7 +563,6 @@ public class EasyXT {
 
     /**
      * Creates a "Group" (folder) that can contain other items
-     *
      * @param groupName the name to identify the group with
      * @return an item that can be added to  a scene ({@link EasyXT#addToScene(IDataContainerPrx)}) or to which other
      * items can be added as children {@link EasyXT#addToScene(IDataContainerPrx, IDataItemPrx)}
@@ -514,9 +574,7 @@ public class EasyXT {
         return group;
     }
 
-    /*
-     * Surface Related functions
-     */
+    //Surface Related methods
 
     // TODO Comment
     public static IDataSetPrx getSurfaceDataset( ISurfacesPrx surface ) throws Error {
@@ -606,10 +664,11 @@ public class EasyXT {
         return data;
     }
 
+
+    // Image Management Methods
+
     /*
-     * Spot Related Functions
      * openImage, opens the file from filepath in a new imaris scene
-     *
      * @param filepath path  to an *.ims file
      * @param options option string cf : xtinterface/structImaris_1_1IApplication.html/FileOpen
      * @throws Error
@@ -636,19 +695,15 @@ public class EasyXT {
 
     /**
      * overloaded method , see {@link #openImage(File, String)}
-     *
      * @param filepath to an *.ims file
      * @throws Error
      */
     public static void openImage( File filepath ) throws Error {
-
         openImage( filepath, "" );
-
     }
 
     /**
-     * saveImage, saves the current imaris scene to an imaris file
-     *
+     * Saves the current imaris scene to an imaris file
      * @param filepath path to save ims file
      * @param options  option string cf : xtinterface/structImaris_1_1IApplication.html/FileSave eg writer="BMPSeries".
      *                 List of formats available: Imaris5, Imaris3, Imaris2,SeriesAdjustable, TiffSeriesRGBA, ICS,
@@ -666,7 +721,6 @@ public class EasyXT {
 
     /**
      * overloaded method , see {@link #saveImage(File, String)}
-     *
      * @param filepath path to save ims file
      * @throws Error
      */
@@ -676,9 +730,9 @@ public class EasyXT {
 
     }
 
+    // Minor helper methods
     /**
      * Recover a Color for use to set ImagePlus LUTs
-     *
      * @param color the Imaris Color descriptor
      * @return the Java Color
      */
@@ -693,7 +747,6 @@ public class EasyXT {
 
     /**
      * recover an RGB color for use with ImageJ from a 3 element (R,G,B) array
-     *
      * @param color the Java Color
      * @return
      */
@@ -703,10 +756,9 @@ public class EasyXT {
 
     /**
      * Returns bitdepth of a dataset. See {@link EasyXT#datatype}
-     *
      * @param dataset
      * @return
-     * @throws Error
+     * @throws Error an Imaris Error Object
      */
     public static int getBitDepth( IDataSetPrx dataset ) throws Error {
         tType type = dataset.GetType( );
@@ -714,6 +766,12 @@ public class EasyXT {
         return datatype.get( type );
     }
 
+    /**
+     * Get the name of the requested item, to avoid using GetName()
+     * @param item the item whose name we need
+     * @return the name of the item
+     * @throws Error an Imaris Error Object
+     */
     public static String getName( IDataItemPrx item ) throws Error {
         return item.GetName( );
     }

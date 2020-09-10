@@ -23,7 +23,7 @@ public class AddChildObjects {
             ij.ui( ).showUI( );
 
             //Get Extents of currently open dataset to create he same thing, but with two channels
-            IDataContainerPrx new_group = EasyXT.createGroup( "My Folder" );
+            IDataContainerPrx new_group = EasyXT.createGroup( "My Spots" );
             EasyXT.addToScene( new_group );
 
             // Make another one

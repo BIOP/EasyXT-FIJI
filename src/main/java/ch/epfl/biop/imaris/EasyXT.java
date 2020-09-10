@@ -267,11 +267,6 @@ public class EasyXT {
                     ImageProcessor ip  = imp.getStack().getProcessor(idx);
                     switch ( bitdepth ) {
                         case 8:
-                            /*System.out.println("c "+c+" z "+ z+" t "+t);
-                            byte[] datab = dataset.GetDataSubVolumeAs1DArrayBytes( 0, 0, z, c, t, w, h, 1 );
-                            System.out.println("Length i = "+datab.length);
-                            System.out.println("Length "+((byte[])ip.getPixels()).length);*/
-                            //(byte[]) ip.getPixels()
                             dataset.SetDataSubVolumeAs1DArrayBytes(((byte[]) ip.getPixels()), 0, 0, z, c, t, w, h, 1);
                             break;
                         case 16:
@@ -299,17 +294,12 @@ public class EasyXT {
 
         // Ensure that the image is not larger than the dataset
         IDataSetPrx dataset = EasyXT.getCurrentDataset( );
-        if ( !( dataset.GetSizeX( ) >= imp.getWidth( ) && dataset.GetSizeY( ) >= imp.getHeight( ) && dataset.GetSizeZ( ) >= imp.getNSlices( ) && dataset.GetSizeT( ) >= imp.getNFrames( ) ) ) {
-            errlog.accept( "Dataset and ImagePlus do not have the same size in XYZT" );
-            errlog.accept( "  Dataset\t(X,\tY,\tZ,\tT):\t ("+dataset.GetSizeX( )+",\t"+dataset.GetSizeY( )+",\t"+dataset.GetSizeZ( )+",\t"+dataset.GetSizeT( )+")");
-            errlog.accept( "  Image\t(X,\tY,\tZ,\tT):\t ("+imp.getWidth( )+",\t"+imp.getHeight( )+",\t"+imp.getNSlices( )+",\t"+imp.getNFrames( )+")");
-            return;
-        }
-        addChannels( dataset, imp, 0,0,0 );
+
+        addChannels( dataset, imp, 0,0,0,0 );
     }
 
     public static void addChannels( IDataSetPrx dataset, ImagePlus imp) throws Error {
-        addChannels( dataset, imp, 0,0,0 );
+        addChannels( dataset, imp, 0,0,0,0 );
     }
 
     /**
@@ -322,52 +312,76 @@ public class EasyXT {
      * @param zstart
      * @throws Error
      */
-    public static void addChannels( IDataSetPrx dataset, ImagePlus imp, int xstart, int ystart, int zstart ) throws Error {
+    public static void addChannels( IDataSetPrx dataset, ImagePlus imp, int xstart, int ystart, int zstart, int tstart ) throws Error {
 
-        // Allow this only if images have the same bit depth
-        int bitdepth = getBitDepth( dataset );
+        // Get Metadata on dataset and image
+        ImarisCalibration dCal = new ImarisCalibration( dataset );
+        int dc = dataset.GetSizeC();
 
-        // TODO : Is this necessary? Perhaps Imaris does not care adding into to floats?
-        if( bitdepth != imp.getBitDepth() ) {
-            errlog.accept( "addChannels: Dataset and ImagePlus do not have the same bit depth ("+bitdepth+"-bit vs "+imp.getBitDepth()+"-bit respectively)" );
+        Calibration iCal = imp.getCalibration( );
+        int iw = imp.getWidth();
+        int ih = imp.getHeight();
+        int iz = imp.getNSlices();
+        int it = imp.getNFrames();
+        int ic = imp.getNChannels( );
+
+        int dBitDepth = getBitDepth( dataset );
+        int iBitDepth = imp.getBitDepth();
+
+        if ( !( dCal.xSize >= (xstart + iw ) &&
+                dCal.ySize >= (ystart + ih ) &&
+                dCal.zSize >= (zstart + iz ) &&
+                dCal.tSize >= (tstart + it ) ) ) {
+
+            String errorDetail = "Dataset\t(X,\tY,\tZ,\tT):\t (" + dCal.xSize + ",\t" + dCal.ySize + ",\t" + dCal.zSize + ",\t" + dCal.tSize + ")";
+            errorDetail += "\nImage\t(X,\tY,\tZ,\tT):\t (" + iw + ",\t" + ih + ",\t" + iz + ",\t" + it + ")";
+            errorDetail += "\nIncl. offset\t(X,\tY,\tZ,\tT):\t (" + ( iw + xstart ) + ",\t" + ( ih + ystart ) + ",\t" + ( iz + zstart ) + ",\t" + ( it + tstart ) + ")";
+
+            throw new Error( "Size Mismatch", "Dataset and ImagePlus do not have the same size in XYZT", errorDetail );
         }
-        // Get the extents of the image
-        Calibration cal = imp.getCalibration();
 
-        int w = imp.getWidth();
-        int h = imp.getHeight();
+        if (dBitDepth != iBitDepth) {
+            String errorDetail = "   Dataset:" + dBitDepth + "-bit";
+            errorDetail += "\nImage:" + iBitDepth + "-bit";
 
-        int nz = imp.getNSlices();
-        int nt = imp.getNFrames();
-        int nc = imp.getNChannels( );
+            throw new Error( "Bit Depth Mismatch", "Dataset and ImagePlus do not have same bit depth", errorDetail );
+        }
 
-        int ndc = dataset.GetSizeC();
+        // Issue warning in case voxel sizes do not match
+        if ( dCal.pixelDepth != iCal.pixelDepth &&
+                dCal.pixelHeight != iCal.pixelHeight &&
+                dCal.pixelWidth != iCal.pixelWidth ) {
 
-        // TODO : Check that the xyzt bounds of the imageplus do not exceed the bounds of the dataset OR enlarge the dataset as needed
+            log.accept( "Warning: Voxel Sizes between Dataset and ImagePlus do not match:" );
+            log.accept( "   Dataset Voxel Size\t(X,\tY,\tZ):\t"+dCal.pixelWidth+",\t"+dCal.pixelHeight+",\t"+dCal.pixelDepth+")");
+            log.accept( "   Image Voxel Size\t(X,\tY,\tZ):\t"+iCal.pixelWidth+",\t"+iCal.pixelHeight+",\t"+iCal.pixelDepth+")");
 
-        // Enlarge the dataset
-        dataset.SetSizeC( ndc+nc );
+
+        }
+
+        // Enlarge the dataset by setting its size to the cumulated number of channels
+        dataset.SetSizeC( dc+ic );
 
         // Now loop through the dimensions of the ImagePlus to add data
-        for ( int c = 0; c < nc; c++ ) {
+        for ( int c = 0; c < ic; c++ ) {
             int idx = imp.getStackIndex( c + 1, 1, 1 );
             int color = imp.getStack( ).getProcessor( idx ).getColorModel( ).getRGB( 255 );
 
             dataset.SetChannelColorRGBA( c, color );
 
-            for ( int z = 0; z < nz; z++ ) {
-                for ( int t = 0; t < nt; t++ ) {
+            for ( int z = 0; z < iz; z++ ) {
+                for ( int t = 0; t < it; t++ ) {
                     idx = imp.getStackIndex( c + 1, z + 1, t + 1 );
                     ImageProcessor ip  = imp.getStack().getProcessor(idx);
-                    switch ( bitdepth ) {
+                    switch ( dBitDepth ) {
                         case 8:
-                            dataset.SetDataSubVolumeAs1DArrayBytes(((byte[]) ip.getPixels()), xstart, ystart, zstart+z, c+ndc, t, w, h, 1);
+                            dataset.SetDataSubVolumeAs1DArrayBytes(((byte[]) ip.getPixels()), xstart, ystart, zstart+z, c+dc, tstart+t, iw, ih, 1); // last element is sizeZ (one slice at a time)
                             break;
                         case 16:
-                            dataset.SetDataSubVolumeAs1DArrayShorts((short[]) ip.getPixels(), xstart, ystart, zstart+z, c+ndc, t, w, h, 1);
+                            dataset.SetDataSubVolumeAs1DArrayShorts((short[]) ip.getPixels(), xstart, ystart, zstart+z, c+dc, tstart+t, iw, ih, 1);
                             break;
                         case 32:
-                            dataset.SetDataSubVolumeAs1DArrayFloats((float[]) ip.getPixels(), xstart, ystart, zstart+z, c+ndc, t, w, h, 1);
+                            dataset.SetDataSubVolumeAs1DArrayFloats((float[]) ip.getPixels(), xstart, ystart, zstart+z, c+dc, tstart+t, iw, ih, 1);
                             break;
                     }
                 }
@@ -380,8 +394,8 @@ public class EasyXT {
      * @param item the item (Spot, Surface, Folder to add
      * @throws Error
      */
-    public static void addToScene( IDataContainerPrx item) throws Error {
-        app.GetSurpassScene().AddChild( item, -1 );
+    public static void addToScene( IDataContainerPrx object) throws Error {
+        app.GetSurpassScene().AddChild( object, -1 );
     }
 
     /**
@@ -390,8 +404,8 @@ public class EasyXT {
      * @param item the item to add as a child
      * @throws Error
      */
-    public static void addToScene( IDataContainerPrx parent, IDataItemPrx item) throws Error {
-        parent.AddChild( item, -1 );
+    public static void addToScene( IDataContainerPrx parent, IDataItemPrx object) throws Error {
+        parent.AddChild( object, -1 ); // last element is position. -1 to append at the end.
     }
 
     public static void removeFromScene( IDataItemPrx item) throws Error {
@@ -403,12 +417,6 @@ public class EasyXT {
         group.SetName( groupName );
         return group;
     }
-
-
-  /*  public ImagePlus getChannelImage(int channel ) throws Error {
-        IDataSetPrx dataset = app.GetDataSet( );
-        return getImagePlus( channel, dataset );
-    }*/
 
     /*
      * Surface Related functions
@@ -510,7 +518,6 @@ public class EasyXT {
      * @param options option string cf : xtinterface/structImaris_1_1IApplication.html/FileOpen
      * @throws Error
      */
-
     public static void openImage(File filepath, String options) throws Error {
         if (!filepath.exists()) {
             errlog.accept(filepath + "doesn't exist");
@@ -537,7 +544,6 @@ public class EasyXT {
      * @param filepath to an *.ims file
      * @throws Error
      */
-
     public static void openImage(File filepath) throws Error {
 
         openImage(filepath, "");
@@ -574,13 +580,6 @@ public class EasyXT {
 
     }
 
-    /**
-     *
-     * @param name
-     * @return
-     * @throws Error
-     */
-
     // TODO Comment
     public ISpotsPrx getSpots( String name ) throws Error {
         IDataItemPrx object = getObject( name, ISpots.class );
@@ -592,9 +591,8 @@ public class EasyXT {
     /**
      * Helpers
      */
-
     // TODO Comment
-    public enum ItemClass {
+    private enum ItemClass {
         SPOTS( ISpotsPrx.class ),
         SURFACES( ISurfaces.class );
 

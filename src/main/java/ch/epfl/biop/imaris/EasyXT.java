@@ -11,19 +11,20 @@ import ij.ImageStack;
 import ij.measure.Calibration;
 import ij.plugin.HyperStackConverter;
 import ij.process.*;
+import io.scif.formats.APNGFormat;
 
 import java.awt.*;
 import java.io.File;
 import java.nio.ByteBuffer;
 import java.util.*;
+import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
  * EasyXT static class:
- *
  * Wrap Imaris Extension API in a convenient way
- *
  */
 
 // TODO: Detecting Spots and Surfaces, with tracking
@@ -40,7 +41,7 @@ import java.util.stream.IntStream;
 
 // TODO: Allow easy getting and setting of images per channel
 
-
+// TODO: Javadoc
 public class EasyXT {
     private static IApplicationPrx app;
     private static IceClient mIceClient;
@@ -50,12 +51,35 @@ public class EasyXT {
     /**
      * Standard logger
      */
-    private static Consumer<String> log = (str) -> System.out.println("EasyXT : "+str);
+    private static Consumer<String> log = ( str ) -> System.out.println( "EasyXT : " + str );
 
     /**
      * Error logger
      */
-    private static Consumer<String> errlog = (str) -> System.err.println("EasyXT : "+str);
+    private static Consumer<String> errlog = ( str ) -> System.err.println( "EasyXT : " + str );
+
+
+    public static IDataItemPrx castToType( ObjectPrx item ) throws Error {
+        IFactoryPrx factory = app.GetFactory( );
+
+        if ( factory.IsSpots( item ) ) {
+            return factory.ToSpots( item );
+        }
+        if ( factory.IsSurfaces( item ) ) {
+            return factory.ToSurfaces( item );
+        }
+        if ( factory.IsVolume( item ) ) {
+            return factory.ToVolume( item );
+        }
+        if ( factory.IsLightSource( item ) ) {
+            return factory.ToLightSource( item );
+        }
+        if ( factory.IsFrame( item ) ) {
+            return factory.ToFrame( item );
+        }
+
+        return null;
+    }
 
     /**
      * Static initialisation :
@@ -78,24 +102,16 @@ public class EasyXT {
 
         // Closing connection on jvm close
         Runtime.getRuntime( ).addShutdownHook(
-                new Thread(() -> {
+                new Thread( ( ) -> {
                     log.accept( "Closing ICE Connection from Imaris..." );
                     CloseIceClient( );
                     log.accept( "Done." );
-                })
+                } )
 
         );
-
         log.accept( "Initialization Done. Ready to call EasyXT" );
     }
 
-    // TODO Refactor & Comment
-    /* private static IceClient GetIceClient( ) {
-        if ( mIceClient == null ) {
-            mIceClient = new IceClient( "ImarisServer", mEndPoints, 10000 );
-        }
-        return mIceClient;
-    }*/
 
     // TODO Refactor & Comment
     private static void CloseIceClient( ) {
@@ -106,67 +122,105 @@ public class EasyXT {
     }
 
     // TODO Refactor & Comment
-    private static IApplicationPrx getImaris(IServerPrx var0, int var1 ) {
+    private static IApplicationPrx getImaris( IServerPrx var0, int var1 ) {
         ObjectPrx var2 = var0.GetObject( var1 );
         return IApplicationPrxHelper.checkedCast( var2 );
     }
 
     /**
      * Returns instance of Imaris App
+     *
      * @return
      */
     public static IApplicationPrx getImaris( ) {
         return app;
     }
 
-    /**
-     * Helper method : returns the class of an Imaris Object
-     * @param object
-     * @return class of the contained object
-     * @throws Error
-     */
-    private static Class<?> getType( IDataItemPrx object ) throws Error {
-        IFactoryPrx factory = app.GetFactory( );
-        if ( factory.IsSpots( object ) ) {
-            return ISpots.class;
-        }
-        if ( factory.IsSurfaces( object ) ) {
-            return ISurfaces.class;
-        }
-        if ( factory.IsVolume( object ) ) {
-            return IVolume.class;
-        }
+    public static IDataItemPrx getItem( String name ) throws Error {
+        List<IDataItemPrx> items = new ItemQuery.ItemQueryBuilder( ).setName( name )
+                .build( )
+                .get( );
+        return items.size( ) > 0 ? items.get( 0 ) : null;
+    }
+
+
+    // TODO Comment
+    public static IDataItemPrx getItem( String name, String type ) throws Error {
+        ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setName( name ).setType( type ).setPosition( 0 ).build( );
+        List<IDataItemPrx> items = query.get( );
+
+        if ( items.size( ) >= query.getPosition( ) )
+            return items.get( query.getPosition( ) );
         return null;
     }
 
-    // TODO Comment
-    public static IDataItemPrx getObject( String name, Class<? extends IDataItem> cls ) throws Error {
-
-        IDataContainerPrx parent = app.GetSurpassScene( );
-        int nChildren = parent.GetNumberOfChildren( );
-
-        for ( int i = 0; i < nChildren; i++ ) {
-            IDataItemPrx child = parent.GetChild( i );
-
-            String aname = child.GetName( );
-            Class acls = getType( child );
-            //out.println( acls == cls );
-            if ( aname.equals( name ) )
-                return parent.GetChild( i );
-        }
+    private static IDataItemPrx getItem( ItemQuery query ) throws Error {
+        List<IDataItemPrx> items = query.get( );
+        if ( items.size( ) > 0 ) return items.get( 0 );
         return null;
     }
 
-    // TODO Comment
+    public static ISpotsPrx getSpots( String name, int position ) throws Error {
+        ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setName( name ).setType( "Spots" ).setPosition( position ).build( );
+        return (ISpotsPrx) getItem( query );
+    }
+
+    public static ISpotsPrx getSpots( String name ) throws Error {
+        ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setName( name ).setType( "Spots" ).build( );
+        return (ISpotsPrx) getItem( query );
+    }
+
+    public static ISpotsPrx getSpots( int position ) throws Error {
+        ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setType( "Spots" ).setPosition( position ).build( );
+        return (ISpotsPrx) getItem( query );
+    }
+
+    public static ISurfacesPrx getSurfaces( String name, int position ) throws Error {
+        ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setName( name ).setType( "Surfaces" ).setPosition( position ).build( );
+        return (ISurfacesPrx) getItem( query );
+    }
+
     public static ISurfacesPrx getSurfaces( String name ) throws Error {
-        IDataItemPrx object = getObject( name, ISurfaces.class );
-        ISurfacesPrx surf = app.GetFactory( ).ToSurfaces( object );
-        return surf;
+        ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setName( name ).setType( "Surfaces" ).build( );
+        return (ISurfacesPrx) getItem( query );
     }
 
+    public static ISurfacesPrx getSurfaces( int position ) throws Error {
+        ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setType( "Surfaces" ).setPosition( position ).build( );
+        return (ISurfacesPrx) getItem( query );
+    }
+
+    public static List<IDataItemPrx> getAll( String type ) throws Error {
+        ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setType( type ).build( );
+        return query.get( );
+    }
+
+    public static List<ISpotsPrx> getAllSpots( ) throws Error {
+        ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setType( "Spots" ).build( );
+        List<IDataItemPrx> items = query.get( );
+
+        List<ISpotsPrx> spots = items.stream( ).map( item -> {
+            return (ISpotsPrx) item;
+        } ).collect( Collectors.toList( ) );
+
+        return spots;
+    }
+
+    public static List<ISurfacesPrx> getAllSurfaces( ) throws Error {
+        ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setType( "Surfaces" ).build( );
+        List<IDataItemPrx> items = query.get( );
+
+        List<ISurfacesPrx> surfs = items.stream( ).map( item -> {
+            return (ISurfacesPrx) item;
+        } ).collect( Collectors.toList( ) );
+
+        return surfs;
+    }
+
+    // ImagePlus Manipulations
+
     /**
-     * Returns an ImagePlus image of a dataset
-     * TODO : add a way to select only a subpart of it
+     * Returns an ImagePlus image of a dataset TODO : add a way to select only a subpart of it
      *
      * @param dataset
      * @return
@@ -219,19 +273,19 @@ public class EasyXT {
         imp = HyperStackConverter.toHyperStack( imp, nc, nz, nt );
 
         // Set LookUpTables
-        if (imp instanceof CompositeImage) {
+        if ( imp instanceof CompositeImage ) {
 
-            LUT[] luts = new LUT[nc];
+            LUT[] luts = new LUT[ nc ];
 
-            for (int c=0;c<nc;c++) {
-                Color color = EasyXT.getColorFromInt(dataset.GetChannelColorRGBA(c));
-                luts[c] = LUT.createLutFromColor(color);
+            for ( int c = 0; c < nc; c++ ) {
+                Color color = EasyXT.getColorFromInt( dataset.GetChannelColorRGBA( c ) );
+                luts[ c ] = LUT.createLutFromColor( color );
             }
             // TODO : transfer min max
-            ((CompositeImage)imp).setLuts(luts);
-        } else if (nc==1) {
+            ( (CompositeImage) imp ).setLuts( luts );
+        } else if ( nc == 1 ) {
             // TODO : transfer min max
-            imp.setLut(LUT.createLutFromColor(EasyXT.getColorFromInt(dataset.GetChannelColorRGBA(0))));
+            imp.setLut( LUT.createLutFromColor( EasyXT.getColorFromInt( dataset.GetChannelColorRGBA( 0 ) ) ) );
         }
 
         return imp;
@@ -239,13 +293,10 @@ public class EasyXT {
     }
 
     /**
-     * Set data from an ImagePlus image into a dataset
-     * TODO : add a way to select only a subpart of it
-     * TODO : Return a new dataset or the existing dataset?
+     * Set data from an ImagePlus image into a dataset TODO : add a way to select only a subpart of it
      *
-     * @param dataset
-     * @return
-     * @throws Error
+     * @param dataset the dataset to insert the imagePlus into
+     * @throws Error an Imaris Error Object
      */
     public static void setImagePlus( IDataSetPrx dataset, ImagePlus imp ) throws Error {
 
@@ -264,16 +315,16 @@ public class EasyXT {
             for ( int z = 0; z < nz; z++ ) {
                 for ( int t = 0; t < nt; t++ ) {
                     int idx = imp.getStackIndex( c + 1, z + 1, t + 1 );
-                    ImageProcessor ip  = imp.getStack().getProcessor(idx);
+                    ImageProcessor ip = imp.getStack( ).getProcessor( idx );
                     switch ( bitdepth ) {
                         case 8:
-                            dataset.SetDataSubVolumeAs1DArrayBytes(((byte[]) ip.getPixels()), 0, 0, z, c, t, w, h, 1);
+                            dataset.SetDataSubVolumeAs1DArrayBytes( ( (byte[]) ip.getPixels( ) ), 0, 0, z, c, t, w, h, 1 );
                             break;
                         case 16:
-                            dataset.SetDataSubVolumeAs1DArrayShorts((short[]) ip.getPixels(), 0, 0, z, c, t, w, h, 1);
+                            dataset.SetDataSubVolumeAs1DArrayShorts( (short[]) ip.getPixels( ), 0, 0, z, c, t, w, h, 1 );
                             break;
                         case 32:
-                            dataset.SetDataSubVolumeAs1DArrayFloats((float[]) ip.getPixels(), 0, 0, z, c, t, w, h, 1);
+                            dataset.SetDataSubVolumeAs1DArrayFloats( (float[]) ip.getPixels( ), 0, 0, z, c, t, w, h, 1 );
                             break;
                     }
                 }
@@ -281,57 +332,82 @@ public class EasyXT {
         }
     }
 
-    public static IDataSetPrx getCurrentDataset() throws Error { return EasyXT.getImaris().GetDataSet(); }
-    public static void setCurrentDataset( IDataSetPrx dataset ) throws Error { EasyXT.getImaris().SetDataSet( dataset ); }
+    /**
+     * Convenience method to return the currently active dataset
+     *
+     * @return a IDatasetPrx object containing a reference to all the pixel data
+     * @throws Error an Imaris Error Object
+     */
+    public static IDataSetPrx getCurrentDataset( ) throws Error {
+        return EasyXT.getImaris( ).GetDataSet( );
+    }
 
     /**
-     * Adds the selected ImagePlus to the provided IDatasetPrx by appending it as new channels
-     * This will work only if the ImagePlus is not larger than the IDatasetPrx
+     * Convenience method to set/replace the current dataset within the current Imaris scene with the one provided
+     *
+     * @param dataset a IDataSetPrx object containing a reference to all the pixel data
+     * @throws Error an Imaris Error Object
+     */
+    public static void setCurrentDataset( IDataSetPrx dataset ) throws Error {
+        EasyXT.getImaris( ).SetDataSet( dataset );
+    }
+
+    /**
+     * Adds the selected ImagePlus to the provided IDatasetPrx by appending it as new channels This will work only if
+     * the ImagePlus is not larger than the IDatasetPrx
+     *
      * @param imp the image to add to the current dataset
-     * @throws Error an imaris error object
+     * @throws Error an Imaris Error object
      */
     public static void addChannels( ImagePlus imp ) throws Error {
 
         // Ensure that the image is not larger than the dataset
         IDataSetPrx dataset = EasyXT.getCurrentDataset( );
 
-        addChannels( dataset, imp, 0,0,0,0 );
+        addChannels( dataset, imp, 0, 0, 0, 0 );
     }
 
-    public static void addChannels( IDataSetPrx dataset, ImagePlus imp) throws Error {
-        addChannels( dataset, imp, 0,0,0,0 );
+    public static void addChannels( IDataSetPrx dataset, ImagePlus imp ) throws Error {
+        addChannels( dataset, imp, 0, 0, 0, 0 );
     }
 
     /**
-     * Adds the selected ImagePlus to the provided IDatasetPrx by appending it as new channels
-     * The user can define the start location XYZ in pixels
-     * @param imp
-     * @param dataset
-     * @param xstart
-     * @param ystart
-     * @param zstart
-     * @throws Error
+     * Adds the selected ImagePlus to the provided IDatasetPrx by appending each channel of the ImagePlus as new
+     * channels into the provided IDataSetPrx, at a given starting location in XYCZT Sanity checks performed: Ensure
+     * ImagePlus dimensions are not larger than the provided dataset dimensions (including provided starting locations).
+     * Throws an Error if larger than the dataset. Ensure consistent bit-depth between ImagePlus and IDataSetPrx. throws
+     * Error if otherwise Ensure consistent voxel size (ignore framerate) between ImagePlus and Dataset. Issues warning
+     * if otherwise The user can define the start location XYZT in pixel coordinates
+     *
+     * @param imp     the image from which to extract the channels to append
+     * @param dataset the receiver dataset
+     * @param xstart  start X position, in pixels (from top-left in ImageJ, will translate to bottom-left in Imaris)
+     * @param ystart  start Y position, in pixels (from top-left in ImageJ, will translate to bottom-left in Imaris)
+     * @param zstart  start Z position, in pixels (Z=0 is the top slice in Image, will translate to bottom slice in
+     *                Imaris)
+     * @param tstart  start T position, in pixels (from top-left in ImageJ, will translate to bottom-left in Imaris)
+     * @throws Error an Imaris Error Object
      */
     public static void addChannels( IDataSetPrx dataset, ImagePlus imp, int xstart, int ystart, int zstart, int tstart ) throws Error {
 
         // Get Metadata on dataset and image
         ImarisCalibration dCal = new ImarisCalibration( dataset );
-        int dc = dataset.GetSizeC();
+        int dc = dataset.GetSizeC( );
 
         Calibration iCal = imp.getCalibration( );
-        int iw = imp.getWidth();
-        int ih = imp.getHeight();
-        int iz = imp.getNSlices();
-        int it = imp.getNFrames();
+        int iw = imp.getWidth( );
+        int ih = imp.getHeight( );
+        int iz = imp.getNSlices( );
+        int it = imp.getNFrames( );
         int ic = imp.getNChannels( );
 
         int dBitDepth = getBitDepth( dataset );
-        int iBitDepth = imp.getBitDepth();
+        int iBitDepth = imp.getBitDepth( );
 
-        if ( !( dCal.xSize >= (xstart + iw ) &&
-                dCal.ySize >= (ystart + ih ) &&
-                dCal.zSize >= (zstart + iz ) &&
-                dCal.tSize >= (tstart + it ) ) ) {
+        if ( !( dCal.xSize >= ( xstart + iw ) &&
+                dCal.ySize >= ( ystart + ih ) &&
+                dCal.zSize >= ( zstart + iz ) &&
+                dCal.tSize >= ( tstart + it ) ) ) {
 
             String errorDetail = "Dataset\t(X,\tY,\tZ,\tT):\t (" + dCal.xSize + ",\t" + dCal.ySize + ",\t" + dCal.zSize + ",\t" + dCal.tSize + ")";
             errorDetail += "\nImage\t(X,\tY,\tZ,\tT):\t (" + iw + ",\t" + ih + ",\t" + iz + ",\t" + it + ")";
@@ -340,7 +416,7 @@ public class EasyXT {
             throw new Error( "Size Mismatch", "Dataset and ImagePlus do not have the same size in XYZT", errorDetail );
         }
 
-        if (dBitDepth != iBitDepth) {
+        if ( dBitDepth != iBitDepth ) {
             String errorDetail = "   Dataset:" + dBitDepth + "-bit";
             errorDetail += "\nImage:" + iBitDepth + "-bit";
 
@@ -353,14 +429,14 @@ public class EasyXT {
                 dCal.pixelWidth != iCal.pixelWidth ) {
 
             log.accept( "Warning: Voxel Sizes between Dataset and ImagePlus do not match:" );
-            log.accept( "   Dataset Voxel Size\t(X,\tY,\tZ):\t"+dCal.pixelWidth+",\t"+dCal.pixelHeight+",\t"+dCal.pixelDepth+")");
-            log.accept( "   Image Voxel Size\t(X,\tY,\tZ):\t"+iCal.pixelWidth+",\t"+iCal.pixelHeight+",\t"+iCal.pixelDepth+")");
+            log.accept( "   Dataset Voxel Size\t(X,\tY,\tZ):\t" + dCal.pixelWidth + ",\t" + dCal.pixelHeight + ",\t" + dCal.pixelDepth + ")" );
+            log.accept( "   Image Voxel Size\t(X,\tY,\tZ):\t" + iCal.pixelWidth + ",\t" + iCal.pixelHeight + ",\t" + iCal.pixelDepth + ")" );
 
 
         }
 
         // Enlarge the dataset by setting its size to the cumulated number of channels
-        dataset.SetSizeC( dc+ic );
+        dataset.SetSizeC( dc + ic );
 
         // Now loop through the dimensions of the ImagePlus to add data
         for ( int c = 0; c < ic; c++ ) {
@@ -372,16 +448,16 @@ public class EasyXT {
             for ( int z = 0; z < iz; z++ ) {
                 for ( int t = 0; t < it; t++ ) {
                     idx = imp.getStackIndex( c + 1, z + 1, t + 1 );
-                    ImageProcessor ip  = imp.getStack().getProcessor(idx);
+                    ImageProcessor ip = imp.getStack( ).getProcessor( idx );
                     switch ( dBitDepth ) {
                         case 8:
-                            dataset.SetDataSubVolumeAs1DArrayBytes(((byte[]) ip.getPixels()), xstart, ystart, zstart+z, c+dc, tstart+t, iw, ih, 1); // last element is sizeZ (one slice at a time)
+                            dataset.SetDataSubVolumeAs1DArrayBytes( ( (byte[]) ip.getPixels( ) ), xstart, ystart, zstart + z, c + dc, tstart + t, iw, ih, 1 ); // last element is sizeZ (one slice at a time)
                             break;
                         case 16:
-                            dataset.SetDataSubVolumeAs1DArrayShorts((short[]) ip.getPixels(), xstart, ystart, zstart+z, c+dc, tstart+t, iw, ih, 1);
+                            dataset.SetDataSubVolumeAs1DArrayShorts( (short[]) ip.getPixels( ), xstart, ystart, zstart + z, c + dc, tstart + t, iw, ih, 1 );
                             break;
                         case 32:
-                            dataset.SetDataSubVolumeAs1DArrayFloats((float[]) ip.getPixels(), xstart, ystart, zstart+z, c+dc, tstart+t, iw, ih, 1);
+                            dataset.SetDataSubVolumeAs1DArrayFloats( (float[]) ip.getPixels( ), xstart, ystart, zstart + z, c + dc, tstart + t, iw, ih, 1 );
                             break;
                     }
                 }
@@ -389,31 +465,51 @@ public class EasyXT {
         }
     }
 
-    /**
-     * Adds the provided Object to the Main Imaris Scene
-     * @param item the item (Spot, Surface, Folder to add
-     * @throws Error
+    /*
+     * Surface Related functions
      */
-    public static void addToScene( IDataContainerPrx object) throws Error {
-        app.GetSurpassScene().AddChild( object, -1 );
-    }
 
     /**
-     * Adds the provided item as the last child to the provided parent object
-     * @param parent The parent object
-     * @param item the item to add as a child
+     * Adds the provided Item to the Main Imaris Scene
+     *
+     * @param item the item (Spot, Surface, Folder) to add
+     * @throws Error an Imaris Error Object
+     */
+    public static void addToScene( IDataContainerPrx item ) throws Error {
+        app.GetSurpassScene( ).AddChild( item, -1 );
+    }
+
+    /**
+     * Adds the provided item as the last child to the provided parent item
+     *
+     * @param parent The parent item
+     * @param item   the item to add as a child
+     * @throws Error an Imaris Error Object
+     */
+    public static void addToScene( IDataContainerPrx parent, IDataItemPrx item ) throws Error {
+        parent.AddChild( item, -1 ); // last element is position. -1 to append at the end.
+    }
+
+    /**
+     * Removes the provided item from its parent
+     *
+     * @param item the item in question
+     * @throws Error an Imaris Error Object
+     */
+    public static void removeFromScene( IDataItemPrx item ) throws Error {
+        item.GetParent( ).RemoveChild( item );
+    }
+
+    /**
+     * Creates a "Group" (folder) that can contain other items
+     *
+     * @param groupName the name to identify the group with
+     * @return an item that can be added to  a scene ({@link EasyXT#addToScene(IDataContainerPrx)}) or to which other
+     * items can be added as children {@link EasyXT#addToScene(IDataContainerPrx, IDataItemPrx)}
      * @throws Error
      */
-    public static void addToScene( IDataContainerPrx parent, IDataItemPrx object) throws Error {
-        parent.AddChild( object, -1 ); // last element is position. -1 to append at the end.
-    }
-
-    public static void removeFromScene( IDataItemPrx item) throws Error {
-        item.GetParent().RemoveChild( item );
-    }
-
     public static IDataContainerPrx createGroup( String groupName ) throws Error {
-        IDataContainerPrx group = app.GetFactory().CreateDataContainer( );
+        IDataContainerPrx group = app.GetFactory( ).CreateDataContainer( );
         group.SetName( groupName );
         return group;
     }
@@ -423,7 +519,7 @@ public class EasyXT {
      */
 
     // TODO Comment
-    public static IDataSetPrx getSurfaceDataset(ISurfacesPrx surface ) throws Error {
+    public static IDataSetPrx getSurfaceDataset( ISurfacesPrx surface ) throws Error {
         // Check if there are channels
         ImarisCalibration cal = new ImarisCalibration( app.GetDataSet( ) );
 
@@ -444,18 +540,18 @@ public class EasyXT {
     public static ImagePlus getSurfaceMask( ISurfacesPrx surface ) throws Error {
 
         // Get raw ImagePlus
-        ImagePlus impSurface = getImagePlus( getSurfaceDataset(surface) );
+        ImagePlus impSurface = getImagePlus( getSurfaceDataset( surface ) );
 
         // Multiply by 255 to allow to use ImageJ binary functions
-        int nProcessor = impSurface.getStack().getSize();
-        IntStream.range(0, nProcessor).parallel().forEach(index -> {
-            impSurface.getStack().getProcessor(index+1).multiply(255);
-        });
+        int nProcessor = impSurface.getStack( ).getSize( );
+        IntStream.range( 0, nProcessor ).parallel( ).forEach( index -> {
+            impSurface.getStack( ).getProcessor( index + 1 ).multiply( 255 );
+        } );
 
         // Set LUT and display range
-        impSurface.setLut(LUT.createLutFromColor(EasyXT.getColorFromInt(surface.GetColorRGBA())));
-        impSurface.setDisplayRange(0,255);
-        impSurface.setTitle(surface.GetName());
+        impSurface.setLut( LUT.createLutFromColor( EasyXT.getColorFromInt( surface.GetColorRGBA( ) ) ) );
+        impSurface.setDisplayRange( 0, 255 );
+        impSurface.setTitle( surface.GetName( ) );
 
         return impSurface;
     }
@@ -464,19 +560,19 @@ public class EasyXT {
     public static void setSurfaceMask( ISurfacesPrx surface, ImagePlus imp ) throws Error {
 
         // Divide by 255 to allow to use ImageJ binary functions
-        int nProcessor = imp.getStack().getSize();
-        IntStream.range(0, nProcessor).parallel().forEach(index -> {
-            imp.getStack().getProcessor(index+1).multiply(1.0/255.0);
-        });
+        int nProcessor = imp.getStack( ).getSize( );
+        IntStream.range( 0, nProcessor ).parallel( ).forEach( index -> {
+            imp.getStack( ).getProcessor( index + 1 ).multiply( 1.0 / 255.0 );
+        } );
 
-        IDataSetPrx dataset = EasyXT.getSurfaceDataset(surface);
-        surface.RemoveAllSurfaces();
-        EasyXT.setImagePlus(dataset, imp);
-        surface.AddSurface(dataset,0);
+        IDataSetPrx dataset = EasyXT.getSurfaceDataset( surface );
+        surface.RemoveAllSurfaces( );
+        EasyXT.setImagePlus( dataset, imp );
+        surface.AddSurface( dataset, 0 );
 
-        IntStream.range(0, nProcessor).parallel().forEach(index -> {
-            imp.getStack().getProcessor(index+1).multiply(255);
-        });
+        IntStream.range( 0, nProcessor ).parallel( ).forEach( index -> {
+            imp.getStack( ).getProcessor( index + 1 ).multiply( 255 );
+        } );
 
     }
 
@@ -518,23 +614,23 @@ public class EasyXT {
      * @param options option string cf : xtinterface/structImaris_1_1IApplication.html/FileOpen
      * @throws Error
      */
-    public static void openImage(File filepath, String options) throws Error {
-        if (!filepath.exists()) {
-            errlog.accept(filepath + "doesn't exist");
+    public static void openImage( File filepath, String options ) throws Error {
+        if ( !filepath.exists( ) ) {
+            errlog.accept( filepath + "doesn't exist" );
             return;
         }
 
-        if (!filepath.isFile() ) {
-            errlog.accept(filepath + "is not a file");
+        if ( !filepath.isFile( ) ) {
+            errlog.accept( filepath + "is not a file" );
             return;
         }
 
-        if (!filepath.getName().endsWith("ims") ) {
-            errlog.accept(filepath + "is not an imaris file, please convert your image first");
+        if ( !filepath.getName( ).endsWith( "ims" ) ) {
+            errlog.accept( filepath + "is not an imaris file, please convert your image first" );
             return;
         }
 
-        app.FileOpen( filepath.getAbsolutePath(), options);
+        app.FileOpen( filepath.getAbsolutePath( ), options );
 
     }
 
@@ -544,9 +640,9 @@ public class EasyXT {
      * @param filepath to an *.ims file
      * @throws Error
      */
-    public static void openImage(File filepath) throws Error {
+    public static void openImage( File filepath ) throws Error {
 
-        openImage(filepath, "");
+        openImage( filepath, "" );
 
     }
 
@@ -554,17 +650,17 @@ public class EasyXT {
      * saveImage, saves the current imaris scene to an imaris file
      *
      * @param filepath path to save ims file
-     * @param options option string cf : xtinterface/structImaris_1_1IApplication.html/FileSave
-     *                eg writer="BMPSeries". List of formats available: Imaris5, Imaris3, Imaris2,SeriesAdjustable,
-     *                TiffSeriesRGBA, ICS, OlympusCellR, OmeXml, BMPSeries, MovieFromSlices.
+     * @param options  option string cf : xtinterface/structImaris_1_1IApplication.html/FileSave eg writer="BMPSeries".
+     *                 List of formats available: Imaris5, Imaris3, Imaris2,SeriesAdjustable, TiffSeriesRGBA, ICS,
+     *                 OlympusCellR, OmeXml, BMPSeries, MovieFromSlices.
      * @throws Error
      */
-    public static void saveImage(File filepath, String options ) throws Error {
-        if (!filepath.getName().endsWith("ims") ) {
-            filepath = new File ( filepath.getAbsoluteFile()+".ims");
-            System.out.println("Saved as : "+filepath.getAbsoluteFile());
+    public static void saveImage( File filepath, String options ) throws Error {
+        if ( !filepath.getName( ).endsWith( "ims" ) ) {
+            filepath = new File( filepath.getAbsoluteFile( ) + ".ims" );
+            System.out.println( "Saved as : " + filepath.getAbsoluteFile( ) );
         }
-        app.FileSave( filepath.getAbsolutePath(), options);
+        app.FileSave( filepath.getAbsolutePath( ), options );
 
     }
 
@@ -574,57 +670,40 @@ public class EasyXT {
      * @param filepath path to save ims file
      * @throws Error
      */
-    public static void saveImage(File filepath ) throws Error {
+    public static void saveImage( File filepath ) throws Error {
 
-        saveImage( filepath, "");
+        saveImage( filepath, "" );
 
     }
-
-    // TODO Comment
-    public ISpotsPrx getSpots( String name ) throws Error {
-        IDataItemPrx object = getObject( name, ISpots.class );
-        ISpotsPrx spot = app.GetFactory( ).ToSpots( object );
-        return spot;
-    }
-
 
     /**
-     * Helpers
+     * Recover a Color for use to set ImagePlus LUTs
+     *
+     * @param color the Imaris Color descriptor
+     * @return the Java Color
      */
-    // TODO Comment
-    private enum ItemClass {
-        SPOTS( ISpotsPrx.class ),
-        SURFACES( ISurfaces.class );
-
-        Class cls;
-
-        ItemClass( Class cls ) {
-            this.cls = cls;
-        }
-
-        public Class getType( ) {
-            return this.cls;
-        }
-    }
-
-    // TODO Comment
-    public static Color getColorFromInt(int color) {
-        byte[] bytes = ByteBuffer.allocate(4).putInt(color).array();
-        int[] colorArray = new int[3];
-        colorArray[0] = bytes[3] & 0xFF;
-        colorArray[1] = bytes[2] & 0xFF;
-        colorArray[2] = bytes[1] & 0xFF;
-        return getColorIntFromIntArray(colorArray);
-    }
-
-    // TODO Comment
-    public static Color getColorIntFromIntArray(int[] color) {
-        return new Color(color[0], color[1], color[2]);
+    public static Color getColorFromInt( int color ) {
+        byte[] bytes = ByteBuffer.allocate( 4 ).putInt( color ).array( );
+        int[] colorArray = new int[ 3 ];
+        colorArray[ 0 ] = bytes[ 3 ] & 0xFF;
+        colorArray[ 1 ] = bytes[ 2 ] & 0xFF;
+        colorArray[ 2 ] = bytes[ 1 ] & 0xFF;
+        return getColorIntFromIntArray( colorArray );
     }
 
     /**
-     * Returns bitdepth of a dataset.
-     * See {@link EasyXT#datatype}
+     * recover an RGB color for use with ImageJ from a 3 element (R,G,B) array
+     *
+     * @param color the Java Color
+     * @return
+     */
+    public static Color getColorIntFromIntArray( int[] color ) {
+        return new Color( color[ 0 ], color[ 1 ], color[ 2 ] );
+    }
+
+    /**
+     * Returns bitdepth of a dataset. See {@link EasyXT#datatype}
+     *
      * @param dataset
      * @return
      * @throws Error
@@ -634,5 +713,10 @@ public class EasyXT {
         // Thanks NICO
         return datatype.get( type );
     }
+
+    public static String getName( IDataItemPrx item ) throws Error {
+        return item.GetName( );
+    }
+
 
 }

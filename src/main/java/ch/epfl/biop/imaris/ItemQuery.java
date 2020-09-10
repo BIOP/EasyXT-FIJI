@@ -137,6 +137,23 @@ public class ItemQuery {
             return items;
         }
 
+    @Override
+    public String toString( ) {
+        try {
+            return "ItemQuery with the following elements: \n" +
+                    "  parent:\t" + EasyXT.getName( itemParent ) +"\n"+
+                    "  name:\t '" + itemName + "\n" +
+                    "  type:\t" + itemType + "\n" +
+                    "  position:\t" + itemPosition;
+        } catch ( Error error ) {
+            error.printStackTrace( );
+        }
+        return "ItemQuery with the following elements: \n" +
+                "  name:\t '" + itemName + "\n" +
+                "  type:\t" + itemType + "\n" +
+                "  position:\t" + itemPosition;
+    }
+
     public static class ItemQueryBuilder {
         private IDataContainerPrx itemParent = null;
         String itemName = null;

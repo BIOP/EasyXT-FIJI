@@ -97,6 +97,13 @@ public class EasyXT {
         }
     }
 
+    /**
+     * casts each Imaris Object to its right Class for easier downstream processing
+     * Not sure if this is needed but have not tested without
+     * @param item the item to return the specific class of
+     * @return the same item but cast to its appropriate subclass
+     * @throws Error an Imaris Error Object
+     */
     static IDataItemPrx castToType( ObjectPrx item ) throws Error {
         IFactoryPrx factory = app.GetFactory( );
 

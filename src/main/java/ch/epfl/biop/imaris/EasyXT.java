@@ -534,12 +534,12 @@ public class EasyXT {
     // Scene Related methods
 
     /**
-     * Adds the provided Item to the Main Imaris Scene
+     * Adds the provided Item to the Main Imaris Scene (at the bottom)
      * @param item the item (Spot, Surface, Folder) to add
      * @throws Error an Imaris Error Object
      */
     public static void addToScene( IDataContainerPrx item ) throws Error {
-        app.GetSurpassScene( ).AddChild( item, -1 );
+        addToScene( getImaris( ).GetSurpassScene( ), item );
     }
 
     /**

@@ -29,9 +29,13 @@ public class AddChannelsToDataset {
 
             ImagePlus channels_imp1 = IJ.createImage( "HyperStack One", bitDepth + "-bit color-mode label", cal.xSize, cal.ySize, 2, cal.zSize, cal.tSize );
             channels_imp1.show( );
+
+            // Copy the dataset
             IDataSetPrx newDataset = dataset.Clone( );
             EasyXT.addChannels( newDataset, channels_imp1 );
-            EasyXT.getImaris().SetDataSet( newDataset );
+
+            // Place the dataset into the scene
+            EasyXT.setCurrentDataset( newDataset );
             long t1 = System.currentTimeMillis( ) - t0;
             IJ.log( "New dataset time: "+t1+" ms" );
 
@@ -43,7 +47,6 @@ public class AddChannelsToDataset {
             EasyXT.addChannels( channels_imp2 );
             long t3 = System.currentTimeMillis( ) - t2;
             IJ.log( "Append to current  dataset time: "+t3+" ms" );
-
 
         } catch ( Error error ) {
             System.out.println( "ERROR:" + error.mDescription );

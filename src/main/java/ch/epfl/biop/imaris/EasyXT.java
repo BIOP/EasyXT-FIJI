@@ -178,20 +178,6 @@ public class EasyXT {
         return null;
     }
 
-    /**
-     * Returns the first item that matches the given ItemQuery
-     * @param query the specific query
-     * @return the requested item, null if not found
-     * @throws Error an Imaris Error Object
-     */
-    private static IDataItemPrx getItem( ItemQuery query ) throws Error {
-        List<IDataItemPrx> items = query.get( );
-
-        if ( items.size( ) > 0 ) return items.get( 0 );
-
-        log.accept( "No Item matches query "+query.toString() );
-        return null;
-    }
 
     /**
      * Get the first spots object with the given name
@@ -202,7 +188,7 @@ public class EasyXT {
      */
     public static ISpotsPrx getSpots( String name ) throws Error {
         ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setName( name ).setType( "Spots" ).build( );
-        return (ISpotsPrx) getItem( query );
+        return (ISpotsPrx) query.get();
     }
 
     /**
@@ -213,7 +199,7 @@ public class EasyXT {
      */
     public static ISpotsPrx getSpots( int position ) throws Error {
         ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setType( "Spots" ).setPosition( position ).build( );
-        return (ISpotsPrx) getItem( query );
+        return (ISpotsPrx) query.get();
     }
 
     /**
@@ -225,7 +211,7 @@ public class EasyXT {
      */
     public static ISurfacesPrx getSurfaces( String name ) throws Error {
         ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setName( name ).setType( "Surfaces" ).build( );
-        return (ISurfacesPrx) getItem( query );
+        return (ISurfacesPrx) query.get();
     }
     /**
      * Get the first surfaces object with the given name
@@ -235,7 +221,7 @@ public class EasyXT {
      */
     public static ISurfacesPrx getSurfaces( int position ) throws Error {
         ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setType( "Surfaces" ).setPosition( position ).build( );
-        return (ISurfacesPrx) getItem( query );
+        return (ISurfacesPrx) query.get();
     }
 
     /**

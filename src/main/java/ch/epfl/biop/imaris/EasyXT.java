@@ -188,7 +188,9 @@ public class EasyXT {
      */
     public static ISpotsPrx getSpots( String name ) throws Error {
         ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setName( name ).setType( "Spots" ).build( );
-        return (ISpotsPrx) query.get();
+        List<IDataItemPrx> items = query.get( );
+        if (items.size() > 0 )  return (ISpotsPrx) items.get( 0 );
+        return null;
     }
 
     /**
@@ -199,7 +201,9 @@ public class EasyXT {
      */
     public static ISpotsPrx getSpots( int position ) throws Error {
         ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setType( "Spots" ).setPosition( position ).build( );
-        return (ISpotsPrx) query.get();
+        List<IDataItemPrx> items = query.get( );
+        if (items.size() > 0 )  return (ISpotsPrx) items.get( 0 );
+        return null;
     }
 
     /**
@@ -211,7 +215,10 @@ public class EasyXT {
      */
     public static ISurfacesPrx getSurfaces( String name ) throws Error {
         ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setName( name ).setType( "Surfaces" ).build( );
-        return (ISurfacesPrx) query.get();
+
+        List<IDataItemPrx> items = query.get( );
+        if (items.size() > 0 )  return (ISurfacesPrx) items.get( 0 );
+        return null;
     }
     /**
      * Get the first surfaces object with the given name
@@ -221,8 +228,9 @@ public class EasyXT {
      */
     public static ISurfacesPrx getSurfaces( int position ) throws Error {
         ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setType( "Surfaces" ).setPosition( position ).build( );
-        return (ISurfacesPrx) query.get();
-    }
+        List<IDataItemPrx> items = query.get( );
+        if (items.size() > 0 )  return (ISurfacesPrx) items.get( 0 );
+        return null;       }
 
     /**
      * Get all items of the requested type
@@ -531,7 +539,7 @@ public class EasyXT {
      * @param item the item (Spot, Surface, Folder) to add
      * @throws Error an Imaris Error Object
      */
-    public static void addToScene( IDataContainerPrx item ) throws Error {
+    public static void addToScene( IDataItemPrx item ) throws Error {
         addToScene( getImaris( ).GetSurpassScene( ), item );
     }
 

@@ -1,8 +1,8 @@
 package ch.epfl.biop.imaris;
 
 import Ice.ObjectPrx;
-import Imaris.*;
 import Imaris.Error;
+import Imaris.*;
 import ImarisServer.IServerPrx;
 import com.bitplane.xt.IceClient;
 import ij.CompositeImage;
@@ -11,20 +11,20 @@ import ij.ImageStack;
 import ij.measure.Calibration;
 import ij.plugin.HyperStackConverter;
 import ij.process.*;
-import io.scif.formats.APNGFormat;
 
 import java.awt.*;
 import java.io.File;
 import java.nio.ByteBuffer;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * EasyXT static class:
- * Wrap Imaris Extension API in a convenient way
+ * EasyXT static class: Wrap Imaris Extension API in a convenient way
  */
 
 // TODO: Detecting Spots and Surfaces, with tracking
@@ -98,8 +98,9 @@ public class EasyXT {
     }
 
     /**
-     * casts each Imaris Object to its right Class for easier downstream processing
-     * Not sure if this is needed but have not tested without
+     * casts each Imaris Object to its right Class for easier downstream processing Not sure if this is needed but have
+     * not tested without
+     *
      * @param item the item to return the specific class of
      * @return the same item but cast to its appropriate subclass
      * @throws Error an Imaris Error Object
@@ -142,6 +143,7 @@ public class EasyXT {
 
     /**
      * Return the first item with the selected name. Returns null if not found
+     *
      * @param name the name of the item in the Imaris Scene
      * @return the requested item, null if not found
      * @throws Error an Imaris Error Object
@@ -152,7 +154,7 @@ public class EasyXT {
 
         List<IDataItemPrx> items = query.get( );
 
-        if (items.size() > 0)
+        if ( items.size( ) > 0 )
             return items.get( 0 );
 
         log.accept( "No Items with name " + name + " found inside " + getName( query.getParent( ) ) );
@@ -161,49 +163,57 @@ public class EasyXT {
 
     /**
      * Returns nth item of a given type
-     * @param type its type, as defined by the enum {@link ItemQuery.ItemType}
+     *
+     * @param type     its type, as defined by the enum {@link ItemQuery.ItemType}
      * @param position the 0-based position of the object
      * @return the requested item, null if not found
      * @throws Error an Imaris Error Object
      */
     public static IDataItemPrx getItem( String type, int position ) throws Error {
 
-        ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setPosition(  position ).setType( type ).build( );
+        ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setPosition( position ).setType( type ).build( );
         List<IDataItemPrx> items = query.get( );
 
         if ( items.size( ) >= query.getPosition( ) )
             return items.get( query.getPosition( ) );
 
-        log.accept( "No Items of type "+type+" found at position "+position+" inside "+ getName( query.getParent() ) );
+        log.accept( "No Items of type " + type + " found at position " + position + " inside " + getName( query.getParent( ) ) );
         return null;
     }
 
 
     /**
      * Get the first spots object with the given name
-     * @param name the name of the spots object to get. Returns the first spots object if there are multiple spots
-     *             with the same name (Don't do that)
+     *
+     * @param name the name of the spots object to get. Returns the first spots object if there are multiple spots with
+     *             the same name (Don't do that)
      * @return the requested spots, null if not found
      * @throws Error an Imaris Error Object
      */
     public static ISpotsPrx getSpots( String name ) throws Error {
         ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setName( name ).setType( "Spots" ).build( );
-        return (ISpotsPrx) query.get();
+        List<IDataItemPrx> items = query.get( );
+        if ( items.size( ) > 0 ) return (ISpotsPrx) items.get( 0 );
+        return null;
     }
 
     /**
      * Get the n-th spots object in the scene
+     *
      * @param position the 0-based position of the spots. a value of 2 would try to return the 3rd spots object
      * @return the requested spots, null if not found
      * @throws Error an Imaris Error Object
      */
     public static ISpotsPrx getSpots( int position ) throws Error {
         ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setType( "Spots" ).setPosition( position ).build( );
-        return (ISpotsPrx) query.get();
+        List<IDataItemPrx> items = query.get( );
+        if ( items.size( ) > 0 ) return (ISpotsPrx) items.get( 0 );
+        return null;
     }
 
     /**
      * Get the first surfaces object with the given name
+     *
      * @param name the name of the surfaces object to get. Returns the first surfaces object if there are multiple
      *             surfaces with the same name (Don't do that)
      * @return the requested surfaces, null if not found
@@ -211,21 +221,29 @@ public class EasyXT {
      */
     public static ISurfacesPrx getSurfaces( String name ) throws Error {
         ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setName( name ).setType( "Surfaces" ).build( );
-        return (ISurfacesPrx) query.get();
+
+        List<IDataItemPrx> items = query.get( );
+        if ( items.size( ) > 0 ) return (ISurfacesPrx) items.get( 0 );
+        return null;
     }
+
     /**
      * Get the first surfaces object with the given name
+     *
      * @param position the 0-based position of the surfaces. a value of 2 would try to return the 3rd surfaces object
      * @return the requested surfaces, null if not found
      * @throws Error an Imaris Error Object
      */
     public static ISurfacesPrx getSurfaces( int position ) throws Error {
         ItemQuery query = new ItemQuery.ItemQueryBuilder( ).setType( "Surfaces" ).setPosition( position ).build( );
-        return (ISurfacesPrx) query.get();
+        List<IDataItemPrx> items = query.get( );
+        if ( items.size( ) > 0 ) return (ISurfacesPrx) items.get( 0 );
+        return null;
     }
 
     /**
      * Get all items of the requested type
+     *
      * @param type the type, defined by a String. See {@link ItemQuery.ItemType}
      * @return a list containins the objects
      * @throws Error an Imaris Error Object
@@ -237,6 +255,7 @@ public class EasyXT {
 
     /**
      * Get all spots objects in the main scene as a list
+     *
      * @return the spots as a list
      * @throws Error an Imaris Error Object
      */
@@ -254,6 +273,7 @@ public class EasyXT {
 
     /**
      * Get all surfaces objects in the main scene as a list
+     *
      * @return the surfaces as a list
      * @throws Error an Imaris Error Object
      */
@@ -273,6 +293,7 @@ public class EasyXT {
 
     /**
      * Returns an ImagePlus image of a dataset TODO : add a way to select only a subpart of it
+     *
      * @param dataset
      * @return
      * @throws Error
@@ -404,8 +425,9 @@ public class EasyXT {
     }
 
     /**
-     * Adds the selected ImagePlus to the current Dataset by appending it as new channels
-     * If the dataset is visible in the Imaris Scene, this is a lot slower
+     * Adds the selected ImagePlus to the current Dataset by appending it as new channels If the dataset is visible in
+     * the Imaris Scene, this is a lot slower
+     *
      * @param imp the image to add to the current dataset
      * @throws Error an Imaris Error object
      */
@@ -421,7 +443,7 @@ public class EasyXT {
      * Adds the selected ImagePlus to the provided IDatasetPrx by appending it as new channels
      *
      * @param dataset
-     * @param imp the image to add to the current dataset
+     * @param imp     the image to add to the current dataset
      * @throws Error an Imaris Error object
      */
     public static void addChannels( IDataSetPrx dataset, ImagePlus imp ) throws Error {
@@ -436,8 +458,9 @@ public class EasyXT {
      *     <li>Ensure ImagePlus dimensions are not larger than the provided dataset dimensions (including provided starting locations). Throws an Error if larger than the dataset. </li>
      *     <li>Ensure consistent bit-depth between ImagePlus and IDataSetPrx. throws Error if otherwise</li>
      *     <li>Ensure consistent voxel size (ignore framerate) between ImagePlus and Dataset. Issues warning if otherwise</li>
-     *</ul>
+     * </ul>
      * The user can define the start location XYZT in pixel coordinates
+     *
      * @param imp     the image from which to extract the channels to append
      * @param dataset the receiver dataset
      * @param xstart  start X position, in pixels (from top-left in ImageJ, will translate to bottom-left in Imaris)
@@ -528,15 +551,17 @@ public class EasyXT {
 
     /**
      * Adds the provided Item to the Main Imaris Scene (at the bottom)
+     *
      * @param item the item (Spot, Surface, Folder) to add
      * @throws Error an Imaris Error Object
      */
-    public static void addToScene( IDataContainerPrx item ) throws Error {
+    public static void addToScene( IDataItemPrx item ) throws Error {
         addToScene( getImaris( ).GetSurpassScene( ), item );
     }
 
     /**
      * Adds the provided item as the last child to the provided parent item
+     *
      * @param parent The parent item
      * @param item   the item to add as a child
      * @throws Error an Imaris Error Object
@@ -547,6 +572,7 @@ public class EasyXT {
 
     /**
      * Removes the provided item from its parent
+     *
      * @param item the item in question
      * @throws Error an Imaris Error Object
      */
@@ -556,8 +582,9 @@ public class EasyXT {
 
     /**
      * Creates a "Group" (folder) that can contain other items
+     *
      * @param groupName the name to identify the group with
-     * @return an item that can be added to  a scene ({@link EasyXT#addToScene(IDataContainerPrx)}) or to which other
+     * @return an item that can be added to  a scene ({@link EasyXT#addToScene(IDataItemPrx)}) or to which other
      * items can be added as children {@link EasyXT#addToScene(IDataContainerPrx, IDataItemPrx)}
      * @throws Error
      */
@@ -688,6 +715,7 @@ public class EasyXT {
 
     /**
      * overloaded method , see {@link #openImage(File, String)}
+     *
      * @param filepath to an *.ims file
      * @throws Error
      */
@@ -697,6 +725,7 @@ public class EasyXT {
 
     /**
      * Saves the current imaris scene to an imaris file
+     *
      * @param filepath path to save ims file
      * @param options  option string cf : xtinterface/structImaris_1_1IApplication.html/FileSave eg writer="BMPSeries".
      *                 List of formats available: Imaris5, Imaris3, Imaris2,SeriesAdjustable, TiffSeriesRGBA, ICS,
@@ -714,6 +743,7 @@ public class EasyXT {
 
     /**
      * overloaded method , see {@link #saveImage(File, String)}
+     *
      * @param filepath path to save ims file
      * @throws Error
      */
@@ -724,8 +754,10 @@ public class EasyXT {
     }
 
     // Minor helper methods
+
     /**
      * Recover a Color for use to set ImagePlus LUTs
+     *
      * @param color the Imaris Color descriptor
      * @return the Java Color
      */
@@ -740,6 +772,7 @@ public class EasyXT {
 
     /**
      * recover an RGB color for use with ImageJ from a 3 element (R,G,B) array
+     *
      * @param color the Java Color
      * @return
      */
@@ -749,6 +782,7 @@ public class EasyXT {
 
     /**
      * Returns bitdepth of a dataset. See {@link EasyXT#datatype}
+     *
      * @param dataset
      * @return
      * @throws Error an Imaris Error Object
@@ -761,12 +795,17 @@ public class EasyXT {
 
     /**
      * Get the name of the requested item, to avoid using GetName()
+     *
      * @param item the item whose name we need
      * @return the name of the item
      * @throws Error an Imaris Error Object
      */
     public static String getName( IDataItemPrx item ) throws Error {
         return item.GetName( );
+    }
+
+    public static String getOpenImageName( ) throws Error {
+        return new File( app.GetCurrentFileName( ) ).getName( );
     }
 
 

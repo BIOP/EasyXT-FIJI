@@ -6,9 +6,7 @@ import Imaris.cStatisticValues;
 import ij.measure.ResultsTable;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -95,7 +93,7 @@ public class StatsQuery {
 
     /**
      * allows to select the timepoint of the statistics to export. 0-based
-     *
+     * Careful. Imaris results are one-based for timepoints
      * @param timepoint the timepoint
      * @return
      */
@@ -106,7 +104,7 @@ public class StatsQuery {
 
     /**
      * allows to set a list of timepoints from which to get statistics from
-     *
+     * Careful. Imaris results are one-based for timepoints
      * @param timepoints
      * @return
      */
@@ -117,25 +115,24 @@ public class StatsQuery {
 
     /**
      * allows to select the channel from which to get statistics from
-     *
+     * Careful. Imaris results are one-based for channels
      * @param channel
      * @return
      */
-    public StatsQuery selectChannel( final Integer channel ) {
-        this.channels.add( channel.toString( ) );
+    public StatsQuery selectChannel( Integer channel ) {
+        if (channel > 0 )  this.channels.add( channel.toString());
         return this;
     }
 
     /**
      * allows to set a list of channels from which to get statistics from
-     *
+     * Careful. Imaris results are one-based for channels
      * @param channels
      * @return
      */
     public StatsQuery selectChannels( final List<Integer> channels ) {
-        // We choose channels to be 0-based, but the stats are 1-based
         this.channels = channels.stream( ).map( c -> {
-            c = c + 1;
+
             return c.toString( );
         } ).collect( Collectors.toList( ) );
         return this;
@@ -168,6 +165,9 @@ public class StatsQuery {
      */
     public ResultsTable get( ) throws Error {
         // identify what we need
+        List<Integer> selectedIndexes = new ArrayList<>( );
+        Map<String, Map<String, String>> cleanStats = new HashMap<>( );
+        String imageName = new File( EasyXT.getOpenImageName( ) ).getName( );
         for ( int i = 0; i < this.stats.mIds.length; i++ ) {
 
             boolean matchesName, matchesChannel, matchesTime, matchesID;
@@ -206,26 +206,49 @@ public class StatsQuery {
 
             // If we get a true for all these, then we can keep the statistic
             if ( matchesName && matchesChannel && matchesID && matchesTime ) {
-                String columnName = stats.mNames[ i ];
+                String name = stats.mNames[ i ];
                 Float value = stats.mValues[ i ];
                 String cat = this.stats.mFactors[ catIdx ][ i ];
                 String channel = this.stats.mFactors[ channelIdx ][ i ];
                 String time = this.stats.mFactors[ timeIdx ][ i ];
                 long id = this.stats.mIds[ i ];
 
-                // Make a new results row
-                results.incrementCounter( );
+                // List all stats we want to add
+                Map<String, String> statElements = new HashMap<>( );
+                statElements.put( "Label", imageName );
+                statElements.put( "ID", String.valueOf( id ) );
+                if ( !cat.equals( "" ) ) statElements.put( "Category", cat );
+                if ( !channel.equals( "" ) ) statElements.put( "Channel", channel );
+                if ( !time.equals( "" ) ) statElements.put( "Timepoint", time );
+                statElements.put( name, value.toString( ) );
 
-                results.addLabel( new File( EasyXT.getOpenImageName( ) ).getName( ) );
-                results.addValue( "ID", id );
-                results.addValue( columnName, value );
-                if ( !cat.equals( "" ) ) results.addValue( "Category", cat );
-                if ( !channel.equals( "" ) ) results.addValue( "Channel", channel );
-                if ( !time.equals( "" ) ) results.addValue( "Timepoint", time );
+                cleanStats.put( id + ":" + channel, statElements );
             }
         }
-        return this.results;
+
+        cleanStats.forEach( ( uid, columns ) -> {
+            results.incrementCounter( );
+            columns.forEach( ( name, value ) -> {
+                if ( isNumber( value ))
+                    results.addValue( name, Double.valueOf( value ) );
+                else
+                    results.addValue( name,  value );
+            });
+        } );
+        return results;
     }
 
-
+    /**
+     * Convenience to check if we can parse the number or not
+     * @param test the string to test
+     * @return
+     */
+    private boolean isNumber( String test ){
+       try {
+           Double.valueOf( test );
+           return true;
+       }catch ( NumberFormatException e) {
+           return false;
+       }
+    }
 }

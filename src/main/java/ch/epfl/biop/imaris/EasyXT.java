@@ -9,6 +9,7 @@ import ij.CompositeImage;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.measure.Calibration;
+import ij.measure.ResultsTable;
 import ij.plugin.HyperStackConverter;
 import ij.process.*;
 
@@ -584,8 +585,8 @@ public class EasyXT {
      * Creates a "Group" (folder) that can contain other items
      *
      * @param groupName the name to identify the group with
-     * @return an item that can be added to  a scene ({@link EasyXT#addToScene(IDataItemPrx)}) or to which other
-     * items can be added as children {@link EasyXT#addToScene(IDataContainerPrx, IDataItemPrx)}
+     * @return an item that can be added to  a scene ({@link EasyXT#addToScene(IDataItemPrx)}) or to which other items
+     * can be added as children {@link EasyXT#addToScene(IDataContainerPrx, IDataItemPrx)}
      * @throws Error
      */
     public static IDataContainerPrx createGroup( String groupName ) throws Error {
@@ -752,6 +753,85 @@ public class EasyXT {
         saveImage( filepath, "" );
 
     }
+
+    // Statistics related functions
+
+    /**
+     * returns the selected statistic from the selected item
+     *
+     * @param item the item to query
+     * @param name the name of the statistic, as in the IJ GUI minus the "Ch=1 Img=1", ... text
+     * @return a ResultsTable to be used and displayed by ImageJ
+     * @throws Error an Imaris Error Object
+     */
+    public static ResultsTable getStatistics( IDataItemPrx item, String name ) throws Error {
+        return new StatsQuery( item )
+                .selectStatistic( name )
+                .get( );
+    }
+
+    /**
+     * returns only the selected statistic at the selected channel Careful. Imaris results are one-based for channels
+     *
+     * @param item    the item to query
+     * @param name    the name of the statistic, as in the IJ GUI minus the "Ch=1 Img=1", ... text
+     * @param channel the channel for which we want the statistic
+     * @return a ResultsTable to be used and displayed by ImageJ
+     * @throws Error an Imaris Error Object
+     */
+    public static ResultsTable getStatistics( IDataItemPrx item, String name, Integer channel ) throws Error {
+        return new StatsQuery( item )
+                .selectStatistic( name )
+                .selectChannel( channel )
+                .get( );
+    }
+
+    /**
+     * returns the selected statistics
+     *
+     * @param item  the item to query
+     * @param names the names of the statistic, as in the IJ GUI minus the "Ch=1 Img=1", ... text
+     * @return a ResultsTable to be used and displayed by ImageJ
+     * @throws Error an Imaris Error Object
+     */
+    public static ResultsTable getStatistics( IDataItemPrx item, List<String> names ) throws Error {
+        return new StatsQuery( item )
+                .selectStatistics( names )
+                .get( );
+    }
+
+    /**
+     * returns the selected statistics at the selected channel Careful. Imaris results are one-based for channels
+     *
+     * @param item    the item to query
+     * @param names   the names of the statistic, as in the IJ GUI minus the "Ch=1 Img=1", ... text
+     * @param channel the channel for which we want the statistic
+     * @return a ResultsTable to be used and displayed by ImageJ
+     * @throws Error an Imaris Error Object
+     */
+    public static ResultsTable getStatistics( IDataItemPrx item, List<String> names, Integer channel ) throws Error {
+        return new StatsQuery( item )
+                .selectStatistics( names )
+                .selectChannel( channel )
+                .get( );
+    }
+
+    /**
+     * returns the selected statistics at the selected channels Careful. Imaris results are one-based for channels
+     *
+     * @param item     the item to query
+     * @param names    the names of the statistic, as in the IJ GUI minus the "Ch=1 Img=1", ... text
+     * @param channels the channels for which we want the statistic
+     * @return a ResultsTable to be used and displayed by ImageJ
+     * @throws Error an Imaris Error Object
+     */
+    public static ResultsTable getStatistics( IDataItemPrx item, List<String> names, List<Integer> channels ) throws Error {
+        return new StatsQuery( item )
+                .selectStatistics( names )
+                .selectChannels( channels )
+                .get( );
+    }
+
 
     // Minor helper methods
 

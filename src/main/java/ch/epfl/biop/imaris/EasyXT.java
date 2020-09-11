@@ -777,5 +777,9 @@ public class EasyXT {
         return item.GetName( );
     }
 
+    public static String getOpenImageName() throws Error {
+        return new File( app.GetCurrentFileName( ) ).getName();
+    }
+
 
 }

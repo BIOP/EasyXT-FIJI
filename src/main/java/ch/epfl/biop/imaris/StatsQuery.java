@@ -4,6 +4,7 @@ import Imaris.Error;
 import Imaris.IDataItemPrx;
 import Imaris.cStatisticValues;
 import ij.measure.ResultsTable;
+import org.apache.commons.lang.ObjectUtils;
 
 import java.io.File;
 import java.util.*;
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
  * This class is based on a Builder model to obtain selected statistics from an Imaris {@link cStatisticValues} object
  * It allows for selecting specific item IDs, stat names, channels and timepoints. Statistics are returned in the form
  * of a {@link ResultsTable} Multiple images are not directly supported, as we have never had a use for it.
+ * See the example uses in the source code of {@link ch.epfl.biop.imaris.demo.GetStatisticsDemo}
  *
  * @author Olivier Burri
  * @version 0.1
@@ -24,8 +26,8 @@ public class StatsQuery {
     private List<String> channels = new ArrayList<>( );
 
     private ResultsTable results = new ResultsTable( );
-    private cStatisticValues stats;
-    private int channelIdx, timeIdx, catIdx;
+    private final cStatisticValues stats;
+    private final int channelIdx, timeIdx, catIdx;
 
     /**
      * Constructor for getting selected statistics
@@ -57,7 +59,7 @@ public class StatsQuery {
     }
 
     /**
-     * allows to set a list of IDs from which to get statistics from
+     * Allows to set a list of IDs from which to get statistics from
      *
      * @param ids the list of IDs to recover statistics from
      * @return
@@ -68,7 +70,7 @@ public class StatsQuery {
     }
 
     /**
-     * allows to select the name of the statistic to export. These are the same names as in the Imaris GUI **Minus** the
+     * Allows to select the name of the statistic to export. These are the same names as in the Imaris GUI **Minus** the
      * channel or image (eg. do not enter "Intensity Sum" Ch1=1 Img=1, just "Intensity Sum") Use {@link
      * StatsQuery#selectChannels(List)} and {@link StatsQuery#selectChannel(Integer)} to specify channels
      *
@@ -81,7 +83,7 @@ public class StatsQuery {
     }
 
     /**
-     * allows to set a list of IDs from which to get statistics from
+     * Allows to set a list of IDs from which to get statistics from
      *
      * @param names the list of statistic names to recover as they appear in the Imaris GUI
      * @return
@@ -92,7 +94,7 @@ public class StatsQuery {
     }
 
     /**
-     * allows to select the timepoint of the statistics to export. 0-based
+     * Allows to select the timepoint of the statistics to export. 0-based
      * Careful. Imaris results are one-based for timepoints
      * @param timepoint the timepoint
      * @return
@@ -103,7 +105,7 @@ public class StatsQuery {
     }
 
     /**
-     * allows to set a list of timepoints from which to get statistics from
+     * Allows to set a list of timepoints from which to get statistics from
      * Careful. Imaris results are one-based for timepoints
      * @param timepoints
      * @return
@@ -114,7 +116,7 @@ public class StatsQuery {
     }
 
     /**
-     * allows to select the channel from which to get statistics from
+     * Allows to select the channel from which to get statistics from
      * Careful. Imaris results are one-based for channels
      * @param channel
      * @return
@@ -125,16 +127,13 @@ public class StatsQuery {
     }
 
     /**
-     * allows to set a list of channels from which to get statistics from
+     * Allows to set a list of channels from which to get statistics from
      * Careful. Imaris results are one-based for channels
      * @param channels
      * @return
      */
     public StatsQuery selectChannels( final List<Integer> channels ) {
-        this.channels = channels.stream( ).map( c -> {
-
-            return c.toString( );
-        } ).collect( Collectors.toList( ) );
+        this.channels = channels.stream( ).map( c -> c.toString( ) ).collect( Collectors.toList( ) );
         return this;
     }
 
@@ -188,7 +187,7 @@ public class StatsQuery {
                 }
             } else matchesChannel = true;
 
-            if ( this.timepoints.size( ) > 0 ) { // We have requested specific channels
+            if ( this.timepoints.size( ) > 0 ) { // We have requested specific timepoints
                 matchesTime = false;
                 for ( String time : this.timepoints ) {
                     matchesTime = this.stats.mFactors[ timeIdx ][ i ].matches( time );
@@ -247,7 +246,7 @@ public class StatsQuery {
        try {
            Double.valueOf( test );
            return true;
-       }catch ( NumberFormatException e) {
+       }catch ( NumberFormatException | NullPointerException ne) {
            return false;
        }
     }

@@ -585,8 +585,9 @@ public class EasyXT {
      * Creates a "Group" (folder) that can contain other items
      *
      * @param groupName the name to identify the group with
-     * @return an item that can be added to  a scene ({@link EasyXT#addToScene(IDataItemPrx)}) or to which other items
+     * @return an item that can be added to a scene ({@link EasyXT#addToScene(IDataItemPrx)}) or to which other items
      * can be added as children {@link EasyXT#addToScene(IDataContainerPrx, IDataItemPrx)}
+     * IDataContainerPrx extends IDataItemPrx
      * @throws Error
      */
     public static IDataContainerPrx createGroup( String groupName ) throws Error {
@@ -834,6 +835,22 @@ public class EasyXT {
 
 
     // Minor helper methods
+
+    /**
+     * Helps append results to another results table
+     * @param source the results table to get the data from
+     * @param target the results table to insert the data into.
+     */
+    public static void appendResults(ResultsTable source, ResultsTable target) {
+        int nR = target.getCounter( );
+
+        for( int i=0; i<nR; i++ ) {
+            target.incrementCounter();
+            for (String col : source.getHeadings()) {
+                target.addValue( col, source.getValue( col, i ) );
+            }
+        }
+    }
 
     /**
      * Recover a Color for use to set ImagePlus LUTs

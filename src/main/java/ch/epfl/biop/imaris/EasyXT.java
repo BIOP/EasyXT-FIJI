@@ -1,3 +1,24 @@
+/**
+ * Copyright (c) 2020 Ecole Polytechnique Fédérale de Lausanne. All rights reserved.
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this list of conditions
+ * and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions
+ * and the following disclaimer in the documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse
+ * or promote products derived from this software without specific prior written permission.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+ * TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package ch.epfl.biop.imaris;
 
 import Ice.ObjectPrx;
@@ -24,25 +45,24 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-/**
- * EasyXT static class: Wrap Imaris Extension API in a convenient way
- */
-
 // TODO: Detecting Spots and Surfaces, with tracking
 
 // TODO: Convert spots to channel
 
 // TODO: Mask Channel using spots or surfaces
 
-// TODO: Creating Spots And Surfaces
-
 // TODO: Find way to batch process OpenImage() with doc
 
 // TODO: Make Documentation
 
-// TODO: Allow easy getting and setting of images per channel
-
-// TODO: Javadoc
+/**
+ * Main EasyXT Static class
+ * @author Olivier Burri
+ * @author Nicolas Chiaruttini
+ * @author Romain Guiet
+ *
+ * This is the main static class you should access when you want to interact with Imaris.
+ */
 public class EasyXT {
     private static IApplicationPrx app;
     private static IceClient mIceClient;

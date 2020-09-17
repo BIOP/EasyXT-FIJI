@@ -2,15 +2,10 @@ package ch.epfl.biop.imaris.demo;
 
 import Imaris.Error;
 import Imaris.IDataContainerPrx;
-import Imaris.IDataSetPrx;
 import Imaris.ISpotsPrx;
 import ch.epfl.biop.imaris.EasyXT;
-import ch.epfl.biop.imaris.ImarisCalibration;
 import ch.epfl.biop.imaris.SpotsDetector;
-import ij.IJ;
-import ij.ImagePlus;
 import net.imagej.ImageJ;
-import sun.font.EAttribute;
 
 public class AddChildObjects {
 

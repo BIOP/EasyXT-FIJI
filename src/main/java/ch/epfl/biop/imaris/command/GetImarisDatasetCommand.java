@@ -8,7 +8,7 @@ import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-@Plugin(type = Command.class, menuPath = "EasyXT>Get Complete Imaris Dataset")
+@Plugin(type = Command.class, menuPath = "Plugins>BIOP>EasyXT>Get Complete Imaris Dataset")
 public class GetImarisDatasetCommand implements Command {
 
     @Parameter(type = ItemIO.OUTPUT)

@@ -9,7 +9,7 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 import org.scijava.util.ColorRGB;
 
-@Plugin(type = Command.class, menuPath = "EasyXT>Surface>Make Surface In Imaris")
+@Plugin(type = Command.class, menuPath = "Plugins>BIOP>EasyXT>Surface>Make Surface In Imaris")
 public class MakeSurfaceCommand implements Command {
 
     @Parameter(label = "Channel, zero index based")

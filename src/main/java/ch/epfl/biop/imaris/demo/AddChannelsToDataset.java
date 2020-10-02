@@ -8,14 +8,23 @@ import ij.ImagePlus;
 import ij.gui.WaitForUserDialog;
 import ij.IJ;
 
+/**
+ * EasyXT Demo
+ *
+ * Show how to add a channel to the imaris dataset
+ *
+ * Two ways are provided, a fast and a slow one.
+ *
+ * @author BIOP Team, EPFL 2020
+ *
+ */
+
 public class AddChannelsToDataset {
 
     public static void main( String... args ) {
         try {
-            // Fresh Start with the sample dataset
+            // Fresh Start with the BIOP sample dataset
             FreshStartWithIJAndBIOPImsSample.main();
-
-            // TODO : Add spots and surfaces
 
             //Get Extents of currently open dataset to create the same thing, but with two channels
             IDataSetPrx dataset = EasyXT.getCurrentDataset( );

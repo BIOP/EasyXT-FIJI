@@ -9,7 +9,17 @@ import ij.measure.ResultsTable;
 
 import java.util.Arrays;
 
+/**
+ * EasyXT Demo
+ *
+ * How to retrieve some statistics computed by Imaris
+ *
+ * @author BIOP Team, EPFL 2020
+ *
+ */
+
 public class GetStatisticsDemo {
+
     public static void main(String... args) throws Error {
 
         // Fresh Start with the sample dataset
@@ -17,13 +27,12 @@ public class GetStatisticsDemo {
 
         // Makes a surface detector and detect the surface
         ISurfacesPrx surface = SurfacesDetector.Channel(0)
-                .setSmoothingWidth(5)
-                .setLowerThreshold(300)
-                .setName("Surfaces 1")
+                .setSmoothingWidth(1)
+                .setLowerThreshold(40)
+                .setName("My Surface")
                 .setColor(new Integer[]{255,120,45})
                 .build()
                 .detect();
-
 
         // Get an object
         // ISurfacesPrx surfaces = EasyXT.getSurfaces( "Surfaces 1" ); // For this to work, you need to add the surface as a child object, see {@link AddChildObjects}

@@ -1,27 +1,22 @@
 package ch.epfl.biop.imaris.demo;
 
-import Imaris.Error;
 import Imaris.ISurfacesPrx;
 import ch.epfl.biop.imaris.EasyXT;
 import ch.epfl.biop.imaris.SurfacesDetector;
-import net.imagej.ImageJ;
 
 public class MakeAndGetSurfaceDemo {
 
+    // Note : you need to be in the 3D View in order to perform
 
-    public static void main(String... args) {
+    public static void main(String... args) throws Imaris.Error {
 
-
-        try {
-            // Launch FIJI
-            ImageJ ij = new ImageJ();
-            ij.ui().showUI();
+            // Fresh Start with the sample dataset
+            FreshStartWithIJAndBIOPImsSample.main();
 
             // Makes a surface detector and detect the surface
-
             ISurfacesPrx surf = SurfacesDetector.Channel(0)
                     .setSmoothingWidth(5)
-                    .setLowerThreshold(103)
+                    .setLowerThreshold(300)
                     .setName("My Surface")
                     .setColor(new Integer[]{255,120,45})
                     .build()
@@ -29,7 +24,6 @@ public class MakeAndGetSurfaceDemo {
 
             // Adds the surface to the scene
             EasyXT.getImaris().GetSurpassScene().AddChild(surf,0);
-
 
             // Gets an existing surface
             surf = EasyXT.getSurfaces( "My Surface" );
@@ -49,10 +43,6 @@ public class MakeAndGetSurfaceDemo {
             EasyXT.getImaris().GetSurpassScene().AddChild(spots,0);*/
 
             //EasyXT.getSpots
-
-        } catch ( Error error ) {
-            System.out.println( "ERROR:"+ error.mDescription);
-        }
 
     }
 }

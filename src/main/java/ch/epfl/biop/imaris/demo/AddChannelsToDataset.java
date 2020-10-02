@@ -6,17 +6,16 @@ import ch.epfl.biop.imaris.EasyXT;
 import ch.epfl.biop.imaris.ImarisCalibration;
 import ij.ImagePlus;
 import ij.gui.WaitForUserDialog;
-import net.imagej.ImageJ;
 import ij.IJ;
-public class AddChannelsToDataset {
 
+public class AddChannelsToDataset {
 
     public static void main( String... args ) {
         try {
-            // Launch FIJI
-            ImageJ ij = new ImageJ( );
+            // Fresh Start with the sample dataset
+            FreshStartWithIJAndBIOPImsSample.main();
 
-            ij.ui( ).showUI( );
+            // TODO : Add spots and surfaces
 
             //Get Extents of currently open dataset to create the same thing, but with two channels
             IDataSetPrx dataset = EasyXT.getCurrentDataset( );

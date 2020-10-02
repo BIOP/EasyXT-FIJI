@@ -5,15 +5,15 @@ import Imaris.Error;
 import ch.epfl.biop.imaris.EasyXT;
 import ch.epfl.biop.imaris.ItemQuery;
 import ij.IJ;
-import net.imagej.ImageJ;
 
 import java.util.List;
 
 public class AllGetters {
 
     public static void main(String... args) throws Error {
-        ImageJ ij = new ImageJ( );
-        ij.ui( ).showUI( );
+
+        // Fresh Start with the sample dataset
+        FreshStartWithIJAndBIOPImsSample.main();
 
         //Highest level getters for spots and surfaces
 

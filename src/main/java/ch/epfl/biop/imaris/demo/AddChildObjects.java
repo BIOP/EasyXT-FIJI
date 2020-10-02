@@ -5,17 +5,14 @@ import Imaris.IDataContainerPrx;
 import Imaris.ISpotsPrx;
 import ch.epfl.biop.imaris.EasyXT;
 import ch.epfl.biop.imaris.SpotsDetector;
-import net.imagej.ImageJ;
 
 public class AddChildObjects {
 
 
     public static void main( String... args ) {
         try {
-            // Launch FIJI
-            ImageJ ij = new ImageJ( );
-
-            ij.ui( ).showUI( );
+            // Fresh Start with the sample dataset
+            FreshStartWithIJAndBIOPImsSample.main();
 
             //Get Extents of currently open dataset to create he same thing, but with two channels
             IDataContainerPrx new_group = EasyXT.createGroup( "My Spots" );

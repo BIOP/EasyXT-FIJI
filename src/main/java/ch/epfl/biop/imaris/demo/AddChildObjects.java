@@ -5,25 +5,32 @@ import Imaris.IDataContainerPrx;
 import Imaris.ISpotsPrx;
 import ch.epfl.biop.imaris.EasyXT;
 import ch.epfl.biop.imaris.SpotsDetector;
-import net.imagej.ImageJ;
+
+/**
+ * EasyXT Demo
+ *
+ * Show how to insert objects into the scene of Imaris, here : spots
+ *
+ * @author BIOP Team, EPFL 2020
+ *
+ */
 
 public class AddChildObjects {
 
-
     public static void main( String... args ) {
         try {
-            // Launch FIJI
-            ImageJ ij = new ImageJ( );
+            // Fresh Start with the sample dataset
+            FreshStartWithIJAndBIOPImsSample.main();
 
-            ij.ui( ).showUI( );
+            // Creates a group
+            IDataContainerPrx my_group = EasyXT.createGroup( "Spots" );
 
-            //Get Extents of currently open dataset to create he same thing, but with two channels
-            IDataContainerPrx new_group = EasyXT.createGroup( "My Spots" );
-            EasyXT.addToScene( new_group );
+            // Adds it to the scene
+            EasyXT.addToScene( my_group );
 
-            // Make another one
-            ISpotsPrx spots = SpotsDetector.Channel( 0 )
-                    .setName( "Spots" )
+            // Makes a Spot Detector and detect them
+            ISpotsPrx spots = SpotsDetector.Channel( 2 )
+                    .setName( "My Spots" )
                     .setDiameter( 3.0 )
                     .setRegionsThresholdManual( 100 )
                     .isSubtractBackground( true )
@@ -31,9 +38,9 @@ public class AddChildObjects {
                     .isRegionsSpotsDiameterFromVolume( false )
                     .createRegionsChannel()
                     .build( ).detect( );
-            EasyXT.addToScene( new_group, spots );
 
-
+            // Adds the detected spots into the 'my_group' group
+            EasyXT.addToScene( my_group, spots );
 
         } catch ( Error error ) {
             System.out.println( "ERROR:" + error.mDescription );

@@ -9,7 +9,7 @@ import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
-@Plugin(type = Command.class, menuPath = "EasyXT>Surface>Get Surface from Imaris")
+@Plugin(type = Command.class, menuPath = "Plugins>BIOP>EasyXT>Surface>Get Surface from Imaris")
 public class GetSurfaceCommand implements Command{
 
     @Parameter

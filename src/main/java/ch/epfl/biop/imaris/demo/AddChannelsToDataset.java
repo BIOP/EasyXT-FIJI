@@ -15,7 +15,12 @@ import ij.IJ;
  *
  * Two ways are provided, a fast and a slow one.
  *
- * @author BIOP Team, EPFL 2020
+ * @author Olivier Burri
+ * @author Nicolas Chiaruttini
+ *
+ * October 2020
+ *
+ * EPFL - SV -PTECH - PTBIOP
  *
  */
 

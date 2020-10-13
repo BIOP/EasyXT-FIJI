@@ -15,10 +15,17 @@ import java.util.List;
  *
  * After creations of Spots and a Surface, demo of how accessing objects in the imaris scene
  *
- * TODO : completion of this description by Oli!
- * TODO : NPE to solve!
+ * This showcases how to create groups, and how to recover objects from the surpass scene
  *
- * @author BIOP Team, EPFL 2020
+ * The simplest way is to use EasyXT directly, but a more fine-tuning is possible using
+ * the {@link ItemQuery} class directly, which is the last example in this demo.
+ *
+ * @author Olivier Burri
+ * @author Nicolas Chiaruttini
+ *
+ * October 2020
+ *
+ * EPFL - SV -PTECH - PTBIOP
  *
  */
 public class AllGetters {

@@ -11,8 +11,11 @@ import java.io.File;
  * - Creates a new instance of FIJI
  * - Opens the demo image, a cell reaching metaphase, 3 channels, 40 timepoints, 8 bits
  *
- * @author BIOP Team, EPFL 2020
+ *  @author Nicolas Chiaruttini
  *
+ * October 2020
+ *
+ * EPFL - SV -PTECH - PTBIOP
  */
 
 public class FreshStartWithIJAndBIOPImsSample {

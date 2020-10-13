@@ -2,14 +2,25 @@ package ch.epfl.biop.imaris.demo;
 
 import Imaris.Error;
 import Imaris.ISpotsPrx;
-import Imaris.ISurfacesPrx;
 import ch.epfl.biop.imaris.*;
-import ij.macro.Variable;
 import ij.measure.ResultsTable;
 
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.DoubleStream;
+
+
+/**
+ * EasyXT Demo
+ *
+ * Show how to add statistics from ImageJ/Fiji to Imaris
+ *
+ * @author Olivier Burri
+ * @author Nicolas Chiaruttini
+ *
+ * October 2020
+ *
+ * EPFL - SV -PTECH - PTBIOP
+ *
+ */
 
 public class AddStatsDemo {
     public static void main(String[] args) throws Error {

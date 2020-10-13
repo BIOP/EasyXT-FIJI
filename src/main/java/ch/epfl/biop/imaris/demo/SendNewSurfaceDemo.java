@@ -12,8 +12,12 @@ import ij.gui.WaitForUserDialog;
  *
  * How to modify a surface in ImageJ and send a modified version to Imaris
  *
- * @author BIOP Team, EPFL 2020
+ * @author Romain Guiet
+ * @author Nicolas Chiaruttini
  *
+ * October 2020
+ *
+ * EPFL - SV -PTECH - PTBIOP
  */
 
 public class SendNewSurfaceDemo {

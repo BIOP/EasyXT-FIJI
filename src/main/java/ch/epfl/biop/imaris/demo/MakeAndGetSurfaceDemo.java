@@ -10,8 +10,11 @@ import ch.epfl.biop.imaris.SurfacesDetector;
  *
  * How to make a surface using SurfaceDetector and show it in ImageJ
  *
- * @author BIOP Team, EPFL 2020
+ * @author Nicolas Chiaruttini
  *
+ * October 2020
+ *
+ * EPFL - SV -PTECH - PTBIOP
  */
 
 public class MakeAndGetSurfaceDemo {

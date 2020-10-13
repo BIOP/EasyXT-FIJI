@@ -2,45 +2,54 @@ package ch.epfl.biop.imaris.demo;
 
 import Imaris.Error;
 import Imaris.ISpotsPrx;
-import ch.epfl.biop.imaris.EasyXT;
-import ch.epfl.biop.imaris.StatsCreator;
+import Imaris.ISurfacesPrx;
+import ch.epfl.biop.imaris.*;
+import ij.macro.Variable;
 import ij.measure.ResultsTable;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
 
 public class AddStatsDemo {
-    public static void main( String[] args ) throws Error {
-        ISpotsPrx spots = EasyXT.getSpots( "Spots 1" );
+    public static void main(String[] args) throws Error {
+
+        // Fresh Start with the sample dataset
+        FreshStartWithIJAndBIOPImsSample.main();
+
+        // Makes a surface detector and detect the surface
+        ISpotsPrx spots = SpotsDetector.Channel(2)
+                .isSubtractBackground(true)
+                .setDiameter(1.0)
+                .setName("My Spots")
+                .setColor(new Integer[]{255, 120, 45})
+                .setFilter("\"Quality\" above automatic threshold")
+                .build()
+                .detect();
+
+        EasyXT.addToScene(spots);
+        //spots = EasyXT.getSpots( "My Spots" );
 
         // Get the spot statistics first before adding a new one
-        ResultsTable stats = EasyXT.getStatistics( spots, Arrays.asList( "Intensity Mean" ), Arrays.asList( 1, 2 ) );
-        stats.show( "Some Stats" );
-        // Compute the average intensity
-        Map<Integer, Map<Long, Double>> spotMeans = new HashMap<>( );
-        spotMeans.put( 1, new HashMap<>( ) );
-        spotMeans.put( 2, new HashMap<>( ) );
+        ResultsTable stats = EasyXT.getStatistics(spots, Arrays.asList("Intensity Mean"), Arrays.asList(1, 2));
 
-        for ( int i = 0; i < stats.getCounter( ); i++ ) {
-            int channel = (int) stats.getValue( "Channel", i );
-
-            spotMeans.get( channel ).put( (long) stats.getValue( "ID", i ), stats.getValue( "Intensity Mean", i ) );
-
+        // Compute the mean of the two channels in ImageJ from the results table
+        for (int i = 0; i < stats.size(); i++) {
+            double mean = stats.getValue("Intensity Mean C1", i) + stats.getValue("Intensity Mean C2", i);
+            mean /= 2;
+            //Add as a result
+            stats.setValue("C1-C2 Mean", i, mean);
         }
 
-        // Compute the mean for each ID
-        Set<Long> ids = spotMeans.get( 1 ).keySet( );
+        // Update the stats in Fiji
+        stats.show("Some Stats");
 
-        Map<Long, Double> means = new HashMap<>( ids.size( ) );
-        for ( long id : ids ) {
-            System.out.println( "ID:" + id + ", mean c1:" + spotMeans.get( 1 ).get( id ) );
-            System.out.println( "ID:" + id + ", mean c2:" + spotMeans.get( 2 ).get( id ) );
-            means.put( id, ( spotMeans.get( 1 ).get( id ) + spotMeans.get( 2 ).get( id ) ) / 2 );
-        }
+        // Export the new statistic into a format that we can insert into Imaris
+        Map<Long, Map<String, Double>> means = StatsQuery.extractStatistic(stats, "C1-C2 Mean");
 
         // Finally, we should be able to add these as a new result
-        new StatsCreator( spots, "Mean Test", means ).setCategory( "Spots" ).send( );
+        new StatsCreator(spots, "C1-C2 Mean", means)
+                .setCategory("EasyXT")
+                .send();
     }
 }

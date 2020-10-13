@@ -37,10 +37,8 @@ import ij.process.*;
 import java.awt.*;
 import java.io.File;
 import java.nio.ByteBuffer;
-import java.util.Collections;
-import java.util.HashMap;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -778,6 +776,17 @@ public class EasyXT {
     // Statistics related functions
 
     /**
+     * returns all available Imaris statistics from the selected item
+     *
+     * @param item the item to query
+     * @return a ResultsTable to be used and displayed by ImageJ
+     * @throws Error an Imaris Error Object
+     */
+    public static ResultsTable getStatistics( IDataItemPrx item ) throws Error {
+        return new StatsQuery( item ).get( );
+    }
+
+    /**
      * returns the selected statistic from the selected item
      *
      * @param item the item to query
@@ -851,25 +860,6 @@ public class EasyXT {
                 .selectStatistics( names )
                 .selectChannels( channels )
                 .get( );
-    }
-
-
-    // Minor helper methods
-
-    /**
-     * Helps append results to another results table
-     * @param source the results table to get the data from
-     * @param target the results table to insert the data into.
-     */
-    public static void appendResults(ResultsTable source, ResultsTable target) {
-        int nR = target.getCounter( );
-
-        for( int i=0; i<nR; i++ ) {
-            target.incrementCounter();
-            for (String col : source.getHeadings()) {
-                target.addValue( col, source.getValue( col, i ) );
-            }
-        }
     }
 
     /**

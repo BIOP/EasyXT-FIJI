@@ -11,11 +11,10 @@ import java.util.Arrays;
 
 /**
  * EasyXT Demo
- *
+ * <p>
  * How to retrieve some statistics computed by Imaris
  *
  * @author BIOP Team, EPFL 2020
- *
  */
 
 public class GetStatisticsDemo {
@@ -30,37 +29,39 @@ public class GetStatisticsDemo {
                 .setSmoothingWidth(1)
                 .setLowerThreshold(40)
                 .setName("My Surface")
-                .setColor(new Integer[]{255,120,45})
+                .setColor(new Integer[]{255, 120, 45})
                 .build()
                 .detect();
 
         // Get an object
         // ISurfacesPrx surfaces = EasyXT.getSurfaces( "Surfaces 1" ); // For this to work, you need to add the surface as a child object, see {@link AddChildObjects}
 
+        // Get all statistics
+        ResultsTable stats1 = EasyXT.getStatistics(surface);
+        stats1.show("All Statistics");
+
         // Get a specific statistic
-        ResultsTable stats1 = EasyXT.getStatistics( surface, "Intensity Mean" );
-        stats1.show("Mean Results");
+        ResultsTable stats2 = EasyXT.getStatistics(surface, "Intensity Mean");
+        stats2.show("Mean Intensity Statistics");
 
         // Get a multiple statistics
-        ResultsTable stats2 = EasyXT.getStatistics( surface, Arrays.asList( "Intensity Mean", "Intensity Sum" ));
-        stats2.show("Intensity Results");
+        ResultsTable stats3 = EasyXT.getStatistics(surface, Arrays.asList("Intensity Mean", "Intensity Sum"));
+        stats3.show("Intensity Results");
 
         // Get a multiple statistics for a single channel
-        ResultsTable stats3 = EasyXT.getStatistics( surface, Arrays.asList( "Intensity Mean", "Intensity Sum" ), 1);
-        stats3.show("Intensity Results C1");
+        ResultsTable stats4 = EasyXT.getStatistics(surface, Arrays.asList("Intensity Mean", "Intensity Sum"), 1);
+        stats4.show("Intensity Results C1");
 
         // Get a multiple statistics for multiple channels
-        ResultsTable stats4 = EasyXT.getStatistics( surface, Arrays.asList( "Intensity Mean", "Intensity Sum" ), Arrays.asList( 1,2 ));
-        stats3.show("Intensity Results 2 Channels");
+        ResultsTable stats5 = EasyXT.getStatistics(surface, Arrays.asList("Intensity Mean", "Intensity Sum"), Arrays.asList(1, 2));
+        stats5.show("Intensity Results 2 Channels");
 
         // Get statistics, the raw way
-        ResultsTable stats5 = new StatsQuery( surface )
-                .selectStatistics( Arrays.asList( "Area", "Sphericity" ) )
-                .selectTime( 1 )
+        ResultsTable stats6 = new StatsQuery(surface)
+                .selectStatistics(Arrays.asList("Area", "Sphericity"))
+                .selectTime(1)
                 .get();
-        stats5.show( "Using StatsQuery" );
-
-
+        stats6.show("Using StatsQuery Directly");
 
 
     }

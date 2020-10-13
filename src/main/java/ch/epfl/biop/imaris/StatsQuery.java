@@ -2,7 +2,7 @@
  * Copyright (c) 2020 Ecole Polytechnique Fédérale de Lausanne. All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- *
+ * <p>
  * 1. Redistributions of source code must retain the above copyright notice, this list of conditions
  * and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions
@@ -25,8 +25,10 @@ import Imaris.Error;
 import Imaris.IDataItemPrx;
 import Imaris.cStatisticValues;
 import ij.measure.ResultsTable;
+
 import java.io.File;
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 /**
@@ -48,7 +50,10 @@ public class StatsQuery {
     private ResultsTable results = new ResultsTable();
     private final cStatisticValues stats;
     private final int channelIdx, timeIdx, catIdx;
-    private final List<String> firstColumns = Arrays.asList("Label", "Name", "ID", "Timepoint", "Category");
+    private static final List<String> firstColumns = Arrays.asList("Label", "Name", "ID", "Timepoint", "Category");
+
+    private static Consumer<String> log = (str) -> System.out.println("StatsQuery : " + str);
+
 
     /**
      * Constructor for getting selected statistics
@@ -272,7 +277,7 @@ public class StatsQuery {
         }
 
         // Sort the Ids to have them in order
-        Map<Long, Map<String, String>> statsByIdSorted = new ImarisIDComparator().sort(statsById);
+        Map<Long, Map<String, String>> statsByIdSorted = new ImarisResultComparator().sort(statsById);
 
         // Add all the results to the results table
         statsByIdSorted.forEach((uid, columns) -> {
@@ -281,15 +286,16 @@ public class StatsQuery {
 
             // We want some order in the columns. Label, Name, ID, Timepoint, Category
             firstColumns.forEach(name -> {
-                results.addValue(name, columns.get(name));
+                if (isNumber(columns.get(name))) {
+                    results.addValue(name, Double.valueOf(columns.get(name)));
+                } else {
+                    results.addValue(name, columns.get(name));
+                }
                 columns.remove(name);
             });
 
-            // Sort the remaining columns
-            Map<String, String> columnsSorted = new ImarisColumnComparator().sort(columns);
-
             // Add all the columns
-            columnsSorted.forEach((name, value) -> {
+            columns.forEach((name, value) -> {
                 if (isNumber(value))
                     results.addValue(name, Double.valueOf(value));
                 else
@@ -316,7 +322,7 @@ public class StatsQuery {
     /**
      * Comparators to help sort the results. The first one compares by ID, the second one by column name
      */
-    class ImarisIDComparator implements Comparator<Map.Entry<Long, Map<String, String>>> {
+    class ImarisResultComparator implements Comparator<Map.Entry<Long, Map<String, String>>> {
 
         @Override
         public int compare(Map.Entry<Long, Map<String, String>> o1, Map.Entry<Long, Map<String, String>> o2) {
@@ -334,7 +340,8 @@ public class StatsQuery {
             // Copying entries from List to Map
             Map<Long, Map<String, String>> sortedMap = new LinkedHashMap<>();
             for (Map.Entry<Long, Map<String, String>> entry : idList) {
-                sortedMap.put(entry.getKey(), entry.getValue());
+                Map<String, String> columns = new ImarisColumnComparator().sort(entry.getValue());
+                sortedMap.put(entry.getKey(), columns);
             }
             // Finally return map
             return sortedMap;
@@ -349,7 +356,7 @@ public class StatsQuery {
             return o1.getKey().compareTo(o2.getKey());
         }
 
-        private Map<String, String> sort(Map<String, String> columnMap) {
+        public Map<String, String> sort(Map<String, String> columnMap) {
             // First create the List
             ArrayList<Map.Entry<String, String>> columnList = new ArrayList<Map.Entry<String, String>>(columnMap.entrySet());
 
@@ -364,6 +371,34 @@ public class StatsQuery {
             // Finally return map
             return sortedColumn;
         }
+    }
+
+    /**
+     * Extracts the selected statistic as a LinkedHashMap where the keys are the ID of the object
+     * We keep the IDs as Longs as that is a _bit_ more compatible with Imaris.
+     * @param results the results table, usually an output from {@link EasyXT#getStatistics(IDataItemPrx)}
+     * @param statName the name of the column, like "Circularity" or "Intensity Mean C1"
+     * @return a map with eack keyset being the ID of the spot and the value of the statistic
+     */
+    public static Map<Long, Map<String, Double>> extractStatistic(ResultsTable results, String statName) {
+        if (results.columnExists(statName)) {
+            Map<Long, Map<String, Double>> stat = new LinkedHashMap<>(results.size());
+            for (int i = 0; i < results.size(); i++) {
+                // Put the default columns
+                Map<String, Double> values = new LinkedHashMap<String, Double>();
+                for (String col : firstColumns) {
+                    values.put(col, results.getValue(col, i));
+                }
+                // Put the result we want, finally
+                values.put(statName, results.getValue(statName, i));
+                stat.put((long) results.getValue("ID", i), values);
+            }
+            return stat;
+        }
+        // The selected statistic does not exist
+        log.accept("The statistic: '" + statName + "' does not exist in the provided Results Table");
+
+        return null;
     }
 
 }

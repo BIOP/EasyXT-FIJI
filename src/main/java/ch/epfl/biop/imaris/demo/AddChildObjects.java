@@ -11,7 +11,11 @@ import ch.epfl.biop.imaris.SpotsDetector;
  *
  * Show how to insert objects into the scene of Imaris, here : spots
  *
- * @author BIOP Team, EPFL 2020
+ * @author Nicolas Chiaruttini
+ *
+ * October 2020
+ *
+ * EPFL - SV -PTECH - PTBIOP
  *
  */
 

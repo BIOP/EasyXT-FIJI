@@ -125,23 +125,38 @@ public class SurfacesDetector {
             //	)
 
             // Need to deal with a Lower Threshold Enabled TODO
+            if (aSeedsEstimateDiameter == null )  {
 
-            surfaces = EasyXT.getImaris().GetImageProcessing().DetectSurfacesRegionGrowingWithUpperThreshold(aDataSet,
-                    aRegionsOfInterest,
-                    aChannelIndex,
-                    aSmoothFilterWidth,
-                    aLocalContrastFilterWidth,
-                    aLowerThresholdEnabled,
-                    aIntensityLowerThresholdAutomatic,
-                    aIntensityLowerThresholdManual,
-                    aUpperThresholdEnabled,
-                    aIntensityUpperThresholdAutomatic,
-                    aIntensityUpperThresholdManual,
-                    aSeedsEstimateDiameter,
-                    aSeedsSubtractBackground,
-                    aSurfaceFiltersString,
-                    aSurfaceFiltersString);
+                surfaces = EasyXT.getImaris().GetImageProcessing().DetectSurfacesWithUpperThreshold	(	aDataSet,
+                        aRegionsOfInterest,
+                        aChannelIndex,
+                        aSmoothFilterWidth,
+                        aLocalContrastFilterWidth,
+                        aLowerThresholdEnabled,
+                        aIntensityLowerThresholdAutomatic,
+                        aIntensityLowerThresholdManual,
+                        aUpperThresholdEnabled,
+                        aIntensityUpperThresholdAutomatic,
+                        aIntensityUpperThresholdManual,
+                        aSurfaceFiltersString );
+            }else {
 
+                surfaces = EasyXT.getImaris().GetImageProcessing().DetectSurfacesRegionGrowingWithUpperThreshold(aDataSet,
+                        aRegionsOfInterest,
+                        aChannelIndex,
+                        aSmoothFilterWidth,
+                        aLocalContrastFilterWidth,
+                        aLowerThresholdEnabled,
+                        aIntensityLowerThresholdAutomatic,
+                        aIntensityLowerThresholdManual,
+                        aUpperThresholdEnabled,
+                        aIntensityUpperThresholdAutomatic,
+                        aIntensityUpperThresholdManual,
+                        aSeedsEstimateDiameter,
+                        aSeedsSubtractBackground,
+                        aSurfaceFiltersString,
+                        aSurfaceFiltersString);
+            }
         } else {
             if ((aSeedsEstimateDiameter != null) || (aSeedsSubtractBackground != null) || (aSeedsFiltersString != null)) {
                 // DetectSurfaceRegionGrowing

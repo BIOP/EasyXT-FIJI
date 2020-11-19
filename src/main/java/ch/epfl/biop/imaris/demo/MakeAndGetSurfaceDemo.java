@@ -30,6 +30,7 @@ public class MakeAndGetSurfaceDemo {
             ISurfacesPrx surface = SurfacesDetector.Channel(0)
                     .setSmoothingWidth(1)
                     .setLowerThreshold(40)
+                    .setUpperThreshold( 255.0)
                     .setName("My Surface")
                     .setColor(new Integer[]{255,120,45})
                     .build()

@@ -43,7 +43,8 @@ public class MakeAndGetSurfaceDemo {
             surface = EasyXT.getSurfaces( "My Surface" );
 
             // Display surfaces
-            EasyXT.getSurfaceMask( surface ).show();
+            EasyXT.getSurfacesMask( surface ).show();
+
         } catch ( Error error ) {
             System.out.println( "ERROR:" + error.mDescription );
             System.out.println( "LOCATION:" + error.mLocation );

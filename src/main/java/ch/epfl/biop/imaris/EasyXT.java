@@ -635,7 +635,7 @@ public class EasyXT {
     }
 
     // TODO Comment
-    public static ImagePlus getSurfaceMask(ISurfacesPrx surface) throws Error {
+    public static ImagePlus getSurfacesMask(ISurfacesPrx surface) throws Error {
 
         // Get raw ImagePlus
         ImagePlus impSurface = getImagePlus(getSurfaceDataset(surface));
@@ -675,12 +675,12 @@ public class EasyXT {
     }
 
     // TODO Comment
-    public static ImagePlus getSurfaceMask(ISurfacesPrx surface, int timepoint) throws Error {
-        return getSurfaceMask(surface, 1.0, timepoint);
+    public static ImagePlus getSurfacesMask(ISurfacesPrx surface, int timepoint) throws Error {
+        return getSurfacesMask(surface, 1.0, timepoint);
     }
 
     // TODO Comment
-    public static ImagePlus getSurfaceMask(ISurfacesPrx surface, double downsample, int timepoint) throws Error {
+    public static ImagePlus getSurfacesMask(ISurfacesPrx surface, double downsample, int timepoint) throws Error {
 
         ImarisCalibration cal = new ImarisCalibration(app.GetDataSet()).getDownsampled(downsample);
 

@@ -24,7 +24,7 @@ public class GetSurfaceCommand implements Command{
         try {
             ISurfacesPrx surfprx = EasyXT.getSurfaces( surfaceName );
             // Display surfaces
-            surface = EasyXT.getSurfaceMask( surfprx );
+            surface = EasyXT.getSurfacesMask( surfprx );
 
         } catch (Error error) {
             error.printStackTrace();

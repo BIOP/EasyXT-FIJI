@@ -70,7 +70,7 @@ public class SpotsDetector {
 
     Boolean  	aRegionsFromLocalContrast;
     Boolean  	aRegionsThresholdAutomatic;
-    Float  	aRegionsThresholdManual;
+    Float  	    aRegionsThresholdManual;
     Boolean  	aRegionsSpotsDiameterFromVolume;
     Boolean  	aRegionsCreateChannel;
 
@@ -88,32 +88,43 @@ public class SpotsDetector {
             (aRegionsThresholdManual!=null)||
             (aRegionsSpotsDiameterFromVolume!=null)||
             (aRegionsCreateChannel!=null)) {
-            // DetectSpotsRegionGrowing
 
-            // ISpots* Imaris::IImageProcessing::DetectSpotsRegionGrowing 	( 	IDataSet *  	aDataSet,
-            //		tInts2D  	aRegionsOfInterest,
-            //		int  	aChannelIndex,
-            //		float  	aEstimateDiameter,
-            //		bool  	aSubtractBackground,
-            //		string  	aSpotFiltersString,
-            //		bool  	aRegionsFromLocalContrast,
-            //		bool  	aRegionsThresholdAutomatic,
-            //		float  	aRegionsThresholdManual,
-            //		bool  	aRegionsSpotsDiameterFromVolume,
-            //		bool  	aRegionsCreateChannel
-            //	)
+            if ( (aRegionsFromLocalContrast==null)||
+                    (aRegionsThresholdAutomatic==null)||
+                    (aRegionsThresholdManual==null)||
+                    (aRegionsSpotsDiameterFromVolume==null)||
+                    (aRegionsCreateChannel==null)) {
+
+                System.err.println( "Please specify all parameters  ");
+            }
+
+                // DetectSpotsRegionGrowing
+
+                // ISpots* Imaris::IImageProcessing::DetectSpotsRegionGrowing 	( 	IDataSet *  	aDataSet,
+                //		tInts2D  	aRegionsOfInterest,
+                //		int  	aChannelIndex,
+                //		float  	aEstimateDiameter,
+                //		bool  	aSubtractBackground,
+                //		string  	aSpotFiltersString,
+                //		bool  	aRegionsFromLocalContrast,
+                //		bool  	aRegionsThresholdAutomatic,
+                //		float  	aRegionsThresholdManual,
+                //		bool  	aRegionsSpotsDiameterFromVolume,
+                //		bool  	aRegionsCreateChannel
+                //	)
 
             spots = EasyXT.getImaris().GetImageProcessing().DetectSpotsRegionGrowing(aDataSet,
-                    aRegionsOfInterest,
-                    aChannelIndex,
-                    aEstimateDiameter,
-                    aSubtractBackground,
-                    aSpotFiltersString,
-                    aRegionsFromLocalContrast,
-                    aRegionsThresholdAutomatic,
-                    aRegionsThresholdManual,
-                    aRegionsSpotsDiameterFromVolume,
-                    aRegionsCreateChannel);
+                        aRegionsOfInterest,
+                        aChannelIndex,
+                        aEstimateDiameter,
+                        aSubtractBackground,
+                        aSpotFiltersString,
+                        aRegionsFromLocalContrast,
+                        aRegionsThresholdAutomatic,
+                        aRegionsThresholdManual,
+                        aRegionsSpotsDiameterFromVolume,
+                        aRegionsCreateChannel);
+
 
         } else {
                 // DetectSpots2()

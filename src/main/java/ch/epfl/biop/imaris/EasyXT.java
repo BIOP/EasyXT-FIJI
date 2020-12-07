@@ -142,6 +142,10 @@ public class EasyXT {
         if (factory.IsFrame(item)) {
             return factory.ToFrame(item);
         }
+        if ( factory.IsDataContainer( item ) ) {
+            return factory.ToDataContainer(item);
+        }
+
         return null;
     }
 
@@ -261,7 +265,7 @@ public class EasyXT {
     }
 
     /**
-     * Get all items of the requested type
+     * Get all items of the requested type ( within a DataContainer )
      *
      * @param type the type, defined by a String. See {@link ItemQuery.ItemType}
      * @return a list containins the objects
@@ -273,7 +277,7 @@ public class EasyXT {
     }
 
     /**
-     * Get all spots objects in the main scene as a list
+     * Get all spots objects in the main scene as a list (not within subfolder, groups)
      *
      * @return the spots as a list
      * @throws Error an Imaris Error Object
@@ -291,7 +295,7 @@ public class EasyXT {
     }
 
     /**
-     * Get all surfaces objects in the main scene as a list
+     * Get all surfaces objects in the main scene as a list (not within subfolder, groups)
      *
      * @return the surfaces as a list
      * @throws Error an Imaris Error Object
@@ -306,6 +310,24 @@ public class EasyXT {
         }).collect(Collectors.toList());
 
         return surfs;
+    }
+
+    /**
+     * Get all Group objects in the main scene as a list
+     *
+     * @return the surfaces as a list
+     * @throws Error an Imaris Error Object
+     */
+    public static List<IDataContainerPrx> getAllGroups() throws Error {
+        ItemQuery query = new ItemQuery.ItemQueryBuilder().setType("DataContainer").build();
+        List<IDataItemPrx> items = query.get();
+
+        // Explicitly cast
+        List<IDataContainerPrx> groups = items.stream().map(item -> {
+            return (IDataContainerPrx) item;
+        }).collect(Collectors.toList());
+
+        return groups;
     }
 
     // ImagePlus Manipulations
@@ -596,7 +618,49 @@ public class EasyXT {
      * @throws Error an Imaris Error Object
      */
     public static void removeFromScene(IDataItemPrx item) throws Error {
+       // if the item is a group, make sure to empty it
+        IFactoryPrx factory = app.GetFactory( );
+        if ( factory.IsDataContainer( item ) ) {
+           IDataContainerPrx group = factory.ToDataContainer( item ) ;
+            for ( int grp = 0 ; grp < group.GetNumberOfChildren() ; grp++ ){
+                removeFromScene( group.GetChild(grp));
+            }
+        }
+        // remove the item
         item.GetParent().RemoveChild(item);
+
+    }
+
+    /**
+     * Removes the provided List of items from its parent
+     *
+     * @param items, the list of items in question
+     * @throws Error an Imaris Error Object
+     */
+    public static void removeFromScene(List< ? extends IDataItemPrx> items) throws Error {
+
+        for ( IDataItemPrx it: items ) {
+            removeFromScene(it);
+        }
+    }
+
+    /**
+     * Reset teh Imaris Scene
+     *
+     * @throws Error an Imaris Error Object
+     */
+    public static void resetScene() throws Error {
+        List<ISpotsPrx> spots           = EasyXT.getAllSpots();
+        List<ISurfacesPrx> surfaces     = EasyXT.getAllSurfaces();
+        List<IDataContainerPrx> groups  = EasyXT.getAllGroups();
+        EasyXT.removeFromScene( spots );
+        EasyXT.removeFromScene( surfaces );
+        EasyXT.removeFromScene( groups );
+        //for ( ISpotsPrx sp: spots ) { EasyXT.removeFromScene( sp ); }
+        //for ( ISurfacesPrx srf: surfaces ) { EasyXT.removeFromScene( srf ); }
+        //for ( IDataContainerPrx grp: groups ) { EasyXT.removeFromScene( grp ); }
+
+        // TODO selectScene
     }
 
     /**
@@ -633,6 +697,7 @@ public class EasyXT {
 
         return final_dataset;
     }
+
 
     // TODO Comment
     public static ImagePlus getSurfacesMask(ISurfacesPrx surface) throws Error {

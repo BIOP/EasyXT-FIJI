@@ -180,16 +180,34 @@ public class StatsQuery {
      * @param results a results table from ImageJ or from a finished StatsQuery
      * @return
      */
-    //TODO Ignore this
     public StatsQuery appendTo(ResultsTable results) {
         for (int i = 0; i < results.size(); i++) {
             this.results.incrementCounter();
             for (String c : results.getHeadings()) {
-                this.results.addValue(c, results.getValue(c, i));
-                // TODO allow for String results
+                String stringVal = results.getStringValue(c, i);
+                if ( !isDoubleValue( stringVal ) ){
+                    this.results.addValue(c, stringVal );
+                }else{
+                    this.results.addValue(c, results.getValue(c, i));
+                }
             }
         }
         return this;
+    }
+
+    /**
+     * To get String from ResultsTable , necessary for appendTo()
+     *
+     * @param stringTotTest , try to covnert it as a Double,
+     * @return true if can be parse into a Double, false if can't
+     */
+    private Boolean isDoubleValue( String stringTotTest ){
+        try {
+            Double dummy = Double.parseDouble( stringTotTest );
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
     /**

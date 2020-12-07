@@ -41,8 +41,8 @@ public class ItemQuery {
         Volume( IVolume.class ),
         Camera( ISurpassCamera.class ),
         Light( ILightSource.class ),
-        Frame( IFrame.class );
-
+        Frame( IFrame.class ),
+        DataContainer( IDataContainer.class );
 
         Class cls;
 
@@ -84,7 +84,9 @@ public class ItemQuery {
         if ( factory.IsFrame( item ) ) {
             return ItemType.Frame.getType( );
         }
-
+        if ( factory.IsDataContainer( item ) ) {
+            return ItemType.DataContainer.getType();
+        }
         return null;
     }
 

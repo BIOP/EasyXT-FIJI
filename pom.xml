@@ -35,6 +35,10 @@
         </repository>
     </repositories>
 
+    <properties>
+        <scijava.app.directory>C:/Users/chiarutt/Desktop/fiji-win64-easyxt/Fiji.app/</scijava.app.directory>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>net.imagej</groupId>

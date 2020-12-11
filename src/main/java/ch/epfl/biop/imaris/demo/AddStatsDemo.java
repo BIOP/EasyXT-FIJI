@@ -23,7 +23,7 @@ import java.util.*;
  */
 
 public class AddStatsDemo {
-    public static void main(String[] args) throws Error {
+    public static void main(String... args) throws Error {
 
         // Fresh Start with the sample dataset
         FreshStartWithIJAndBIOPImsSample.main();

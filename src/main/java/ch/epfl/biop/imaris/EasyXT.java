@@ -612,18 +612,20 @@ public class EasyXT {
     }
 
     /**
-     * Removes the provided item from its parent
+     * Removes the provided item from its parent,
+     * if it's a Group removes the children spots & surfaces
      *
      * @param item the item in question
      * @throws Error an Imaris Error Object
      */
     public static void removeFromScene(IDataItemPrx item) throws Error {
-       // if the item is a group, make sure to empty it
+       // if the item is a group
         IFactoryPrx factory = app.GetFactory( );
         if ( factory.IsDataContainer( item ) ) {
            IDataContainerPrx group = factory.ToDataContainer( item ) ;
-            for ( int grp = 0 ; grp < group.GetNumberOfChildren() ; grp++ ){
-                removeFromScene( group.GetChild(grp));
+           // make sure to remove all elements in it
+           for ( int grp = 0 ; grp < group.GetNumberOfChildren() ; grp++ ){
+                removeFromScene( group.GetChild(grp) );
             }
         }
         // remove the item
@@ -638,7 +640,6 @@ public class EasyXT {
      * @throws Error an Imaris Error Object
      */
     public static void removeFromScene(List< ? extends IDataItemPrx> items) throws Error {
-
         for ( IDataItemPrx it: items ) {
             removeFromScene(it);
         }

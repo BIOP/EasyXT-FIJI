@@ -41,8 +41,8 @@ public class ItemQuery {
         Volume( IVolume.class ),
         Camera( ISurpassCamera.class ),
         Light( ILightSource.class ),
-        Frame( IFrame.class );
-
+        Frame( IFrame.class ),
+        Datacontainer( IDataContainer.class );
 
         Class cls;
 
@@ -84,6 +84,11 @@ public class ItemQuery {
         if ( factory.IsFrame( item ) ) {
             return ItemType.Frame.getType( );
         }
+        if ( factory.IsDataContainer( item ) ) {
+            return ItemType.Datacontainer.getType( );
+        }
+
+        System.err.println("Type not found for item "+item+" of class "+item.getClass().getSimpleName());
 
         return null;
     }

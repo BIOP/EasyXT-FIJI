@@ -8,47 +8,47 @@ import org.junit.Test;
 public class TestDemos {
 
     @Test
-    public void AddChildObjects() throws Error {
+    public void AddChildObjects() throws Exception {
         AddChildObjects.main("Test Mode");
     }
 
     @Test
-    public void AddStatsDemo() throws Error {
+    public void AddStatsDemo() throws Exception {
         AddStatsDemo.main("Test Mode");
     }
 
     @Test
-    public void AllGetters() throws Error {
+    public void AllGetters() throws Exception {
         AllGetters.main("Test Mode");
     }
 
     @Test
-    public void FreshStartWithIJAndBIOPImsSample() throws Error {
+    public void FreshStartWithIJAndBIOPImsSample() throws Exception {
         FreshStartWithIJAndBIOPImsSample.main("Test Mode");
     }
 
     @Test
-    public void GetStatisticsDemo() throws Error {
+    public void GetStatisticsDemo() throws Exception {
         GetStatisticsDemo.main("Test Mode");
     }
 
     @Test
-    public void IJSimpleLaunch() throws Error {
+    public void IJSimpleLaunch() throws Exception {
         IJSimpleLaunch.main("Test Mode");
     }
 
     @Test
-    public void MakeAndGetSpotsDemo() throws Error {
+    public void MakeAndGetSpotsDemo() throws Exception {
         MakeAndGetSpotsDemo.main("Test Mode");
     }
 
     @Test
-    public void MakeAndGetSurfaceDemo() throws Error {
+    public void MakeAndGetSurfaceDemo() throws Exception {
         MakeAndGetSurfaceDemo.main("Test Mode");
     }
 
     @Test
-    public void SendNewSurfaceDemo() throws Error {
+    public void SendNewSurfaceDemo() throws Exception {
         SendNewSurfaceDemo.main("Test Mode");
     }
 

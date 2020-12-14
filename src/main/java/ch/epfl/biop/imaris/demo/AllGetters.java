@@ -30,7 +30,7 @@ import java.util.List;
  */
 public class AllGetters {
 
-    public static void main(String... args) {
+    public static void main(String... args) throws Exception {
         try {
             // Fresh Start with the sample dataset
             FreshStartWithIJAndBIOPImsSample.main();

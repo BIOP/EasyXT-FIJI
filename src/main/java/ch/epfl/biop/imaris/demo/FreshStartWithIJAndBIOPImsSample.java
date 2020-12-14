@@ -4,6 +4,9 @@ import ch.epfl.biop.imaris.EasyXT;
 import net.imagej.ImageJ;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URL;
 
 /**
  * EasyXT Demo
@@ -20,9 +23,11 @@ import java.io.File;
 
 public class FreshStartWithIJAndBIOPImsSample {
 
-    public static void main(String... args) throws Imaris.Error {
+    public static void main(String... args) throws Imaris.Error, URISyntaxException {
         ImageJ ij = new ImageJ();
         ij.ui().showUI();
-        EasyXT.openImage(new File("src/main/resources/HeLa_H2B-mcherry_Tubline-EGFP_mitochondria-MitoTracker_reduced.ims"));
+        URI demoImageURI = FreshStartWithIJAndBIOPImsSample.class.getResource("/HeLa_H2B-mcherry_Tubline-EGFP_mitochondria-MitoTracker_reduced.ims").toURI();
+        EasyXT.openImage(new File(demoImageURI));
     }
+
 }

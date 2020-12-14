@@ -25,7 +25,7 @@ import ij.gui.WaitForUserDialog;
 
 public class SendNewSurfaceDemo {
 
-    public static void main(String... args) {
+    public static void main(String... args) throws Exception {
 
         try {
             // Surface created and shown in ImageJ

@@ -26,7 +26,7 @@ import ij.IJ;
 
 public class AddChannelsToDataset {
 
-    public static void main( String... args ) {
+    public static void main( String... args ) throws Exception {
         try {
             // Fresh Start with the BIOP sample dataset
             FreshStartWithIJAndBIOPImsSample.main();

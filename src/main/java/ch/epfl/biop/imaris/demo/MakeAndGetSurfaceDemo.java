@@ -21,7 +21,7 @@ public class MakeAndGetSurfaceDemo {
 
     // Note : you need to be in the 3D View in order to perform
 
-    public static void main(String... args) {
+    public static void main(String... args) throws Exception {
         try {
             // Fresh Start with the sample dataset
             FreshStartWithIJAndBIOPImsSample.main();

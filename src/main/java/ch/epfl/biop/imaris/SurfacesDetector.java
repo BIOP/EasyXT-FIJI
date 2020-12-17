@@ -182,7 +182,7 @@ public class SurfacesDetector {
                         aIntensityLowerThresholdManual,
                         aSeedsEstimateDiameter,
                         aSeedsSubtractBackground,
-                        aSurfaceFiltersString,
+                        aSeedsFiltersString,
                         aSurfaceFiltersString);
 
             } else {

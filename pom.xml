@@ -35,6 +35,10 @@
         </repository>
     </repositories>
 
+    <properties>
+        <scijava.app.directory>C:/Users/chiarutt/Desktop/fiji-win64-easyxt/Fiji.app/</scijava.app.directory>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>net.imagej</groupId>
@@ -56,8 +60,16 @@
             <artifactId>lib</artifactId>
             <version>9.5.1</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/libs/Imaris-9.5.1/rtmatlab/ImarisLib.jar</systemPath>
+            <systemPath>${project.basedir}/libs/Imaris-9.5.1/XT/fiji/ImarisBridgeUtils.jar</systemPath>
         </dependency>
+
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+
     </dependencies>
 
 

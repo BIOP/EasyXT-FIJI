@@ -24,7 +24,7 @@ import java.util.Arrays;
 
 public class GetStatisticsDemo {
 
-    public static void main(String... args) throws Error {
+    public static void main(String... args) throws Exception {
 
         // Fresh Start with the sample dataset
         FreshStartWithIJAndBIOPImsSample.main();

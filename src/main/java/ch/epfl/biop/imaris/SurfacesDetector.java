@@ -64,13 +64,13 @@ public class SurfacesDetector {
     IDataSetPrx aDataSet;
     int[][] aRegionsOfInterest; // aRegionsOfInterest is a Nx8 matrix with the Rois : public [vMinX, vMinY, vMinZ, vMinT, vMaxX, vMaxY, vMaxZ, vMaxT]
     Integer aChannelIndex;
-    Float aSmoothFilterWidth;
-    Float aLocalContrastFilterWidth;
+    Float   aSmoothFilterWidth;
+    Float   aLocalContrastFilterWidth;
 
-    Boolean  	aIntensityLowerThresholdAutomatic; //Boolean aIntensityThresholdAutomatic;
-    Float  	aIntensityLowerThresholdManual; //Float aIntensityThresholdManual;
+    Boolean aIntensityLowerThresholdAutomatic;  //Boolean aIntensityThresholdAutomatic;
+    Float  	aIntensityLowerThresholdManual;     //Float aIntensityThresholdManual;
 
-    String aSurfaceFiltersString;
+    String  aSurfaceFiltersString;
 
     // Additional fields from Imaris API - DetectSurfacesRegionGrowing
     // Example of aSeedsFiltersString: '"Quality" above 7.000'
@@ -91,7 +91,7 @@ public class SurfacesDetector {
     //Float  	aIntensityLowerThresholdManual;
     Boolean  	aUpperThresholdEnabled;
     Boolean  	aIntensityUpperThresholdAutomatic;
-    Float  	aIntensityUpperThresholdManual;
+    Float   	aIntensityUpperThresholdManual;
 
     // Fields added to modify output
 
@@ -154,7 +154,7 @@ public class SurfacesDetector {
                         aIntensityUpperThresholdManual,
                         aSeedsEstimateDiameter,
                         aSeedsSubtractBackground,
-                        aSurfaceFiltersString,
+                        aSeedsFiltersString,
                         aSurfaceFiltersString);
             }
         } else {
@@ -182,7 +182,7 @@ public class SurfacesDetector {
                         aIntensityLowerThresholdManual,
                         aSeedsEstimateDiameter,
                         aSeedsSubtractBackground,
-                        aSurfaceFiltersString,
+                        aSeedsFiltersString,
                         aSurfaceFiltersString);
 
             } else {
@@ -239,7 +239,7 @@ public class SurfacesDetector {
         //Float aIntensityThresholdManual = new Float(0); // Disabled by default because aIntensityThresholdAutomatic is true by default
         String aSurfaceFiltersString;
         Float  	aSeedsEstimateDiameter;
-        Boolean aSeedsSubtractBackground;
+        Boolean aSeedsSubtractBackground = new Boolean(false);
         String  aSeedsFiltersString;
         Boolean 	aLowerThresholdEnabled;
         Boolean  	aIntensityLowerThresholdAutomatic = new Boolean(true);
@@ -306,6 +306,13 @@ public class SurfacesDetector {
             this.aLowerThresholdEnabled = true;
             return this;
         }
+
+        /**
+         *
+         * @param aIntensityLowerThresholdManual , corresponds to "Manual Threshold Value" in the "Creation Parameters"
+         *                                       (in the "Creation" tab of a completed surface)
+         * @return
+         */
 
         public SurfacesDetectorBuilder setLowerThreshold(double aIntensityLowerThresholdManual) {
             this.aIntensityLowerThresholdManual = new Float(aIntensityLowerThresholdManual);

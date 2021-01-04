@@ -5,6 +5,7 @@ import Imaris.ISpotsPrx;
 import ch.epfl.biop.imaris.*;
 import ij.measure.ResultsTable;
 
+import java.net.URISyntaxException;
 import java.util.*;
 
 
@@ -23,7 +24,7 @@ import java.util.*;
  */
 
 public class AddStatsDemo {
-    public static void main(String[] args) throws Error {
+    public static void main(String... args) throws Exception {
 
         // Fresh Start with the sample dataset
         FreshStartWithIJAndBIOPImsSample.main();

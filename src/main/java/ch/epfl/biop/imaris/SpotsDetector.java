@@ -221,42 +221,87 @@ public class SpotsDetector {
             return this;
         }
 
+        /**
+         *
+         * @param diameter , corresponds to [Source Channel] Estimated XY Diameter in the "Creation Parameters"
+         *                 (in the "Creation" tab of a completed spots object)
+         * @return
+         */
         public SpotsDetectorBuilder setDiameter(double diameter) {
             this.aEstimateDiameter = new Float(diameter);
             return this;
         }
 
+        /**
+         *
+         * @param aSubtractBackground , corresponds to [Source Channel] Background Substraction = true in the "Creation Parameters"
+         *                             (in the "Creation" tab of a completed spots object)
+         * @return
+         */
         public SpotsDetectorBuilder isSubtractBackground(Boolean aSubtractBackground) {
             this.aSubtractBackground = aSubtractBackground;
             return this;
         }
 
+        /**
+         *
+         * @param aFiltersString , corresponds to [Classify Spots] with a String (eg. "Quality" above 5) in the "Creation Parameters"
+         *                         (in the "Creation" tab of a completed spots object)
+         *                       use  "\" as escape character  or combination of '' and ""
+         * @return
+         */
         public SpotsDetectorBuilder setFilter(String aFiltersString) {
             this.aSpotFiltersString = aFiltersString;
             return this;
         }
 
+        /**
+         *
+         * @param aRegionsFromLocalContrast, corresponds to  [Spot Region Type] Region Growing in the "Creation Parameters"
+         *                                   if true = Local Contrast
+         *                                   if false = TO DO
+         *                                   (in the "Creation" tab of a completed spots object)
+         * @return
+         */
         public SpotsDetectorBuilder isRegionsFromLocalContrast(Boolean aRegionsFromLocalContrast) {
             this.aRegionsFromLocalContrast = aRegionsFromLocalContrast;
             return this;
         }
 
+        /**
+         *  corresponds to [Spot Regions] Region Growing Automatic Threshold = true in the "Creation Parameters"
+         *  (in the "Creation" tab of a completed spots object)
+         * @return
+         */
         public SpotsDetectorBuilder enableRegionsThresholdAutomatic() {
             this.aRegionsThresholdAutomatic = true;
             return this;
         }
 
+        /**
+         *
+         * @param threshold , corresponds to [Spot Regions] Region Growing Manual Threshold in the "Creation Parameters"
+         *                   (in the "Creation" tab of a completed spots object)
+         * @return
+         */
         public SpotsDetectorBuilder setRegionsThresholdManual(double threshold) {
             this.aRegionsThresholdManual = new Float(threshold);
             this.aRegionsThresholdAutomatic = false;
             return this;
         }
 
+        // TODO it's not necessary true BUT it's a required parameters, need a setter function instead
         public SpotsDetectorBuilder createRegionsChannel() {
             this.aRegionsCreateChannel = true;
             return this;
         }
 
+        /**
+         *
+         * @param flag , corresponds to [Spot Regions] Region Growing Diameter = Diameter From Volume in the "Creation Parameters"
+         *             (in the "Creation" tab of a completed spots object)
+         * @return
+         */
         public SpotsDetectorBuilder isRegionsSpotsDiameterFromVolume(Boolean flag) {
             this.aRegionsSpotsDiameterFromVolume = flag;
             return this;

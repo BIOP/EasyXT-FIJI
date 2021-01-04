@@ -30,7 +30,7 @@ import java.util.List;
  */
 public class AllGetters {
 
-    public static void main(String... args) {
+    public static void main(String... args) throws Exception {
         try {
             // Fresh Start with the sample dataset
             FreshStartWithIJAndBIOPImsSample.main();
@@ -50,7 +50,7 @@ public class AllGetters {
                     .createRegionsChannel()
                     .build( ).detect( );
 
-            EasyXT.addToScene( new_group, spots );
+            EasyXT.addToScene( spots ); // EasyXT.addToScene( new_group, spots ); doesn't work TODO : see TODO below
 
             // Makes a surface detector and detect the surface
             ISurfacesPrx surface = SurfacesDetector.Channel(0)
@@ -61,20 +61,20 @@ public class AllGetters {
                     .build()
                     .detect();
 
-            EasyXT.addToScene( new_group, surface );
+            EasyXT.addToScene( surface );
 
             //Highest level getters for spots and surfaces
 
             // Single spot
-            ISpotsPrx spotByName = EasyXT.getSpots( "My Spots" );
-            ISpotsPrx spotByPosition = EasyXT.getSpots( 1 ); // 0 based // TODO : understand this NPE
+            ISpotsPrx spotByName = EasyXT.getSpots( "My Spots" ); // TODO : provide a way to access spots within a group
+            ISpotsPrx spotByPosition = EasyXT.getSpots( 0 ); // 0 based // TODO : understand this NPE
 
             // All Spots in Scene
             List<ISpotsPrx> spotsList = EasyXT.getAllSpots( );
 
             // Single surface
             ISurfacesPrx surfaceByName = EasyXT.getSurfaces( "My Surface" );
-            ISurfacesPrx surfaceByPosition = EasyXT.getSurfaces( 1 ); // 0 based
+            //ISurfacesPrx surfaceByPosition = EasyXT.getSurfaces( 0 ); // 0 based
 
             // All Surfaces in Scene
             List<ISurfacesPrx> surfacesList = EasyXT.getAllSurfaces( );

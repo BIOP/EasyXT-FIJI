@@ -21,7 +21,7 @@ import ch.epfl.biop.imaris.SpotsDetector;
 
 public class AddChildObjects {
 
-    public static void main( String... args ) {
+    public static void main( String... args ) throws Exception {
         try {
             // Fresh Start with the sample dataset
             FreshStartWithIJAndBIOPImsSample.main();

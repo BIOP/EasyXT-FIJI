@@ -42,7 +42,7 @@ public class ItemQuery {
         Camera( ISurpassCamera.class ),
         Light( ILightSource.class ),
         Frame( IFrame.class ),
-        DataContainer( IDataContainer.class );
+        Datacontainer( IDataContainer.class );
 
         Class cls;
 
@@ -85,8 +85,11 @@ public class ItemQuery {
             return ItemType.Frame.getType( );
         }
         if ( factory.IsDataContainer( item ) ) {
-            return ItemType.DataContainer.getType();
+            return ItemType.Datacontainer.getType( );
         }
+
+        System.err.println("Type not found for item "+item+" of class "+item.getClass().getSimpleName());
+
         return null;
     }
 

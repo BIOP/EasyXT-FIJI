@@ -186,8 +186,8 @@ public class SpotsDetector {
 
 
         if (color!=null) {
-            // TODO
-            //spots.SetColor ( annoying stuff to convert )
+            // copied from SurfacesDetector
+            spots.SetColorRGBA( color[0] + (color[1] * 256) + (color[2] * 256 * 256 ) );
         }
 
         return spots;

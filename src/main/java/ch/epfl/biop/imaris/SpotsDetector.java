@@ -42,8 +42,9 @@ import Imaris.ISpotsPrx;
  * Authors
  * Nicolas Chiaruttini, nicolas.chiaruttini@epfl.ch
  * Olivier Burri, olivier.burri@epfl.ch
+ * Romain Guiet, romain.guiet@epfl.ch
  *
- * BIOP, EPFL,  Jan 2020
+ * BIOP, EPFL,  Jan 2021
  *
  * Useful links:
  * file:///C:/Program%20Files/Bitplane/Imaris%20x64%209.5.1/html/xtinterface/structImaris_1_1IImageProcessing.html
@@ -74,6 +75,11 @@ public class SpotsDetector {
     Boolean  	aRegionsSpotsDiameterFromVolume;
     Boolean  	aRegionsCreateChannel;
 
+    // Fields added to detect ellipses
+
+    float[] aEstimateDiameterXYZ;
+
+
     // Fields added to modify output
 
     String name;
@@ -83,12 +89,14 @@ public class SpotsDetector {
 
         ISpotsPrx spots;
 
+        // If one of the RegionGrowing parameters is set
         if ((aRegionsFromLocalContrast!=null)||
             (aRegionsThresholdAutomatic!=null)||
             (aRegionsThresholdManual!=null)||
             (aRegionsSpotsDiameterFromVolume!=null)||
             (aRegionsCreateChannel!=null)) {
 
+            // they should be all set !
             if ( (aRegionsFromLocalContrast==null)||
                     (aRegionsThresholdAutomatic==null)||
                     (aRegionsThresholdManual==null)||
@@ -113,7 +121,22 @@ public class SpotsDetector {
                 //		bool  	aRegionsCreateChannel
                 //	)
 
-            spots = EasyXT.getImaris().GetImageProcessing().DetectSpotsRegionGrowing(aDataSet,
+            if ( aEstimateDiameterXYZ!=null ){ // look for ellipses
+                spots = EasyXT.getImaris().GetImageProcessing().DetectEllipticSpotsRegionGrowing(aDataSet,
+                        aRegionsOfInterest,
+                        aChannelIndex,
+                        aEstimateDiameterXYZ,
+                        aSubtractBackground,
+                        aSpotFiltersString,
+                        aRegionsFromLocalContrast,
+                        aRegionsThresholdAutomatic,
+                        aRegionsThresholdManual,
+                        aRegionsSpotsDiameterFromVolume,
+                        aRegionsCreateChannel);
+
+            } else { // or simple spots
+
+                spots = EasyXT.getImaris().GetImageProcessing().DetectSpotsRegionGrowing(aDataSet,
                         aRegionsOfInterest,
                         aChannelIndex,
                         aEstimateDiameter,
@@ -124,7 +147,7 @@ public class SpotsDetector {
                         aRegionsThresholdManual,
                         aRegionsSpotsDiameterFromVolume,
                         aRegionsCreateChannel);
-
+            }
 
         } else {
                 // DetectSpots2()
@@ -137,13 +160,22 @@ public class SpotsDetector {
                 //	)
 
                 // TODO Understand what happens with the Map<String, String> with detectspots2
+                if ( aEstimateDiameterXYZ!=null ){ // look for ellipses
+                    spots = EasyXT.getImaris().GetImageProcessing().DetectEllipticSpots(aDataSet,
+                            aRegionsOfInterest,
+                            aChannelIndex,
+                            aEstimateDiameterXYZ,
+                            aSubtractBackground,
+                            aSpotFiltersString);
 
-                spots = EasyXT.getImaris().GetImageProcessing().DetectSpots2(aDataSet,
-                        aRegionsOfInterest,
-                        aChannelIndex,
-                        aEstimateDiameter,
-                        aSubtractBackground,
-                        aSpotFiltersString);
+                } else { // or simple spots
+                    spots = EasyXT.getImaris().GetImageProcessing().DetectSpots2(aDataSet,
+                            aRegionsOfInterest,
+                            aChannelIndex,
+                            aEstimateDiameter,
+                            aSubtractBackground,
+                            aSpotFiltersString);
+                }
         }
 
         // EasyXT Specific
@@ -169,11 +201,11 @@ public class SpotsDetector {
     public static final class SpotsDetectorBuilder {
 
         IDataSetPrx aDataSet;
-        int[][] aRegionsOfInterest; // aRegionsOfInterest is a Nx8 matrix with the Rois : public [vMinX, vMinY, vMinZ, vMinT, vMaxX, vMaxY, vMaxZ, vMaxT]
-        Integer aChannelIndex;
-        Float aEstimateDiameter;
-        Boolean aSubtractBackground;
-        String aSpotFiltersString;
+        int[][]     aRegionsOfInterest; // aRegionsOfInterest is a Nx8 matrix with the Rois : public [vMinX, vMinY, vMinZ, vMinT, vMaxX, vMaxY, vMaxZ, vMaxT]
+        Integer     aChannelIndex;
+        Float       aEstimateDiameter;
+        Boolean     aSubtractBackground;
+        String      aSpotFiltersString;
 
         // Additional fields from Imaris API - DetectSpotsRegionGrowing
         // If aRegionsFromLocalContrast is false, regions are computed from channel intensity.
@@ -182,9 +214,13 @@ public class SpotsDetector {
 
         Boolean  	aRegionsFromLocalContrast;
         Boolean  	aRegionsThresholdAutomatic;
-        Float  	aRegionsThresholdManual;
+        Float  	    aRegionsThresholdManual;
         Boolean  	aRegionsSpotsDiameterFromVolume;
         Boolean  	aRegionsCreateChannel;
+
+        // Fields added to detect ellipses
+
+        float[] aEstimateDiameterXYZ;
 
         // Fields added to modify output
 
@@ -229,6 +265,42 @@ public class SpotsDetector {
          */
         public SpotsDetectorBuilder setDiameter(double diameter) {
             this.aEstimateDiameter = new Float(diameter);
+            return this;
+        }
+
+        /**
+         * setAxialDiameter build the float[] aEstimateDiameterXYZ ( required by DetectEllipticSpots() and DetectSpotsRegionGrowing() )
+         * requires aEstimateDiameter to be set otherwise print an error
+         *
+         * TODO decide if it's a good way to do it or if we should setDiameterXY by default to avoid error.
+         ** I did it this way because the creation parameters has "Estimated XY Diameter" and "Estimated Z Diameter"
+         ** I also created an alternative function setDiameterXYZ(aEstimateDiameterXY, aEstimateDiameterZ)
+         *
+         * @param aEstimateDiameterZ , corresponds to [Source Channel] Estimated Z Diameter in the "Creation Parameters"
+         *                           (in the "Creation" tab of a completed spots object)
+         * @return
+         */
+        public SpotsDetectorBuilder setAxialDiameter( float aEstimateDiameterZ ){
+            if ( this.aEstimateDiameter != null)
+                this.aEstimateDiameterXYZ = new float[] {this.aEstimateDiameter,this.aEstimateDiameter , aEstimateDiameterZ};
+            else
+                System.err.println( "EasyXT error log : Please specify XY diameter using setDiameter() when building the SpotsDetector.");
+            return this;
+        }
+
+        /**
+         * setDiameterXYZ build the float[] aEstimateDiameterXYZ
+         * required by DetectEllipticSpots() and DetectSpotsRegionGrowing()
+         * an alternative to setAxialDiameter
+         *
+         * @param aEstimateDiameterXY , corresponds to [Source Channel] Estimated XY Diameter in the "Creation Parameters"
+         *                           (in the "Creation" tab of a completed spots object)
+         * @param aEstimateDiameterZ , corresponds to [Source Channel] Estimated Z Diameter in the "Creation Parameters"
+         *                           (in the "Creation" tab of a completed spots object)
+         * @return
+         */
+        public SpotsDetectorBuilder setDiameterXYZ( float aEstimateDiameterXY, float aEstimateDiameterZ ){
+            this.aEstimateDiameterXYZ = new float[] {aEstimateDiameterXY, aEstimateDiameterXY , aEstimateDiameterZ};
             return this;
         }
 
@@ -296,6 +368,8 @@ public class SpotsDetector {
             return this;
         }
 
+
+
         /**
          *
          * @param flag , corresponds to [Spot Regions] Region Growing Diameter = Diameter From Volume in the "Creation Parameters"
@@ -322,6 +396,7 @@ public class SpotsDetector {
             spotsDetector.aRegionsSpotsDiameterFromVolume = this.aRegionsSpotsDiameterFromVolume;
             spotsDetector.aRegionsCreateChannel = this.aRegionsCreateChannel;
 
+            spotsDetector.aEstimateDiameterXYZ = this.aEstimateDiameterXYZ;
             spotsDetector.color = this.color;
             spotsDetector.name = this.name;
 

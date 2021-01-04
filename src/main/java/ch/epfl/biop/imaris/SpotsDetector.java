@@ -280,9 +280,9 @@ public class SpotsDetector {
          *                           (in the "Creation" tab of a completed spots object)
          * @return
          */
-        public SpotsDetectorBuilder setAxialDiameter( float aEstimateDiameterZ ){
+        public SpotsDetectorBuilder setAxialDiameter( double aEstimateDiameterZ ){
             if ( this.aEstimateDiameter != null)
-                this.aEstimateDiameterXYZ = new float[] {this.aEstimateDiameter,this.aEstimateDiameter , aEstimateDiameterZ};
+                this.aEstimateDiameterXYZ = new float[] {this.aEstimateDiameter,this.aEstimateDiameter , new Float(aEstimateDiameterZ) };
             else
                 System.err.println( "EasyXT error log : Please specify XY diameter using setDiameter() when building the SpotsDetector.");
             return this;
@@ -299,8 +299,8 @@ public class SpotsDetector {
          *                           (in the "Creation" tab of a completed spots object)
          * @return
          */
-        public SpotsDetectorBuilder setDiameterXYZ( float aEstimateDiameterXY, float aEstimateDiameterZ ){
-            this.aEstimateDiameterXYZ = new float[] {aEstimateDiameterXY, aEstimateDiameterXY , aEstimateDiameterZ};
+        public SpotsDetectorBuilder setDiameterXYZ(double aEstimateDiameterXY, double aEstimateDiameterZ ){
+            this.aEstimateDiameterXYZ = new float[] { new Float(aEstimateDiameterXY), new Float(aEstimateDiameterXY), new Float(aEstimateDiameterZ)};
             return this;
         }
 

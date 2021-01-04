@@ -265,7 +265,7 @@ public class EasyXT {
     }
 
     /**
-     * Get all items of the requested type ( within a DataContainer )
+     * Get all items of the requested type in the main scene as a list (not within subfolder, groups)
      *
      * @param type the type, defined by a String. See {@link ItemQuery.ItemType}
      * @return a list containins the objects
@@ -646,7 +646,7 @@ public class EasyXT {
     }
 
     /**
-     * Reset teh Imaris Scene
+     * Reset the Imaris Scene
      *
      * @throws Error an Imaris Error Object
      */

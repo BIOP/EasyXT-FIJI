@@ -38,10 +38,10 @@ public class SendNewSurfaceDemo {
             } else {
                 new WaitForUserDialog("The surface will be skeletonized ...").show();
             }
-
+            // because of skeletonize
             Prefs.blackBackground = true;
             IJ.run(surface_ij,"Skeletonize", "stack");
-            IJ.run(surface_ij, "Invert", "stack");
+            //IJ.run(surface_ij, "Invert", "stack");
 
             if ((args.length>0)&&(args[0].equals("Test Mode"))) {
                 IJ.log("And sent back to Imaris ...");
@@ -51,6 +51,7 @@ public class SendNewSurfaceDemo {
 
             ISurfacesPrx surface = EasyXT.getAllSurfaces().get(0);
 
+            // TODO fix setSurfaceMask that send back only first time point surface
             EasyXT.setSurfaceMask(surface, surface_ij);
 
             surface_ij.changes = false;

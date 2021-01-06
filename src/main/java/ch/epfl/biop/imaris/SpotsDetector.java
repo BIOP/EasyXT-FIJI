@@ -65,7 +65,6 @@ public class SpotsDetector {
     private static Consumer<String> errlog = (str) -> System.err.println("SpotsDetector : " + str);
 
 
-
     // Fields from Imaris API - DetectSpots2D (Replaces DetectSpots, implemented for bpPointsViewer.)
     // Process entire image if aRegionsOfInterest is empty.
     // Example of aSpotFiltersString: '"Position X" above 30.000 um "Intensity Center Ch=1" above automatic threshold'
@@ -311,8 +310,8 @@ public class SpotsDetector {
          * @return
          */
         public SpotsDetectorBuilder setDiameterXYZ(double aEstimateDiameterXY, double aEstimateDiameterZ) {
-            setDiameter( aEstimateDiameterXY);
-            setAxialDiameter( aEstimateDiameterZ);
+            setDiameter(aEstimateDiameterXY);
+            setAxialDiameter(aEstimateDiameterZ);
             return this;
         }
 
@@ -395,43 +394,42 @@ public class SpotsDetector {
         }
 
         public SpotsDetector build() throws Error {
-            Boolean throwError = false ;
+            Boolean throwError = false;
             // Check Minimal Parameters
-            if ( (this.aEstimateDiameter==null)&&(this.aEstimateDiameterXYZ==null)) {
-                errlog.accept( "aEstimateDiameter was not set, use setDiameter(double diameter) or setDiameterXYZ(double aEstimateDiameterXY, double aEstimateDiameterZ)");
+            if ((this.aEstimateDiameter == null) && (this.aEstimateDiameterXYZ == null)) {
+                errlog.accept("aEstimateDiameter was not set, use setDiameter(double diameter) or setDiameterXYZ(double aEstimateDiameterXY, double aEstimateDiameterZ)");
             }
-            if(this.aSubtractBackground==null){
+            if (this.aSubtractBackground == null) {
                 errlog.accept("aSubtractBackground was not set, use isSubtractBackground(Boolean aSubtractBackground)");
             }
 
             // Check RegionGrowingParameters
-            if ( (this.aRegionsFromLocalContrast != null) ||
+            if ((this.aRegionsFromLocalContrast != null) ||
                     (this.aRegionsThresholdAutomatic != null) ||
                     (this.aRegionsThresholdManual != null) ||
                     (this.aRegionsSpotsDiameterFromVolume != null) ||
                     (this.aRegionsCreateChannel != null)) {
 
-                    if (this.aRegionsFromLocalContrast==null){
-                        errlog.accept( " aRegionsFromLocalContrast was not set, use isRegionsFromLocalContrast(boolean flag)");
-                        throwError = true;
-                    }
-                    if (( this.aRegionsThresholdManual == null)&&(this.aRegionsThresholdAutomatic==null)){
-                        errlog.accept("No threshold method was set for region growing, please use either 'enableRegionsThresholdAutomatic() ' or 'setRegionsThresholdManual(double threshold)' ");
-                        throwError = true;
-                    }
-                    if (this.aRegionsSpotsDiameterFromVolume==null){
-                        errlog.accept("aRegionsSpotsDiameterFromVolume was not set, please use isRegionsSpotsDiameterFromVolume(boolean flag)");
-                        throwError = true;
-                    }
-                    if (this.aRegionsCreateChannel==null){
-                        this.aRegionsCreateChannel = false; // it useless (as far as we know) and set to false by default imaris wizard
-                        log.accept("aRegionsCreateChannel was set to false (Default Imaris behaviour), use isCreateRegionChannel(boolean flag) to change its status!");
-                        throwError = true;
-                    }
+                if (this.aRegionsFromLocalContrast == null) {
+                    errlog.accept(" aRegionsFromLocalContrast was not set, use isRegionsFromLocalContrast(boolean flag)");
+                    throwError = true;
+                }
+                if ((this.aRegionsThresholdManual == null) && (this.aRegionsThresholdAutomatic == null)) {
+                    errlog.accept("No threshold method was set for region growing, please use either 'enableRegionsThresholdAutomatic() ' or 'setRegionsThresholdManual(double threshold)' ");
+                    throwError = true;
+                }
+                if (this.aRegionsSpotsDiameterFromVolume == null) {
+                    errlog.accept("aRegionsSpotsDiameterFromVolume was not set, please use isRegionsSpotsDiameterFromVolume(boolean flag)");
+                    throwError = true;
+                }
+                if (this.aRegionsCreateChannel == null) {
+                    this.aRegionsCreateChannel = false; // it useless (as far as we know) and set to false by default imaris wizard
+                    log.accept("aRegionsCreateChannel was set to false (Default Imaris behaviour), use isCreateRegionChannel(boolean flag) to change its status!");
+                    throwError = true;
+                }
             }
 
-            if  (throwError) throw new Error();
-
+            if (throwError) throw new Error();
 
 
             SpotsDetector spotsDetector = new SpotsDetector();

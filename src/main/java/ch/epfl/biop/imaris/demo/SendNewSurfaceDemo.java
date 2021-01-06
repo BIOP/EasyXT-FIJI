@@ -51,8 +51,7 @@ public class SendNewSurfaceDemo {
 
             ISurfacesPrx surface = EasyXT.getAllSurfaces().get(0);
 
-            // TODO fix setSurfaceMask that send back only first time point surface
-            EasyXT.setSurfaceMask(surface, surface_ij);
+            EasyXT.setSurfacesMask(surface, surface_ij);
 
             surface_ij.changes = false;
 

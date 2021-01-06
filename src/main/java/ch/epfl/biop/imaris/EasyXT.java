@@ -34,6 +34,7 @@ import ij.ImagePlus;
 import ij.ImageStack;
 import ij.measure.Calibration;
 import ij.measure.ResultsTable;
+import ij.plugin.Duplicator;
 import ij.plugin.HyperStackConverter;
 import ij.plugin.Concatenator;
 import ij.process.*;
@@ -151,6 +152,10 @@ public class EasyXT {
         if (factory.IsFrame(item)) {
             return factory.ToFrame(item);
         }
+        if (factory.IsDataContainer(item)) {
+            return factory.ToDataContainer(item);
+        }
+
         return null;
     }
 
@@ -270,7 +275,7 @@ public class EasyXT {
     }
 
     /**
-     * Get all items of the requested type
+     * Get all items of the requested type in the main scene as a list (not within subfolder, groups)
      *
      * @param type the type, defined by a String. See {@link ItemQuery.ItemType}
      * @return a list containins the objects
@@ -282,7 +287,7 @@ public class EasyXT {
     }
 
     /**
-     * Get all spots objects in the main scene as a list
+     * Get all spots objects in the main scene as a list (not within subfolder, groups)
      *
      * @return the spots as a list
      * @throws Error an Imaris Error Object
@@ -300,7 +305,7 @@ public class EasyXT {
     }
 
     /**
-     * Get all surfaces objects in the main scene as a list
+     * Get all surfaces objects in the main scene as a list (not within subfolder, groups)
      *
      * @return the surfaces as a list
      * @throws Error an Imaris Error Object
@@ -315,6 +320,24 @@ public class EasyXT {
         }).collect(Collectors.toList());
 
         return surfs;
+    }
+
+    /**
+     * Get all Group objects in the main scene as a list
+     *
+     * @return the surfaces as a list
+     * @throws Error an Imaris Error Object
+     */
+    public static List<IDataContainerPrx> getAllGroups() throws Error {
+        ItemQuery query = new ItemQuery.ItemQueryBuilder().setType("DataContainer").build();
+        List<IDataItemPrx> items = query.get();
+
+        // Explicitly cast
+        List<IDataContainerPrx> groups = items.stream().map(item -> {
+            return (IDataContainerPrx) item;
+        }).collect(Collectors.toList());
+
+        return groups;
     }
 
     // ImagePlus Manipulations
@@ -599,13 +622,56 @@ public class EasyXT {
     }
 
     /**
-     * Removes the provided item from its parent
+     * Removes the provided item from its parent,
+     * if it's a Group removes the children spots & surfaces
      *
      * @param item the item in question
      * @throws Error an Imaris Error Object
      */
     public static void removeFromScene(IDataItemPrx item) throws Error {
+        // if the item is a group
+        IFactoryPrx factory = app.GetFactory();
+        if (factory.IsDataContainer(item)) {
+            IDataContainerPrx group = factory.ToDataContainer(item);
+            // make sure to remove all elements in it
+            for (int grp = 0; grp < group.GetNumberOfChildren(); grp++) {
+                removeFromScene(group.GetChild(grp));
+            }
+        }
+        // remove the item
         item.GetParent().RemoveChild(item);
+
+    }
+
+    /**
+     * Removes the provided List of items from its parent
+     *
+     * @param items, the list of items in question
+     * @throws Error an Imaris Error Object
+     */
+    public static void removeFromScene(List<? extends IDataItemPrx> items) throws Error {
+        for (IDataItemPrx it : items) {
+            removeFromScene(it);
+        }
+    }
+
+    /**
+     * Reset the Imaris Scene
+     *
+     * @throws Error an Imaris Error Object
+     */
+    public static void resetScene() throws Error {
+        List<ISpotsPrx> spots = EasyXT.getAllSpots();
+        List<ISurfacesPrx> surfaces = EasyXT.getAllSurfaces();
+        List<IDataContainerPrx> groups = EasyXT.getAllGroups();
+        EasyXT.removeFromScene(spots);
+        EasyXT.removeFromScene(surfaces);
+        EasyXT.removeFromScene(groups);
+        //for ( ISpotsPrx sp: spots ) { EasyXT.removeFromScene( sp ); }
+        //for ( ISurfacesPrx srf: surfaces ) { EasyXT.removeFromScene( srf ); }
+        //for ( IDataContainerPrx grp: groups ) { EasyXT.removeFromScene( grp ); }
+
+        // TODO selectScene
     }
 
     /**
@@ -626,7 +692,7 @@ public class EasyXT {
     //Surface Related methods
 
     // TODO Comment
-    public static IDataSetPrx getSurfaceDataset(ISurfacesPrx surface) throws Error {
+    public static IDataSetPrx getSurfacesDataset(ISurfacesPrx surface) throws Error {
         // Check if there are channels
         ImarisCalibration cal = new ImarisCalibration(app.GetDataSet());
 
@@ -636,7 +702,7 @@ public class EasyXT {
 
         // Loop through each timepoint, and get the dataset, then replace
         for (int t = 0; t < cal.tSize; t++) {
-            IDataSetPrx one_timepoint = getSurfaceDataset(surface, 1.0, t);
+            IDataSetPrx one_timepoint = getSurfacesDataset(surface, 1.0, t);
             final_dataset.SetDataVolumeAs1DArrayBytes(one_timepoint.GetDataVolumeAs1DArrayBytes(0, 0), 0, t);
         }
 
@@ -647,7 +713,7 @@ public class EasyXT {
     public static ImagePlus getSurfacesMask(ISurfacesPrx surface) throws Error {
 
         // Get raw ImagePlus
-        ImagePlus impSurface = getImagePlus(getSurfaceDataset(surface));
+        ImagePlus impSurface = getImagePlus(getSurfacesDataset(surface));
 
         // Multiply by 255 to allow to use ImageJ binary functions
         int nProcessor = impSurface.getStack().getSize();
@@ -664,7 +730,8 @@ public class EasyXT {
     }
 
     // TODO Comment
-    public static void setSurfaceMask(ISurfacesPrx surface, ImagePlus imp) throws Error {
+    public static void setSurfacesMask(ISurfacesPrx surface, ImagePlus imp) throws Error {
+        ImarisCalibration cal = new ImarisCalibration(app.GetDataSet());
 
         // Divide by 255 to allow to use ImageJ binary functions
         int nProcessor = imp.getStack().getSize();
@@ -672,14 +739,18 @@ public class EasyXT {
             imp.getStack().getProcessor(index + 1).multiply(1.0 / 255.0);
         });
 
-        IDataSetPrx dataset = EasyXT.getSurfaceDataset(surface);
         surface.RemoveAllSurfaces();
-        EasyXT.setImagePlus(dataset, imp);
-        surface.AddSurface(dataset, 0);
 
-        IntStream.range(0, nProcessor).parallel().forEach(index -> {
-            imp.getStack().getProcessor(index + 1).multiply(255);
-        });
+        for (int t = 0 ; t < cal.tSize ; t++){
+            IDataSetPrx dataset = getSurfacesDataset(surface, 1, t);
+            dataset.SetType(tType.eTypeUInt8);
+            // temporary ImagePlus required to work!
+            ImagePlus t_imp = new Duplicator().run(imp , 1,1,1,cal.zSize,t+1,t+1 );
+            //t_imp.show() ;
+            setImagePlus(dataset, t_imp );
+
+            surface.AddSurface(dataset, t);
+        }
 
     }
 
@@ -693,9 +764,7 @@ public class EasyXT {
 
         ImarisCalibration cal = new ImarisCalibration(app.GetDataSet()).getDownsampled(downsample);
 
-        IDataSetPrx data = surface.GetMask((float) cal.xOrigin, (float) cal.yOrigin, (float) cal.zOrigin,
-                (float) cal.xEnd, (float) cal.yEnd, (float) cal.zEnd,
-                cal.xSize, cal.ySize, cal.zSize, timepoint);
+        IDataSetPrx data = getSurfacesDataset(surface , downsample , timepoint );
 
         ImagePlus imp = getImagePlus(data);
         imp.setCalibration(cal);
@@ -704,7 +773,7 @@ public class EasyXT {
     }
 
     // TODO Comment
-    public static IDataSetPrx getSurfaceDataset(ISurfacesPrx surface, double downsample, int timepoint) throws Error {
+    public static IDataSetPrx getSurfacesDataset(ISurfacesPrx surface, double downsample, int timepoint) throws Error {
         ImarisCalibration cal = new ImarisCalibration(app.GetDataSet()).getDownsampled(downsample);
 
         IDataSetPrx data = surface.GetMask((float) cal.xOrigin, (float) cal.yOrigin, (float) cal.zOrigin,

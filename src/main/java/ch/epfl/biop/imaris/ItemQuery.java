@@ -26,12 +26,25 @@ import Imaris.Error;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 public class ItemQuery {
     private IDataContainerPrx itemParent = null;
     private String itemName = null;
     private Class<? extends IDataItem> itemType = null;
     private int itemPosition = 0;
+
+    /**
+     * Standard logger
+     */
+    private static Consumer<String> log = (str) -> System.out.println("ItemQuery : " + str);
+
+    /**
+     * Error logger
+     */
+    private static Consumer<String> errlog = (str) -> System.err.println("ItemQuery : " + str);
+
+
 
     // Enum containing the classes of the different ImarisObjects
     public enum ItemType {
@@ -88,7 +101,7 @@ public class ItemQuery {
             return ItemType.Datacontainer.getType( );
         }
 
-        System.err.println("Type not found for item "+item+" of class "+item.getClass().getSimpleName());
+        log.accept("Type not found for item "+item+" of class "+item.getClass().getSimpleName());
 
         return null;
     }

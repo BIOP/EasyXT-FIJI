@@ -12,16 +12,16 @@ import org.scijava.plugin.Plugin;
 public class PutSurfaceCommand implements Command{
 
     @Parameter
-    ImagePlus surface;
+    ImagePlus surface_imp;
 
     @Override
     public void run() {
         // Using the Image Name as a key to access the surface
         try {
-            ISurfacesPrx surfprx = EasyXT.getSurfaces( surface.getTitle() );
+            ISurfacesPrx surfprx = EasyXT.getSurfaces( surface_imp.getTitle() );
             //IDataSetPrx dataset = EasyXT.getSurfaceDataset(surfprx);
             //surfprx.RemoveAllSurfaces();
-            EasyXT.setSurfaceMask(surfprx, surface);
+            EasyXT.setSurfacesMask(surfprx, surface_imp);
             //surfprx.AddSurface(dataset,0);
         } catch (Error error) {
             error.printStackTrace();

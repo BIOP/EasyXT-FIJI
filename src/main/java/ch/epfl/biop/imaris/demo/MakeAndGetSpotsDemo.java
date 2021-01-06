@@ -61,8 +61,8 @@ public class MakeAndGetSpotsDemo {
             EasyXT.addToScene(detected_ellipticSpots);
 
             // TODO : Display spots in Fiji
-            // EasyXT.getSpotsMask( got_spots ).show();
-
+            EasyXT.getSpotsMask( got_spots ).show();
+            EasyXT.getSpotsLabel( got_spots ).show();
 
         } catch ( Error error ) {
             System.out.println( "ERROR:" + error.mDescription );

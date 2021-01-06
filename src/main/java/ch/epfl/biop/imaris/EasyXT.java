@@ -794,7 +794,7 @@ public class EasyXT {
     }
 
     // TODO Comment
-    public static ImagePlus getSpotsMLabel(ISpotsPrx spots ) throws Error {
+    public static ImagePlus getSpotsLabel(ISpotsPrx spots ) throws Error {
         return getSpotsImage( spots,  true, false);
     }
 
@@ -831,7 +831,8 @@ public class EasyXT {
 
 
         ArrayList<ImagePlus> imps = new ArrayList<ImagePlus>(spots_t[spots_t.length - 1]);
-
+        // by default the value is 255
+        int val = 255;
         for (int t = 0; t < spots_t.length; t++) {
             // if the current spot is from a different time-point
             if (spots_t[t] != previous_t) {
@@ -841,8 +842,6 @@ public class EasyXT {
                 // and reset the obj
                 obj.reset();
             }
-            // by default the value is 255
-            int val = 255;
             // but if isValueID is true, use the ID number for the value
             if (isValueID) val = (int) spots_ids[t];
             // add an ellipsoid to obj
@@ -855,7 +854,7 @@ public class EasyXT {
         // https://stackoverflow.com/questions/9572795/convert-list-to-array-in-java
         ImagePlus[] impsA = imps.toArray(new ImagePlus[0]);
         ImagePlus final_imp = Concatenator.run(impsA);
-        final_imp.setDisplayRange(0, final_imp.getDisplayRangeMax());
+        final_imp.setDisplayRange(0, val);
         final_imp.setTitle(getOpenImageName());
         final_imp.setCalibration(cal);
 

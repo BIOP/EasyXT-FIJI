@@ -2,7 +2,7 @@
  * Copyright (c) 2020 Ecole Polytechnique Fédérale de Lausanne. All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- *
+ * <p>
  * 1. Redistributions of source code must retain the above copyright notice, this list of conditions
  * and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions
@@ -68,11 +68,11 @@ public class SpotsDetector {
     // If aRegionsThresholdAutomatic is true, aRegionsThresholdManual is ignored.
     // If aRegionsSpotsDiameterFromVolume is false, spots diameter is equal to region border distance.
 
-    Boolean  	aRegionsFromLocalContrast;
-    Boolean  	aRegionsThresholdAutomatic;
-    Float  	    aRegionsThresholdManual;
-    Boolean  	aRegionsSpotsDiameterFromVolume;
-    Boolean  	aRegionsCreateChannel;
+    Boolean aRegionsFromLocalContrast;
+    Boolean aRegionsThresholdAutomatic;
+    Float aRegionsThresholdManual;
+    Boolean aRegionsSpotsDiameterFromVolume;
+    Boolean aRegionsCreateChannel;
 
     // Fields added to modify output
 
@@ -83,77 +83,77 @@ public class SpotsDetector {
 
         ISpotsPrx spots;
 
-        if ((aRegionsFromLocalContrast!=null)||
-            (aRegionsThresholdAutomatic!=null)||
-            (aRegionsThresholdManual!=null)||
-            (aRegionsSpotsDiameterFromVolume!=null)||
-            (aRegionsCreateChannel!=null)) {
+        if ((aRegionsFromLocalContrast != null) ||
+                (aRegionsThresholdAutomatic != null) ||
+                (aRegionsThresholdManual != null) ||
+                (aRegionsSpotsDiameterFromVolume != null) ||
+                (aRegionsCreateChannel != null)) {
 
-            if ( (aRegionsFromLocalContrast==null)||
-                    (aRegionsThresholdAutomatic==null)||
-                    (aRegionsThresholdManual==null)||
-                    (aRegionsSpotsDiameterFromVolume==null)||
-                    (aRegionsCreateChannel==null)) {
+            if ((aRegionsFromLocalContrast == null) ||
+                    (aRegionsThresholdAutomatic == null) ||
+                    (aRegionsThresholdManual == null) ||
+                    (aRegionsSpotsDiameterFromVolume == null) ||
+                    (aRegionsCreateChannel == null)) {
 
-                System.err.println( "Please specify all parameters  ");
+                System.err.println("Please specify all parameters  ");
             }
 
-                // DetectSpotsRegionGrowing
+            // DetectSpotsRegionGrowing
 
-                // ISpots* Imaris::IImageProcessing::DetectSpotsRegionGrowing 	( 	IDataSet *  	aDataSet,
-                //		tInts2D  	aRegionsOfInterest,
-                //		int  	aChannelIndex,
-                //		float  	aEstimateDiameter,
-                //		bool  	aSubtractBackground,
-                //		string  	aSpotFiltersString,
-                //		bool  	aRegionsFromLocalContrast,
-                //		bool  	aRegionsThresholdAutomatic,
-                //		float  	aRegionsThresholdManual,
-                //		bool  	aRegionsSpotsDiameterFromVolume,
-                //		bool  	aRegionsCreateChannel
-                //	)
+            // ISpots* Imaris::IImageProcessing::DetectSpotsRegionGrowing 	( 	IDataSet *  	aDataSet,
+            //		tInts2D  	aRegionsOfInterest,
+            //		int  	aChannelIndex,
+            //		float  	aEstimateDiameter,
+            //		bool  	aSubtractBackground,
+            //		string  	aSpotFiltersString,
+            //		bool  	aRegionsFromLocalContrast,
+            //		bool  	aRegionsThresholdAutomatic,
+            //		float  	aRegionsThresholdManual,
+            //		bool  	aRegionsSpotsDiameterFromVolume,
+            //		bool  	aRegionsCreateChannel
+            //	)
 
             spots = EasyXT.getImaris().GetImageProcessing().DetectSpotsRegionGrowing(aDataSet,
-                        aRegionsOfInterest,
-                        aChannelIndex,
-                        aEstimateDiameter,
-                        aSubtractBackground,
-                        aSpotFiltersString,
-                        aRegionsFromLocalContrast,
-                        aRegionsThresholdAutomatic,
-                        aRegionsThresholdManual,
-                        aRegionsSpotsDiameterFromVolume,
-                        aRegionsCreateChannel);
+                    aRegionsOfInterest,
+                    aChannelIndex,
+                    aEstimateDiameter,
+                    aSubtractBackground,
+                    aSpotFiltersString,
+                    aRegionsFromLocalContrast,
+                    aRegionsThresholdAutomatic,
+                    aRegionsThresholdManual,
+                    aRegionsSpotsDiameterFromVolume,
+                    aRegionsCreateChannel);
 
 
         } else {
-                // DetectSpots2()
-                // ISpots* Imaris::IImageProcessing::DetectSpots2 	( 	IDataSet *  	aDataSet,
-                //		tInts2D  	aRegionsOfInterest,
-                //		int  	aChannelIndex,
-                //		float  	aEstimateDiameter,
-                //		bool  	aSubtractBackground,
-                //		string  	aSpotFiltersString
-                //	)
+            // DetectSpots2()
+            // ISpots* Imaris::IImageProcessing::DetectSpots2 	( 	IDataSet *  	aDataSet,
+            //		tInts2D  	aRegionsOfInterest,
+            //		int  	aChannelIndex,
+            //		float  	aEstimateDiameter,
+            //		bool  	aSubtractBackground,
+            //		string  	aSpotFiltersString
+            //	)
 
-                // TODO Understand what happens with the Map<String, String> with detectspots2
+            // TODO Understand what happens with the Map<String, String> with detectspots2
 
-                spots = EasyXT.getImaris().GetImageProcessing().DetectSpots2(aDataSet,
-                        aRegionsOfInterest,
-                        aChannelIndex,
-                        aEstimateDiameter,
-                        aSubtractBackground,
-                        aSpotFiltersString);
+            spots = EasyXT.getImaris().GetImageProcessing().DetectSpots2(aDataSet,
+                    aRegionsOfInterest,
+                    aChannelIndex,
+                    aEstimateDiameter,
+                    aSubtractBackground,
+                    aSpotFiltersString);
         }
 
         // EasyXT Specific
 
-        if (name!=null) {
+        if (name != null) {
             spots.SetName(name);
         } // or else it will have the default Imaris name
 
 
-        if (color!=null) {
+        if (color != null) {
             // TODO
             //spots.SetColor ( annoying stuff to convert )
         }
@@ -162,7 +162,7 @@ public class SpotsDetector {
     }
 
     // Removes a bit of the verbosity
-    public static SpotsDetectorBuilder Channel(int indexChannel ) throws Error {
+    public static SpotsDetectorBuilder Channel(int indexChannel) throws Error {
         return SpotsDetectorBuilder.aSpotsDetector(indexChannel);
     }
 
@@ -180,11 +180,11 @@ public class SpotsDetector {
         // If aRegionsThresholdAutomatic is true, aRegionsThresholdManual is ignored.
         // If aRegionsSpotsDiameterFromVolume is false, spots diameter is equal to region border distance.
 
-        Boolean  	aRegionsFromLocalContrast;
-        Boolean  	aRegionsThresholdAutomatic;
-        Float  	aRegionsThresholdManual;
-        Boolean  	aRegionsSpotsDiameterFromVolume;
-        Boolean  	aRegionsCreateChannel;
+        Boolean aRegionsFromLocalContrast;
+        Boolean aRegionsThresholdAutomatic;
+        Float aRegionsThresholdManual;
+        Boolean aRegionsSpotsDiameterFromVolume;
+        Boolean aRegionsCreateChannel;
 
         // Fields added to modify output
 
@@ -197,7 +197,7 @@ public class SpotsDetector {
             this.aChannelIndex = channelIndex;
         }
 
-        public static SpotsDetectorBuilder aSpotsDetector(int channelIndex) throws Error  {
+        public static SpotsDetectorBuilder aSpotsDetector(int channelIndex) throws Error {
             return new SpotsDetectorBuilder(channelIndex);
         }
 
@@ -223,7 +223,7 @@ public class SpotsDetector {
 
         /**
          *
-         * @param diameter , corresponds to [Source Channel] Estimated XY Diameter in the "Creation Parameters"
+         * @param diameter corresponds to [Source Channel] Estimated XY Diameter in the "Creation Parameters"
          *                 (in the "Creation" tab of a completed spots object)
          * @return
          */
@@ -234,7 +234,7 @@ public class SpotsDetector {
 
         /**
          *
-         * @param aSubtractBackground , corresponds to [Source Channel] Background Substraction = true in the "Creation Parameters"
+         * @param aSubtractBackground  corresponds to [Source Channel] Background Substraction = true in the "Creation Parameters"
          *                             (in the "Creation" tab of a completed spots object)
          * @return
          */
@@ -245,9 +245,9 @@ public class SpotsDetector {
 
         /**
          *
-         * @param aFiltersString , corresponds to [Classify Spots] with a String (eg. "Quality" above 5) in the "Creation Parameters"
-         *                         (in the "Creation" tab of a completed spots object)
-         *                       use  "\" as escape character  or combination of '' and ""
+         * @param aFiltersString  corresponds to [Classify Spots] with a String (eg. "Quality" above 5) in the "Creation Parameters"
+         *                        (in the "Creation" tab of a completed spots object)
+         *                        use  "\" as escape character  or combination of '' and ""
          * @return
          */
         public SpotsDetectorBuilder setFilter(String aFiltersString) {
@@ -257,10 +257,10 @@ public class SpotsDetector {
 
         /**
          *
-         * @param aRegionsFromLocalContrast, corresponds to  [Spot Region Type] Region Growing in the "Creation Parameters"
-         *                                   if true = Local Contrast
-         *                                   if false = TO DO
-         *                                   (in the "Creation" tab of a completed spots object)
+         * @param aRegionsFromLocalContrast corresponds to  [Spot Region Type] Region Growing in the "Creation Parameters"
+         *                                  if true = Local Contrast
+         *                                  if false = TO DO
+         *                                  in the "Creation" tab of a completed spots object)
          * @return
          */
         public SpotsDetectorBuilder isRegionsFromLocalContrast(Boolean aRegionsFromLocalContrast) {
@@ -280,7 +280,7 @@ public class SpotsDetector {
 
         /**
          *
-         * @param threshold , corresponds to [Spot Regions] Region Growing Manual Threshold in the "Creation Parameters"
+         * @param threshold corresponds to [Spot Regions] Region Growing Manual Threshold in the "Creation Parameters"
          *                   (in the "Creation" tab of a completed spots object)
          * @return
          */
@@ -290,15 +290,22 @@ public class SpotsDetector {
             return this;
         }
 
-        // TODO it's not necessary true BUT it's a required parameters, need a setter function instead
-        public SpotsDetectorBuilder createRegionsChannel() {
-            this.aRegionsCreateChannel = true;
+        /**
+         * set aRegionsCreateChannel, required with RegionGrowing methods
+         * Imaris GUI set it to false by default, with no way to set it to true
+         *
+         * @param flag corresponds to [Spot Regions] Create Region Channel in the "Creation Parameters"
+         *               (in the "Creation" tab of a completed spots object)
+         * @return
+         */
+        public SpotsDetectorBuilder isCreateRegionsChannel(Boolean flag) {
+            this.aRegionsCreateChannel = flag;
             return this;
         }
 
         /**
          *
-         * @param flag , corresponds to [Spot Regions] Region Growing Diameter = Diameter From Volume in the "Creation Parameters"
+         * @param flag corresponds to [Spot Regions] Region Growing Diameter = Diameter From Volume in the "Creation Parameters"
          *             (in the "Creation" tab of a completed spots object)
          * @return
          */

@@ -377,12 +377,12 @@ public class SpotsDetector {
 
         /**
          *
-         * @param doItOrNot , corresponds to [Spot Regions] Create Region Channel in the "Creation Parameters"
+         * @param flag , corresponds to [Spot Regions] Create Region Channel in the "Creation Parameters"
          *                  (in the "Creation" tab of a completed spots object)
          * @return
          */
-        public SpotsDetectorBuilder createRegionsChannel( boolean doItOrNot) {
-            this.aRegionsCreateChannel = doItOrNot;
+        public SpotsDetectorBuilder createRegionsChannel( boolean flag) {
+            this.aRegionsCreateChannel = flag;
             return this;
         }
 

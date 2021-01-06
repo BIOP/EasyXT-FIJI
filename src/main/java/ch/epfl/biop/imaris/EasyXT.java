@@ -741,13 +741,13 @@ public class EasyXT {
 
         surface.RemoveAllSurfaces();
 
-        for (int t = 0 ; t < cal.tSize ; t++){
+        for (int t = 0; t < cal.tSize; t++) {
             IDataSetPrx dataset = getSurfacesDataset(surface, 1, t);
             dataset.SetType(tType.eTypeUInt8);
             // temporary ImagePlus required to work!
-            ImagePlus t_imp = new Duplicator().run(imp , 1,1,1,cal.zSize,t+1,t+1 );
+            ImagePlus t_imp = new Duplicator().run(imp, 1, 1, 1, cal.zSize, t + 1, t + 1);
             //t_imp.show() ;
-            setImagePlus(dataset, t_imp );
+            setImagePlus(dataset, t_imp);
 
             surface.AddSurface(dataset, t);
         }
@@ -764,7 +764,7 @@ public class EasyXT {
 
         ImarisCalibration cal = new ImarisCalibration(app.GetDataSet()).getDownsampled(downsample);
 
-        IDataSetPrx data = getSurfacesDataset(surface , downsample , timepoint );
+        IDataSetPrx data = getSurfacesDataset(surface, downsample, timepoint);
 
         ImagePlus imp = getImagePlus(data);
         imp.setCalibration(cal);
@@ -786,16 +786,16 @@ public class EasyXT {
      * Get an ImagePlus of the spots as a mask (255)
      *
      * @param spots , a spots object see {@link  #getSpots(String)}
-     * @return      , an ImagePlus
+     * @return , an ImagePlus
      * @throws Error
      */
-    public static ImagePlus getSpotsMask(ISpotsPrx spots ) throws Error {
-        return getSpotsImage( spots,  false, false);
+    public static ImagePlus getSpotsMask(ISpotsPrx spots) throws Error {
+        return getSpotsImage(spots, false, false);
     }
 
     // TODO Comment
-    public static ImagePlus getSpotsLabel(ISpotsPrx spots ) throws Error {
-        return getSpotsImage( spots,  true, false);
+    public static ImagePlus getSpotsLabel(ISpotsPrx spots) throws Error {
+        return getSpotsImage(spots, true, false);
     }
 
     // TODO Comment

@@ -7,13 +7,13 @@ import ch.epfl.biop.imaris.SpotsDetector;
 
 /**
  * EasyXT Demo
- *
+ * <p>
  * How to make a surface using SurfaceDetector and show it in ImageJ
  *
  * @author Nicolas Chiaruttini
- *
+ * <p>
  * October 2020
- *
+ * <p>
  * EPFL - SV -PTECH - PTBIOP
  */
 
@@ -32,7 +32,7 @@ public class MakeAndGetSpotsDemo {
                     .setDiameter(1)
                     .setFilter("\"Quality\" above 15")
                     .isSubtractBackground(true)
-                    .setColor(new Integer[]{255,128,0})
+                    .setColor(new Integer[]{255, 128, 0})
                     .build()
                     .detect();
 
@@ -40,20 +40,20 @@ public class MakeAndGetSpotsDemo {
             EasyXT.addToScene(detected_spots);
 
             // Gets an existing surface
-            ISpotsPrx got_spots = EasyXT.getSpots( "My Spots" );
+            ISpotsPrx got_spots = EasyXT.getSpots("My Spots");
 
             ISpotsPrx detected_ellipticSpots = SpotsDetector.Channel(0)
                     .setName("My Elliptic Region Grown Spots")
                     //.setDiameter( 1.0 )					// [Source Channel] Estimated XY Diameter
                     //.setAxialDiameter(2.0)				// [Source Channel] Estimated Z Diameter
-                    .setDiameterXYZ(  1.0 , 2.0 ) // alternative  that sets both parameters
-                    .isSubtractBackground(true)				// [Source Channel] Background Substraction = true
-                    .setFilter("\"Quality\" above 15.0")	// [Classify Spots] A String "\" as escape character
-                    .isRegionsFromLocalContrast(true) 		// [Spot Region Type] Region Growing  = Local Contrast (if set to false => intensity)
-                    .setRegionsThresholdManual(40)			// [Spot Regions] Region Growing Manual Threshold (Automatic Threshold is set to false if setting manual value)
-                    .isRegionsSpotsDiameterFromVolume(true)	// [Spot Regions] Region Growing Diameter = Diameter From Volume
-                    .isCreateRegionsChannel(false)			// [Spot Regions] Create Region Channel
-                    .setColor(new Integer[]{255,128,0})
+                    .setDiameterXYZ(1.0, 2.0) // alternative  that sets both parameters
+                    .isSubtractBackground(true)                // [Source Channel] Background Substraction = true
+                    .setFilter("\"Quality\" above 15.0")    // [Classify Spots] A String "\" as escape character
+                    .isRegionsFromLocalContrast(true)        // [Spot Region Type] Region Growing  = Local Contrast (if set to false => intensity)
+                    .setRegionsThresholdManual(40)            // [Spot Regions] Region Growing Manual Threshold (Automatic Threshold is set to false if setting manual value)
+                    .isRegionsSpotsDiameterFromVolume(true)    // [Spot Regions] Region Growing Diameter = Diameter From Volume
+                    .isCreateRegionsChannel(false)            // [Spot Regions] Create Region Channel
+                    .setColor(new Integer[]{255, 128, 0})
                     .build()
                     .detect();
 
@@ -61,13 +61,13 @@ public class MakeAndGetSpotsDemo {
             EasyXT.addToScene(detected_ellipticSpots);
 
             // TODO : Display spots in Fiji
-            EasyXT.getSpotsMask( got_spots ).show();
-            EasyXT.getSpotsLabel( got_spots ).show();
+            EasyXT.getSpotsMask(got_spots).show();
+            EasyXT.getSpotsLabel(got_spots).show();
 
-        } catch ( Error error ) {
-            System.out.println( "ERROR:" + error.mDescription );
-            System.out.println( "LOCATION:" + error.mLocation );
-            System.out.println( "String:" + error.toString() );
+        } catch (Error error) {
+            System.out.println("ERROR:" + error.mDescription);
+            System.out.println("LOCATION:" + error.mLocation);
+            System.out.println("String:" + error.toString());
         }
     }
 }

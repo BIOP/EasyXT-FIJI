@@ -31,6 +31,7 @@ import ij.ImagePlus;
 import ij.ImageStack;
 import ij.measure.Calibration;
 import ij.measure.ResultsTable;
+import ij.plugin.Duplicator;
 import ij.plugin.HyperStackConverter;
 import ij.process.*;
 
@@ -683,7 +684,7 @@ public class EasyXT {
     //Surface Related methods
 
     // TODO Comment
-    public static IDataSetPrx getSurfaceDataset(ISurfacesPrx surface) throws Error {
+    public static IDataSetPrx getSurfacesDataset(ISurfacesPrx surface) throws Error {
         // Check if there are channels
         ImarisCalibration cal = new ImarisCalibration(app.GetDataSet());
 
@@ -693,19 +694,18 @@ public class EasyXT {
 
         // Loop through each timepoint, and get the dataset, then replace
         for (int t = 0; t < cal.tSize; t++) {
-            IDataSetPrx one_timepoint = getSurfaceDataset(surface, 1.0, t);
+            IDataSetPrx one_timepoint = getSurfacesDataset(surface, 1.0, t);
             final_dataset.SetDataVolumeAs1DArrayBytes(one_timepoint.GetDataVolumeAs1DArrayBytes(0, 0), 0, t);
         }
 
         return final_dataset;
     }
 
-
     // TODO Comment
     public static ImagePlus getSurfacesMask(ISurfacesPrx surface) throws Error {
 
         // Get raw ImagePlus
-        ImagePlus impSurface = getImagePlus(getSurfaceDataset(surface));
+        ImagePlus impSurface = getImagePlus(getSurfacesDataset(surface));
 
         // Multiply by 255 to allow to use ImageJ binary functions
         int nProcessor = impSurface.getStack().getSize();
@@ -722,7 +722,8 @@ public class EasyXT {
     }
 
     // TODO Comment
-    public static void setSurfaceMask(ISurfacesPrx surface, ImagePlus imp) throws Error {
+    public static void setSurfacesMask(ISurfacesPrx surface, ImagePlus imp) throws Error {
+        ImarisCalibration cal = new ImarisCalibration(app.GetDataSet());
 
         // Divide by 255 to allow to use ImageJ binary functions
         int nProcessor = imp.getStack().getSize();
@@ -730,14 +731,18 @@ public class EasyXT {
             imp.getStack().getProcessor(index + 1).multiply(1.0 / 255.0);
         });
 
-        IDataSetPrx dataset = EasyXT.getSurfaceDataset(surface);
         surface.RemoveAllSurfaces();
-        EasyXT.setImagePlus(dataset, imp);
-        surface.AddSurface(dataset, 0);
 
-        IntStream.range(0, nProcessor).parallel().forEach(index -> {
-            imp.getStack().getProcessor(index + 1).multiply(255);
-        });
+        for (int t = 0 ; t < cal.tSize ; t++){
+            IDataSetPrx dataset = getSurfacesDataset(surface, 1, t);
+            dataset.SetType(tType.eTypeUInt8);
+            // temporary ImagePlus required to work!
+            ImagePlus t_imp = new Duplicator().run(imp , 1,1,1,cal.zSize,t+1,t+1 );
+            //t_imp.show() ;
+            setImagePlus(dataset, t_imp );
+
+            surface.AddSurface(dataset, t);
+        }
 
     }
 
@@ -751,9 +756,7 @@ public class EasyXT {
 
         ImarisCalibration cal = new ImarisCalibration(app.GetDataSet()).getDownsampled(downsample);
 
-        IDataSetPrx data = surface.GetMask((float) cal.xOrigin, (float) cal.yOrigin, (float) cal.zOrigin,
-                (float) cal.xEnd, (float) cal.yEnd, (float) cal.zEnd,
-                cal.xSize, cal.ySize, cal.zSize, timepoint);
+        IDataSetPrx data = getSurfacesDataset(surface , downsample , timepoint );
 
         ImagePlus imp = getImagePlus(data);
         imp.setCalibration(cal);
@@ -762,7 +765,7 @@ public class EasyXT {
     }
 
     // TODO Comment
-    public static IDataSetPrx getSurfaceDataset(ISurfacesPrx surface, double downsample, int timepoint) throws Error {
+    public static IDataSetPrx getSurfacesDataset(ISurfacesPrx surface, double downsample, int timepoint) throws Error {
         ImarisCalibration cal = new ImarisCalibration(app.GetDataSet()).getDownsampled(downsample);
 
         IDataSetPrx data = surface.GetMask((float) cal.xOrigin, (float) cal.yOrigin, (float) cal.zOrigin,

@@ -25,6 +25,8 @@ import Imaris.Error;
 import Imaris.IDataSetPrx;
 import Imaris.ISpotsPrx;
 
+import java.util.function.Consumer;
+
 /**
  * Helper functions for spots detection in Imaris
  * <p>
@@ -52,6 +54,17 @@ import Imaris.ISpotsPrx;
  */
 
 public class SpotsDetector {
+    /**
+     * Standard logger
+     */
+    private static Consumer<String> log = (str) -> System.out.println("SpotsDetector : " + str);
+
+    /**
+     * Error logger
+     */
+    private static Consumer<String> errlog = (str) -> System.err.println("SpotsDetector : " + str);
+
+
 
     // Fields from Imaris API - DetectSpots2D (Replaces DetectSpots, implemented for bpPointsViewer.)
     // Process entire image if aRegionsOfInterest is empty.
@@ -103,7 +116,7 @@ public class SpotsDetector {
                     (aRegionsSpotsDiameterFromVolume == null) ||
                     (aRegionsCreateChannel == null)) {
 
-                System.err.println("Please specify all parameters  ");
+                errlog.accept("Please specify all parameters!");
             }
 
             // DetectSpotsRegionGrowing
@@ -271,9 +284,8 @@ public class SpotsDetector {
          * setAxialDiameter build the float[] aEstimateDiameterXYZ ( required by DetectEllipticSpots() and DetectSpotsRegionGrowing() )
          * requires aEstimateDiameter to be set otherwise print an error
          * <p>
-         * TODO decide if it's a good way to do it or if we should setDiameterXY by default to avoid error.
-         * * I did it this way because the creation parameters has "Estimated XY Diameter" and "Estimated Z Diameter"
-         * * I also created an alternative function setDiameterXYZ(aEstimateDiameterXY, aEstimateDiameterZ)
+         * I did it this way because the creation parameters has "Estimated XY Diameter" and "Estimated Z Diameter"
+         * I also created an alternative function setDiameterXYZ(aEstimateDiameterXY, aEstimateDiameterZ)
          *
          * @param aEstimateDiameterZ corresponds to [Source Channel] Estimated Z Diameter in the "Creation Parameters"
          *                           (in the "Creation" tab of a completed spots object)
@@ -299,7 +311,8 @@ public class SpotsDetector {
          * @return
          */
         public SpotsDetectorBuilder setDiameterXYZ(double aEstimateDiameterXY, double aEstimateDiameterZ) {
-            this.aEstimateDiameterXYZ = new float[]{new Float(aEstimateDiameterXY), new Float(aEstimateDiameterXY), new Float(aEstimateDiameterZ)};
+            setDiameter( aEstimateDiameterXY);
+            setAxialDiameter( aEstimateDiameterZ);
             return this;
         }
 
@@ -381,7 +394,46 @@ public class SpotsDetector {
             return this;
         }
 
-        public SpotsDetector build() {
+        public SpotsDetector build() throws Error {
+            Boolean throwError = false ;
+            // Check Minimal Parameters
+            if ( (this.aEstimateDiameter==null)&&(this.aEstimateDiameterXYZ==null)) {
+                errlog.accept( "aEstimateDiameter was not set, use setDiameter(double diameter) or setDiameterXYZ(double aEstimateDiameterXY, double aEstimateDiameterZ)");
+            }
+            if(this.aSubtractBackground==null){
+                errlog.accept("aSubtractBackground was not set, use isSubtractBackground(Boolean aSubtractBackground)");
+            }
+
+            // Check RegionGrowingParameters
+            if ( (this.aRegionsFromLocalContrast != null) ||
+                    (this.aRegionsThresholdAutomatic != null) ||
+                    (this.aRegionsThresholdManual != null) ||
+                    (this.aRegionsSpotsDiameterFromVolume != null) ||
+                    (this.aRegionsCreateChannel != null)) {
+
+                    if (this.aRegionsFromLocalContrast==null){
+                        errlog.accept( " aRegionsFromLocalContrast was not set, use isRegionsFromLocalContrast(boolean flag)");
+                        throwError = true;
+                    }
+                    if (( this.aRegionsThresholdManual == null)&&(this.aRegionsThresholdAutomatic==null)){
+                        errlog.accept("No threshold method was set for region growing, please use either 'enableRegionsThresholdAutomatic() ' or 'setRegionsThresholdManual(double threshold)' ");
+                        throwError = true;
+                    }
+                    if (this.aRegionsSpotsDiameterFromVolume==null){
+                        errlog.accept("aRegionsSpotsDiameterFromVolume was not set, please use isRegionsSpotsDiameterFromVolume(boolean flag)");
+                        throwError = true;
+                    }
+                    if (this.aRegionsCreateChannel==null){
+                        this.aRegionsCreateChannel = false; // it useless (as far as we know) and set to false by default imaris wizard
+                        log.accept("aRegionsCreateChannel was set to false (Default Imaris behaviour), use isCreateRegionChannel(boolean flag) to change its status!");
+                        throwError = true;
+                    }
+            }
+
+            if  (throwError) throw new Error();
+
+
+
             SpotsDetector spotsDetector = new SpotsDetector();
             spotsDetector.aDataSet = this.aDataSet;
             spotsDetector.aRegionsOfInterest = this.aRegionsOfInterest;
@@ -390,7 +442,6 @@ public class SpotsDetector {
             spotsDetector.aSubtractBackground = this.aSubtractBackground;
             spotsDetector.aSpotFiltersString = this.aSpotFiltersString;
 
-            // TODO make errorlog here
             spotsDetector.aRegionsFromLocalContrast = this.aRegionsFromLocalContrast;
             spotsDetector.aRegionsThresholdAutomatic = this.aRegionsThresholdAutomatic;
             spotsDetector.aRegionsThresholdManual = this.aRegionsThresholdManual;

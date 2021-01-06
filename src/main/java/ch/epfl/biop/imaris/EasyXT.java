@@ -55,10 +55,11 @@ import java.util.stream.IntStream;
 
 /**
  * Main EasyXT Static class
+ *
  * @author Olivier Burri
  * @author Nicolas Chiaruttini
  * @author Romain Guiet
- *
+ * <p>
  * This is the main static class you should access when you want to interact with Imaris.
  */
 public class EasyXT {
@@ -142,7 +143,7 @@ public class EasyXT {
         if (factory.IsFrame(item)) {
             return factory.ToFrame(item);
         }
-        if ( factory.IsDataContainer( item ) ) {
+        if (factory.IsDataContainer(item)) {
             return factory.ToDataContainer(item);
         }
 
@@ -619,13 +620,13 @@ public class EasyXT {
      * @throws Error an Imaris Error Object
      */
     public static void removeFromScene(IDataItemPrx item) throws Error {
-       // if the item is a group
-        IFactoryPrx factory = app.GetFactory( );
-        if ( factory.IsDataContainer( item ) ) {
-           IDataContainerPrx group = factory.ToDataContainer( item ) ;
-           // make sure to remove all elements in it
-           for ( int grp = 0 ; grp < group.GetNumberOfChildren() ; grp++ ){
-                removeFromScene( group.GetChild(grp) );
+        // if the item is a group
+        IFactoryPrx factory = app.GetFactory();
+        if (factory.IsDataContainer(item)) {
+            IDataContainerPrx group = factory.ToDataContainer(item);
+            // make sure to remove all elements in it
+            for (int grp = 0; grp < group.GetNumberOfChildren(); grp++) {
+                removeFromScene(group.GetChild(grp));
             }
         }
         // remove the item
@@ -639,8 +640,8 @@ public class EasyXT {
      * @param items, the list of items in question
      * @throws Error an Imaris Error Object
      */
-    public static void removeFromScene(List< ? extends IDataItemPrx> items) throws Error {
-        for ( IDataItemPrx it: items ) {
+    public static void removeFromScene(List<? extends IDataItemPrx> items) throws Error {
+        for (IDataItemPrx it : items) {
             removeFromScene(it);
         }
     }
@@ -651,12 +652,12 @@ public class EasyXT {
      * @throws Error an Imaris Error Object
      */
     public static void resetScene() throws Error {
-        List<ISpotsPrx> spots           = EasyXT.getAllSpots();
-        List<ISurfacesPrx> surfaces     = EasyXT.getAllSurfaces();
-        List<IDataContainerPrx> groups  = EasyXT.getAllGroups();
-        EasyXT.removeFromScene( spots );
-        EasyXT.removeFromScene( surfaces );
-        EasyXT.removeFromScene( groups );
+        List<ISpotsPrx> spots = EasyXT.getAllSpots();
+        List<ISurfacesPrx> surfaces = EasyXT.getAllSurfaces();
+        List<IDataContainerPrx> groups = EasyXT.getAllGroups();
+        EasyXT.removeFromScene(spots);
+        EasyXT.removeFromScene(surfaces);
+        EasyXT.removeFromScene(groups);
         //for ( ISpotsPrx sp: spots ) { EasyXT.removeFromScene( sp ); }
         //for ( ISurfacesPrx srf: surfaces ) { EasyXT.removeFromScene( srf ); }
         //for ( IDataContainerPrx grp: groups ) { EasyXT.removeFromScene( grp ); }

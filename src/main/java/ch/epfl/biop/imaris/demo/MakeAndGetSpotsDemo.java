@@ -52,7 +52,7 @@ public class MakeAndGetSpotsDemo {
                     .isRegionsFromLocalContrast(true) 		// [Spot Region Type] Region Growing  = Local Contrast (if set to false => intensity)
                     .setRegionsThresholdManual(40)			// [Spot Regions] Region Growing Manual Threshold (Automatic Threshold is set to false if setting manual value)
                     .isRegionsSpotsDiameterFromVolume(true)	// [Spot Regions] Region Growing Diameter = Diameter From Volume
-                    .createRegionsChannel(false)			// [Spot Regions] Create Region Channel
+                    .isCreateRegionsChannel(false)			// [Spot Regions] Create Region Channel
                     .setColor(new Integer[]{255,128,0})
                     .build()
                     .detect();

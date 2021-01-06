@@ -33,6 +33,10 @@
             <id>scijava.public</id>
             <url>https://maven.scijava.org/content/groups/public</url>
         </repository>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
     </repositories>
 
     <properties>
@@ -62,6 +66,22 @@
             <scope>system</scope>
             <systemPath>${project.basedir}/libs/Imaris-9.5.1/XT/fiji/ImarisBridgeUtils.jar</systemPath>
         </dependency>
+
+        <!-- https://mvnrepository.com/artifact/com.github.mcib3d/mcib3d-core -->
+        <dependency>
+            <groupId>com.github.mcib3d</groupId>
+            <artifactId>mcib3d-core</artifactId>
+            <version>3.96.3</version>
+        </dependency>
+
+        <!-- https://mvnrepository.com/artifact/sc.fiji/imagescience -->
+        <dependency>
+            <groupId>sc.fiji</groupId>
+            <artifactId>imagescience</artifactId>
+            <version>3.0.0</version>
+        </dependency>
+
+
 
         <!-- Test dependencies -->
         <dependency>

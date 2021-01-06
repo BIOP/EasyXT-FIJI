@@ -40,7 +40,7 @@ public class AddChildObjects {
                     .isSubtractBackground( true )
                     .isRegionsFromLocalContrast( true )
                     .isRegionsSpotsDiameterFromVolume( false )
-                    .createRegionsChannel()
+                    .isCreateRegionsChannel(false)
                     .build( ).detect( );
 
             // Adds the detected spots into the 'my_group' group

@@ -66,9 +66,7 @@ public class MakeAndGetSpotsDemo {
             EasyXT.getSpotsLabel(got_spots).show();
 
         } catch (Error error) {
-            System.out.println("ERROR:" + error.mDescription);
-            System.out.println("LOCATION:" + error.mLocation);
-            System.out.println("String:" + error.toString());
+            error.printStackTrace();
         }
     }
 }

@@ -790,13 +790,27 @@ public class EasyXT {
         return getSpotsImage(spots, false, false);
     }
 
-    // TODO Comment
+    /**
+     * Get an ImagePlus of the spots as a label (object has Imaris-ID value)
+     *
+     * @param spots a spots object see {@link  #getSpots(String)}
+     * @return an ImagePlus
+     * @throws Error
+     */
     public static ImagePlus getSpotsLabel(ISpotsPrx spots) throws Error {
         return getSpotsImage(spots, true, false);
     }
 
-    // TODO Comment
-    public static ImagePlus getSpotsImage(ISpotsPrx spots, boolean isValueID, boolean isGauss) throws Error {
+    /**
+     * Get an ImagePlus of the spots as a label (object has Imaris-ID value)
+     *
+     * @param spots a spots object see {@link  #getSpots(String)}
+     * @param is_value_id boolean to define if value will be 255 or Imaris-ID value
+     * @param isGauss boolean to decide to apply gaussian filter on each spot
+     * @return and ImagePlus 16-bit
+     * @throws Error
+     */
+    public static ImagePlus getSpotsImage(ISpotsPrx spots, boolean is_value_id, boolean isGauss) throws Error {
         // Prepare the imp to receive spots pixels
         //
         // get the calibration info from Imaris
@@ -807,65 +821,60 @@ public class EasyXT {
         //ImageStack stack = imp.getStack();
 
         long[] spots_ids = spots.GetIds();
-        float[][] spots_centerXYZ = spots.GetPositionsXYZ();
-        float[][] spots_radiiXYZ = spots.GetRadiiXYZ();
+        float[][] spots_center_xyz = spots.GetPositionsXYZ();
+        float[][] spots_radii_xyz = spots.GetRadiiXYZ();
         int[] spots_t = spots.GetIndicesT();
 
-        double resXY = cal.pixelWidth;
-        double resZ = cal.pixelDepth;
-        String unit = cal.getUnit();
-
         // Define default vectors
-        Vector3D V = new Vector3D(1, 0, 0);
-        Vector3D W = new Vector3D(0, 1, 0);
-        if (Math.abs(V.dotProduct(W)) > 0.001) {
+        Vector3D vector3D_1 = new Vector3D(1, 0, 0);
+        Vector3D vector3D_2 = new Vector3D(0, 1, 0);
+        if (Math.abs(vector3D_1.dotProduct(vector3D_2)) > 0.001) {
             IJ.log("ERROR : vectors should be perpendicular");
         }
 
         int previous_t = spots_t[0];
-        ObjectCreator3D obj = new ObjectCreator3D(cal.xSize, cal.ySize, cal.zSize);
-        obj.setResolution(cal.pixelWidth, cal.pixelDepth, cal.getUnit());
-
+        ObjectCreator3D obj_creator = new ObjectCreator3D(cal.xSize, cal.ySize, cal.zSize);
+        obj_creator.setResolution(cal.pixelWidth, cal.pixelDepth, cal.getUnit());
 
         ImagePlus final_imp;
+        // by default the value is 255
         int val = 255;
 
         if (cal.tSize > 1) {
             ArrayList<ImagePlus> imps = new ArrayList<ImagePlus>(spots_t[spots_t.length - 1]);
-            // by default the value is 255
 
             for (int t = 0; t < spots_t.length; t++) {
                 // if the current spot is from a different time-point
                 if (spots_t[t] != previous_t) {
                     // store the current status into an ImagePlus
                     // N.B. duplicate is required to store the current time-point
-                    imps.add(new ImagePlus("t" + previous_t, obj.getStack().duplicate()));
-                    // and reset the obj
-                    obj.reset();
+                    imps.add(new ImagePlus("t" + previous_t, obj_creator.getStack().duplicate()));
+                    // and reset the obj_creator
+                    obj_creator.reset();
                 }
-                // but if isValueID is true, use the ID number for the value
-                if (isValueID) val = (int) spots_ids[t];
-                // add an ellipsoid to obj
-                obj.createEllipsoidAxesUnit(spots_centerXYZ[t][0], spots_centerXYZ[t][1], spots_centerXYZ[t][2], spots_radiiXYZ[t][0], spots_radiiXYZ[t][1], spots_radiiXYZ[t][2], (float) val, V, W, isGauss);
+                // but if is_value_id is true, use the ID number for the value
+                if (is_value_id) val = (int) spots_ids[t];
+                // add an ellipsoid to obj_creator
+                obj_creator.createEllipsoidAxesUnit(spots_center_xyz[t][0], spots_center_xyz[t][1], spots_center_xyz[t][2], spots_radii_xyz[t][0], spots_radii_xyz[t][1], spots_radii_xyz[t][2], (float) val, vector3D_1, vector3D_2, isGauss);
                 // set the previous_t
                 previous_t = spots_t[t];
 
             }
 
             // https://stackoverflow.com/questions/9572795/convert-list-to-array-in-java
-            ImagePlus[] impsA = imps.toArray(new ImagePlus[0]);
-            final_imp = Concatenator.run(impsA);
+            ImagePlus[] imps_array = imps.toArray(new ImagePlus[0]);
+            final_imp = Concatenator.run(imps_array);
         } else {
 
             for (int t = 0; t < spots_t.length; t++) {
-                // but if isValueID is true, use the ID number for the value
-                if (isValueID) val = (int) spots_ids[t];
-                // add an ellipsoid to obj
-                obj.createEllipsoidAxesUnit(spots_centerXYZ[t][0], spots_centerXYZ[t][1], spots_centerXYZ[t][2], spots_radiiXYZ[t][0], spots_radiiXYZ[t][1], spots_radiiXYZ[t][2], (float) val, V, W, isGauss);
+                // but if is_value_id is true, use the ID number for the value
+                if (is_value_id) val = (int) spots_ids[t];
+                // add an ellipsoid to obj_creator
+                obj_creator.createEllipsoidAxesUnit(spots_center_xyz[t][0], spots_center_xyz[t][1], spots_center_xyz[t][2], spots_radii_xyz[t][0], spots_radii_xyz[t][1], spots_radii_xyz[t][2], (float) val, vector3D_1, vector3D_2, isGauss);
                 // set the previous_t
             }
 
-            final_imp = new ImagePlus("t" + previous_t, obj.getStack().duplicate());
+            final_imp = new ImagePlus("t" + previous_t, obj_creator.getStack().duplicate());
         }
 
         final_imp.setDisplayRange(0, val);

@@ -782,8 +782,8 @@ public class EasyXT {
     /**
      * Get an ImagePlus of the spots as a mask (255)
      *
-     * @param spots , a spots object see {@link  #getSpots(String)}
-     * @return , an ImagePlus
+     * @param spots a spots object see {@link  #getSpots(String)}
+     * @return an ImagePlus
      * @throws Error
      */
     public static ImagePlus getSpotsMask(ISpotsPrx spots) throws Error {

@@ -21,25 +21,30 @@
 
 package ch.epfl.biop.imaris;
 
+
 import Ice.ObjectPrx;
 import Imaris.Error;
 import Imaris.*;
 import ImarisServer.IServerPrx;
 import com.bitplane.xt.IceClient;
 import ij.CompositeImage;
+import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.measure.Calibration;
 import ij.measure.ResultsTable;
+import ij.plugin.Concatenator;
 import ij.plugin.Duplicator;
 import ij.plugin.HyperStackConverter;
 import ij.process.*;
+import mcib3d.geom.ObjectCreator3D;
+import mcib3d.geom.Vector3D;
 
 import java.awt.*;
 import java.io.File;
 import java.nio.ByteBuffer;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -64,20 +69,20 @@ import java.util.stream.IntStream;
  * This is the main static class you should access when you want to interact with Imaris.
  */
 public class EasyXT {
-    private static IApplicationPrx app;
+    private static final IApplicationPrx app;
     private static IceClient mIceClient;
     public static Map<tType, Integer> datatype;
-    private static String mEndPoints = "default -p 4029";
+    private static final String mEndPoints = "default -p 4029";
 
     /**
      * Standard logger
      */
-    private static Consumer<String> log = (str) -> System.out.println("EasyXT : " + str);
+    private static final Consumer<String> log = (str) -> System.out.println("EasyXT : " + str);
 
     /**
      * Error logger
      */
-    private static Consumer<String> errlog = (str) -> System.err.println("EasyXT : " + str);
+    private static final Consumer<String> errlog = (str) -> System.err.println("EasyXT : " + str);
 
     /**
      * Static initialisation :
@@ -544,8 +549,8 @@ public class EasyXT {
         if (dBitDepth != iBitDepth) {
             String errorDetail = "   Dataset:" + dBitDepth + "-bit";
             errorDetail += "\nImage:" + iBitDepth + "-bit";
-
-            throw new Error("Bit Depth Mismatch", "Dataset and ImagePlus do not have same bit depth", errorDetail);
+            // TODO forced conversion below, could or couldn't work, eg 8 -> 16 ok but 16->8 no!
+            log.accept("Bit Depth Mismatch : Imaris Dataset and Fiji ImagePlus do not have same bit depth \n " + errorDetail ) ;
         }
 
         // Issue warning in case voxel sizes do not match
@@ -733,13 +738,13 @@ public class EasyXT {
 
         surface.RemoveAllSurfaces();
 
-        for (int t = 0 ; t < cal.tSize ; t++){
+        for (int t = 0; t < cal.tSize; t++) {
             IDataSetPrx dataset = getSurfacesDataset(surface, 1, t);
             dataset.SetType(tType.eTypeUInt8);
             // temporary ImagePlus required to work!
-            ImagePlus t_imp = new Duplicator().run(imp , 1,1,1,cal.zSize,t+1,t+1 );
+            ImagePlus t_imp = new Duplicator().run(imp, 1, 1, 1, cal.zSize, t + 1, t + 1);
             //t_imp.show() ;
-            setImagePlus(dataset, t_imp );
+            setImagePlus(dataset, t_imp);
 
             surface.AddSurface(dataset, t);
         }
@@ -756,7 +761,7 @@ public class EasyXT {
 
         ImarisCalibration cal = new ImarisCalibration(app.GetDataSet()).getDownsampled(downsample);
 
-        IDataSetPrx data = getSurfacesDataset(surface , downsample , timepoint );
+        IDataSetPrx data = getSurfacesDataset(surface, downsample, timepoint);
 
         ImagePlus imp = getImagePlus(data);
         imp.setCalibration(cal);
@@ -774,6 +779,104 @@ public class EasyXT {
         return data;
     }
 
+    /**
+     * Get an ImagePlus of the spots as a mask (255)
+     *
+     * @param spots a spots object see {@link  #getSpots(String)}
+     * @return an ImagePlus
+     * @throws Error
+     */
+    public static ImagePlus getSpotsMask(ISpotsPrx spots) throws Error {
+        return getSpotsImage(spots, false, false);
+    }
+
+    /**
+     * Get an ImagePlus of the spots as a label (object has Imaris-ID value)
+     *
+     * @param spots a spots object see {@link  #getSpots(String)}
+     * @return an ImagePlus
+     * @throws Error
+     */
+    public static ImagePlus getSpotsLabel(ISpotsPrx spots) throws Error {
+        return getSpotsImage(spots, true, false);
+    }
+
+    /**
+     * Get an ImagePlus of the spots as a label (object has Imaris-ID value)
+     *
+     * @param spots a spots object see {@link  #getSpots(String)}
+     * @param is_value_id boolean to define if value will be 255 or Imaris-ID value
+     * @param isGauss boolean to decide to apply gaussian filter on each spot
+     * @return and ImagePlus 16-bit
+     * @throws Error
+     */
+    public static ImagePlus getSpotsImage(ISpotsPrx spots, boolean is_value_id, boolean isGauss) throws Error {
+        // Prepare the imp to receive spots pixels
+        //
+        // get the calibration info from Imaris
+        ImarisCalibration cal = new ImarisCalibration(app.GetDataSet());
+        // Create a new imp with the cal and get stack ()
+        //ImagePlus imp = IJ.createHyperStack( getOpenImageName(), cal.xSize , cal.ySize, cal.cSize, cal.zSize, cal.tSize , 32);
+        //imp.setCalibration( cal );
+        //ImageStack stack = imp.getStack();
+
+        long[] spots_ids = spots.GetIds();
+        float[][] spots_center_xyz = spots.GetPositionsXYZ();
+        float[][] spots_radii_xyz = spots.GetRadiiXYZ();
+        int[] spots_t = spots.GetIndicesT();
+
+        // Define default vectors
+        Vector3D vector3D_1 = new Vector3D(1, 0, 0);
+        Vector3D vector3D_2 = new Vector3D(0, 1, 0);
+        if (Math.abs(vector3D_1.dotProduct(vector3D_2)) > 0.001) {
+            IJ.log("ERROR : vectors should be perpendicular");
+        }
+
+        int previous_t = spots_t[0];
+        ObjectCreator3D obj_creator = new ObjectCreator3D(cal.xSize, cal.ySize, cal.zSize);
+        obj_creator.setResolution(cal.pixelWidth, cal.pixelDepth, cal.getUnit());
+
+        ImagePlus final_imp;
+        // by default the value is 255
+        int val = 255;
+
+        ArrayList<ImagePlus> imps = new ArrayList<ImagePlus>(spots_t[spots_t.length-1]);
+        for (int t = 0; t < spots_t.length; t++) {
+            // if the current spot is from a different time-point
+            if (spots_t[t] != previous_t) {
+                // store the current status into an ImagePlus
+                // N.B. duplicate is required to store the current time-point
+                imps.add(new ImagePlus("t" + previous_t, obj_creator.getStack().duplicate()));
+                // and reset the obj_creator
+                obj_creator.reset();
+            }
+            // but if is_value_id is true, use the ID number for the value
+            if (is_value_id) val = (int) spots_ids[t];
+            // add an ellipsoid to obj_creator
+            obj_creator.createEllipsoidAxesUnit(spots_center_xyz[t][0], spots_center_xyz[t][1], spots_center_xyz[t][2], spots_radii_xyz[t][0], spots_radii_xyz[t][1], spots_radii_xyz[t][2], (float) val, vector3D_1, vector3D_2, isGauss);
+            // set the previous_t
+            previous_t = spots_t[t];
+        }
+
+        if (cal.tSize > 1) {
+            // https://stackoverflow.com/questions/9572795/convert-list-to-array-in-java
+            ImagePlus[] imps_array = imps.toArray(new ImagePlus[0]);
+            final_imp = Concatenator.run(imps_array);
+        } else {
+            final_imp = new ImagePlus("t" + previous_t, obj_creator.getStack().duplicate());
+        }
+
+        final_imp.setDisplayRange(0, val);
+        final_imp.setTitle(getOpenImageName());
+        final_imp.setCalibration(cal);
+
+        if (!is_value_id) {
+            IJ.run(final_imp, "8-bit", "");
+        }
+
+        return final_imp;
+
+    }
 
     // Image Management Methods
 

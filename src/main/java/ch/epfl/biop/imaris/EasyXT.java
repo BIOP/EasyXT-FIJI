@@ -549,8 +549,8 @@ public class EasyXT {
         if (dBitDepth != iBitDepth) {
             String errorDetail = "   Dataset:" + dBitDepth + "-bit";
             errorDetail += "\nImage:" + iBitDepth + "-bit";
-
-            throw new Error("Bit Depth Mismatch", "Dataset and ImagePlus do not have same bit depth", errorDetail);
+            // TODO forced conversion below, could or couldn't work, eg 8 -> 16 ok but 16->8 no!
+            log.accept("Bit Depth Mismatch : Imaris Dataset and Fiji ImagePlus do not have same bit depth \n " + errorDetail ) ;
         }
 
         // Issue warning in case voxel sizes do not match
@@ -840,46 +840,39 @@ public class EasyXT {
         // by default the value is 255
         int val = 255;
 
-        if (cal.tSize > 1) {
-            ArrayList<ImagePlus> imps = new ArrayList<ImagePlus>(spots_t[spots_t.length - 1]);
-
-            for (int t = 0; t < spots_t.length; t++) {
-                // if the current spot is from a different time-point
-                if (spots_t[t] != previous_t) {
-                    // store the current status into an ImagePlus
-                    // N.B. duplicate is required to store the current time-point
-                    imps.add(new ImagePlus("t" + previous_t, obj_creator.getStack().duplicate()));
-                    // and reset the obj_creator
-                    obj_creator.reset();
-                }
-                // but if is_value_id is true, use the ID number for the value
-                if (is_value_id) val = (int) spots_ids[t];
-                // add an ellipsoid to obj_creator
-                obj_creator.createEllipsoidAxesUnit(spots_center_xyz[t][0], spots_center_xyz[t][1], spots_center_xyz[t][2], spots_radii_xyz[t][0], spots_radii_xyz[t][1], spots_radii_xyz[t][2], (float) val, vector3D_1, vector3D_2, isGauss);
-                // set the previous_t
-                previous_t = spots_t[t];
-
+        ArrayList<ImagePlus> imps = new ArrayList<ImagePlus>(spots_t[spots_t.length-1]);
+        for (int t = 0; t < spots_t.length; t++) {
+            // if the current spot is from a different time-point
+            if (spots_t[t] != previous_t) {
+                // store the current status into an ImagePlus
+                // N.B. duplicate is required to store the current time-point
+                imps.add(new ImagePlus("t" + previous_t, obj_creator.getStack().duplicate()));
+                // and reset the obj_creator
+                obj_creator.reset();
             }
+            // but if is_value_id is true, use the ID number for the value
+            if (is_value_id) val = (int) spots_ids[t];
+            // add an ellipsoid to obj_creator
+            obj_creator.createEllipsoidAxesUnit(spots_center_xyz[t][0], spots_center_xyz[t][1], spots_center_xyz[t][2], spots_radii_xyz[t][0], spots_radii_xyz[t][1], spots_radii_xyz[t][2], (float) val, vector3D_1, vector3D_2, isGauss);
+            // set the previous_t
+            previous_t = spots_t[t];
+        }
 
+        if (cal.tSize > 1) {
             // https://stackoverflow.com/questions/9572795/convert-list-to-array-in-java
             ImagePlus[] imps_array = imps.toArray(new ImagePlus[0]);
             final_imp = Concatenator.run(imps_array);
         } else {
-
-            for (int t = 0; t < spots_t.length; t++) {
-                // but if is_value_id is true, use the ID number for the value
-                if (is_value_id) val = (int) spots_ids[t];
-                // add an ellipsoid to obj_creator
-                obj_creator.createEllipsoidAxesUnit(spots_center_xyz[t][0], spots_center_xyz[t][1], spots_center_xyz[t][2], spots_radii_xyz[t][0], spots_radii_xyz[t][1], spots_radii_xyz[t][2], (float) val, vector3D_1, vector3D_2, isGauss);
-                // set the previous_t
-            }
-
             final_imp = new ImagePlus("t" + previous_t, obj_creator.getStack().duplicate());
         }
 
         final_imp.setDisplayRange(0, val);
         final_imp.setTitle(getOpenImageName());
         final_imp.setCalibration(cal);
+
+        if (!is_value_id) {
+            IJ.run(final_imp, "8-bit", "");
+        }
 
         return final_imp;
 

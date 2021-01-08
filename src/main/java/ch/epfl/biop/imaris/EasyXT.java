@@ -830,30 +830,47 @@ public class EasyXT {
         obj.setResolution(cal.pixelWidth, cal.pixelDepth, cal.getUnit());
 
 
-        ArrayList<ImagePlus> imps = new ArrayList<ImagePlus>(spots_t[spots_t.length - 1]);
-        // by default the value is 255
+        ImagePlus final_imp;
         int val = 255;
-        for (int t = 0; t < spots_t.length; t++) {
-            // if the current spot is from a different time-point
-            if (spots_t[t] != previous_t) {
-                // store the current status into an ImagePlus
-                // N.B. duplicate is required to store the current time-point
-                imps.add(new ImagePlus("t" + previous_t, obj.getStack().duplicate()));
-                // and reset the obj
-                obj.reset();
-            }
-            // but if isValueID is true, use the ID number for the value
-            if (isValueID) val = (int) spots_ids[t];
-            // add an ellipsoid to obj
-            obj.createEllipsoidAxesUnit(spots_centerXYZ[t][0], spots_centerXYZ[t][1], spots_centerXYZ[t][2], spots_radiiXYZ[t][0], spots_radiiXYZ[t][1], spots_radiiXYZ[t][2], (float) val, V, W, isGauss);
-            // set the previous_t
-            previous_t = spots_t[t];
 
+        if (cal.tSize > 1) {
+            ArrayList<ImagePlus> imps = new ArrayList<ImagePlus>(spots_t[spots_t.length - 1]);
+            // by default the value is 255
+
+            for (int t = 0; t < spots_t.length; t++) {
+                // if the current spot is from a different time-point
+                if (spots_t[t] != previous_t) {
+                    // store the current status into an ImagePlus
+                    // N.B. duplicate is required to store the current time-point
+                    imps.add(new ImagePlus("t" + previous_t, obj.getStack().duplicate()));
+                    // and reset the obj
+                    obj.reset();
+                }
+                // but if isValueID is true, use the ID number for the value
+                if (isValueID) val = (int) spots_ids[t];
+                // add an ellipsoid to obj
+                obj.createEllipsoidAxesUnit(spots_centerXYZ[t][0], spots_centerXYZ[t][1], spots_centerXYZ[t][2], spots_radiiXYZ[t][0], spots_radiiXYZ[t][1], spots_radiiXYZ[t][2], (float) val, V, W, isGauss);
+                // set the previous_t
+                previous_t = spots_t[t];
+
+            }
+
+            // https://stackoverflow.com/questions/9572795/convert-list-to-array-in-java
+            ImagePlus[] impsA = imps.toArray(new ImagePlus[0]);
+            final_imp = Concatenator.run(impsA);
+        } else {
+
+            for (int t = 0; t < spots_t.length; t++) {
+                // but if isValueID is true, use the ID number for the value
+                if (isValueID) val = (int) spots_ids[t];
+                // add an ellipsoid to obj
+                obj.createEllipsoidAxesUnit(spots_centerXYZ[t][0], spots_centerXYZ[t][1], spots_centerXYZ[t][2], spots_radiiXYZ[t][0], spots_radiiXYZ[t][1], spots_radiiXYZ[t][2], (float) val, V, W, isGauss);
+                // set the previous_t
+            }
+
+            final_imp = new ImagePlus("t" + previous_t, obj.getStack().duplicate());
         }
 
-        // https://stackoverflow.com/questions/9572795/convert-list-to-array-in-java
-        ImagePlus[] impsA = imps.toArray(new ImagePlus[0]);
-        ImagePlus final_imp = Concatenator.run(impsA);
         final_imp.setDisplayRange(0, val);
         final_imp.setTitle(getOpenImageName());
         final_imp.setCalibration(cal);

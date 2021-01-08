@@ -61,7 +61,7 @@ public class MakeAndGetSpotsDemo {
             // Adds the surface to the scene
             EasyXT.addToScene(detected_ellipticSpots);
 
-            // TODO : Display spots in Fiji
+            // Display spots in Fiji
             EasyXT.getSpotsMask(got_spots).show();
             EasyXT.getSpotsLabel(got_spots).show();
 

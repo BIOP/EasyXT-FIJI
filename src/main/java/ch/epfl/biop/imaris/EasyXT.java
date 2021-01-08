@@ -27,30 +27,27 @@ import Imaris.Error;
 import Imaris.*;
 import ImarisServer.IServerPrx;
 import com.bitplane.xt.IceClient;
-
 import ij.CompositeImage;
 import ij.IJ;
 import ij.ImagePlus;
 import ij.ImageStack;
 import ij.measure.Calibration;
 import ij.measure.ResultsTable;
+import ij.plugin.Concatenator;
 import ij.plugin.Duplicator;
 import ij.plugin.HyperStackConverter;
-import ij.plugin.Concatenator;
 import ij.process.*;
+import mcib3d.geom.ObjectCreator3D;
+import mcib3d.geom.Vector3D;
 
 import java.awt.*;
 import java.io.File;
 import java.nio.ByteBuffer;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.ArrayList;
-
-import mcib3d.geom.*;
-import net.imagej.legacy.translate.ImagePlusCreatorUtils;
 
 // TODO: Detecting Spots and Surfaces, with tracking
 

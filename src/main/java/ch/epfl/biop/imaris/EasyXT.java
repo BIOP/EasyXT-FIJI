@@ -36,6 +36,7 @@ import ij.measure.ResultsTable;
 import ij.plugin.Concatenator;
 import ij.plugin.Duplicator;
 import ij.plugin.HyperStackConverter;
+import ij.plugin.ImageCalculator;
 import ij.process.*;
 import mcib3d.geom.ObjectCreator3D;
 import mcib3d.geom.Vector3D;
@@ -778,6 +779,69 @@ public class EasyXT {
                 cal.xSize, cal.ySize, cal.zSize, timepoint);
         return data;
     }
+
+    /**
+     * Return an Label image of the corresponding surface
+     *
+     * @param surface a surface object see {@link  #getSurfaces(String)}
+     * @return a Label image (ImagePlus)
+     * @throws Error
+     */
+    //
+    //
+    public static ImagePlus getSurfacesLabel(ISurfacesPrx surface) throws Error {
+        IDataSetPrx dataset = app.GetDataSet();
+        int dataset_bitDepth = getImagePlus(dataset).getBitDepth();
+
+        ImarisCalibration cal = new ImarisCalibration(dataset);
+
+        int n_surf = surface.GetNumberOfSurfaces();
+        //long[] ids = surface.GetIds();
+
+        // Get the whole surface as ImagePlus (0 or 1 ), 8-bit image
+        ImagePlus label_imp = getImagePlus(getSurfacesDataset(surface));
+        if (n_surf > 255 ) IJ.run(label_imp, "16-bit", "");
+        if (n_surf > 65535 ) IJ.run(label_imp, "32-bit", "");
+
+        // next will mutiply each sub-surface of the surface, by a int value
+        for (int i=0 ; i < n_surf ; i++ ){
+            // should be final for the processor step below
+            final int val = i;
+
+            // First we tried to use CopySurfaces(id), but it duplicates the Surface
+            // (visible with color based on statistics that make surface display to crash)
+            // int[] id = {i};
+            // ISurfacesPrx current_surface = surface.CopySurfaces(id);
+            // IDataSetPrx dataset = getSurfacesDataset(current_surface);
+
+            // here we make a copy of the whole stack.
+            // To go faster we could use a smaller mask by defining the boundingBox of each sub-surface
+            // (but it will also be needed to at the multiply step below)
+            IDataSetPrx current_dataset = surface.GetSingleMask(i,
+                                                (float) cal.xOrigin , (float)cal.yOrigin, (float)cal.zOrigin,
+                                                (float) cal.xEnd, (float) cal.yEnd, (float) cal.zEnd,
+                                                 cal.xSize, cal.ySize, cal.zSize);
+            ImagePlus current_imp = getImagePlus(current_dataset);
+
+            // Multiply by val to get a Label
+            // val could could be replaced by the surface-Imaris-ID )
+            int nProcessor = current_imp.getStack().getSize();
+            IntStream.range(0, nProcessor).parallel().forEach(index -> {
+                current_imp.getStack().getProcessor(index + 1).multiply(val);
+            });
+
+            //now we add the the current_imp to the global label_imp
+            // TODO take care of interface between touching objects
+            ImageCalculator ic = new ImageCalculator();
+            ic.run("Add stack", label_imp, current_imp);
+            current_imp.changes = false;
+            current_imp.close();
+
+            log.accept("label "+ (i+1) +"/"+n_surf);
+        }
+        return label_imp;
+    }
+
 
     /**
      * Get an ImagePlus of the spots as a mask (255)

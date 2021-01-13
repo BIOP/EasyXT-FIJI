@@ -796,6 +796,7 @@ public class EasyXT {
         ImarisCalibration cal = new ImarisCalibration(dataset);
 
         int n_surf = surface.GetNumberOfSurfaces();
+        int last_timepoint = surface.GetTimeIndex(n_surf-1);
         //long[] ids = surface.GetIds();
 
         // Get the whole surface as ImagePlus (0 or 1 ), 8-bit image
@@ -803,10 +804,27 @@ public class EasyXT {
         if (n_surf > 255 ) IJ.run(label_imp, "16-bit", "");
         if (n_surf > 65535 ) IJ.run(label_imp, "32-bit", "");
 
+        ArrayList<ImagePlus> imps = new ArrayList<ImagePlus>(last_timepoint);
+
+        // we extract the first timepoint
+        int previous_t=0;
+        ImagePlus t_label_imp = new Duplicator().run(label_imp, 1, 1, 1, label_imp.getNSlices(), previous_t+1, previous_t+1);
+
         // next will mutiply each sub-surface of the surface, by a int value
-        for (int i=0 ; i < n_surf ; i++ ){
+        for (int srf = 0; srf < n_surf; srf++) {
             // should be final for the processor step below
-            final int val = i;
+            final int val = srf;
+
+            // if the current spot is from a different time-point
+            if ( surface.GetTimeIndex(srf) != previous_t) {
+                // store the current status of t_label_imp into the ArrayList<ImagePlus>
+                // N.B. duplicate is required to store the current time-point
+                imps.add(new ImagePlus("t" + previous_t, t_label_imp.getStack().duplicate()));
+                // ... increment previous_t value
+                previous_t++;
+                // and set the t_label_imp to the next time-point
+                t_label_imp = new Duplicator().run(label_imp, 1, 1, 1, label_imp.getNSlices(), previous_t+1, previous_t+1);
+            }
 
             // First we tried to use CopySurfaces(id), but it duplicates the Surface
             // (visible with color based on statistics that make surface display to crash)
@@ -814,13 +832,13 @@ public class EasyXT {
             // ISurfacesPrx current_surface = surface.CopySurfaces(id);
             // IDataSetPrx dataset = getSurfacesDataset(current_surface);
 
-            // here we make a copy of the whole stack.
+            // here we make a copy of the whole stack
             // To go faster we could use a smaller mask by defining the boundingBox of each sub-surface
             // (but it will also be needed to at the multiply step below)
-            IDataSetPrx current_dataset = surface.GetSingleMask(i,
-                                                (float) cal.xOrigin , (float)cal.yOrigin, (float)cal.zOrigin,
-                                                (float) cal.xEnd, (float) cal.yEnd, (float) cal.zEnd,
-                                                 cal.xSize, cal.ySize, cal.zSize);
+            IDataSetPrx current_dataset = surface.GetSingleMask(srf,
+                    (float) cal.xOrigin , (float)cal.yOrigin, (float)cal.zOrigin,
+                    (float) cal.xEnd, (float) cal.yEnd, (float) cal.zEnd,
+                    cal.xSize, cal.ySize, cal.zSize);
             ImagePlus current_imp = getImagePlus(current_dataset);
 
             // Multiply by val to get a Label
@@ -830,15 +848,31 @@ public class EasyXT {
                 current_imp.getStack().getProcessor(index + 1).multiply(val);
             });
 
-            //now we add the the current_imp to the global label_imp
+            //now we add the the current_imp to the global t_label_imp
             // TODO take care of interface between touching objects
             ImageCalculator ic = new ImageCalculator();
-            ic.run("Add stack", label_imp, current_imp);
+            ic.run("Add stack", t_label_imp, current_imp);
             current_imp.changes = false;
             current_imp.close();
 
-            log.accept("label "+ (i+1) +"/"+n_surf);
+            log.accept("label "+ (srf+1) +"/"+n_surf);
+
+            // set the previous_t
+            previous_t = surface.GetTimeIndex(srf);
+
         }
+
+        if (cal.tSize > 1) {
+            // https://stackoverflow.com/questions/9572795/convert-list-to-array-in-java
+            ImagePlus[] imps_array = imps.toArray(new ImagePlus[0]);
+            label_imp = Concatenator.run(imps_array);
+        } else {
+            label_imp = new ImagePlus("t" + previous_t, t_label_imp.getStack().duplicate());
+        }
+
+        label_imp.setTitle(getOpenImageName());
+        label_imp.setCalibration(cal);
+
         return label_imp;
     }
 

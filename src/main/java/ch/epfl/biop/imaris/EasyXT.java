@@ -817,7 +817,7 @@ public class EasyXT {
             final int val = srf;
 
             // if the current spot is from a different time-point
-            if ( surface.GetTimeIndex(srf) != previous_t) {
+            if (( surface.GetTimeIndex(srf) != previous_t)||(srf == n_surf-1)){
                 // store the current status of t_label_imp into the ArrayList<ImagePlus>
                 // N.B. duplicate is required to store the current time-point
                 imps.add(new ImagePlus("t" + previous_t, t_label_imp.getStack().duplicate()));

@@ -9,9 +9,11 @@ import ch.epfl.biop.imaris.SurfacesDetector;
 import net.imagej.ImageJ;
 import ij.*;
 
+import java.net.URISyntaxException;
+
 public class GetSurfacesLabelDemo {
 
-    public static void main(String... args) throws Imaris.Error {
+    public static void main(String... args) throws Imaris.Error , URISyntaxException {
         ImageJ ij = new ImageJ();
         ij.ui().showUI();
 
@@ -20,8 +22,7 @@ public class GetSurfacesLabelDemo {
 
         // get Imaris App if you need to use Imaris API
         IApplicationPrx imaris_app = EasyXT.getImaris();
-        // eg to get the dataset we can use and here the dataset with calibration
-        IDataSetPrx dataset = imaris_app.GetDataSet();
+
 
         // Makes a surface detector and detect the surface
         ISurfacesPrx surface = SurfacesDetector.Channel(2)
@@ -43,6 +44,9 @@ public class GetSurfacesLabelDemo {
         // to be able to add the label as a new channel to the dataset,
         // we convert the dataset to the compatible type
         EasyXT.setDataType(label_imp.getBitDepth());
+
+        // eg to get the dataset we can use and here the dataset with calibration
+        IDataSetPrx dataset = imaris_app.GetDataSet();
 
         // Now we add the Label image as a channel to the dataset of the scene
         // The fastest way is to clone the dataset,add the imp to it

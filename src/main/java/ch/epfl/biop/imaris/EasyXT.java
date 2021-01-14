@@ -1171,6 +1171,29 @@ public class EasyXT {
         return datatype.get(type);
     }
 
+    public static void setDataType(int bit_depth) throws Error {
+        // get the dataset type and  and define aType with current
+        IDataSetPrx vDataSet = app.GetDataSet();
+        tType aType = vDataSet.GetType();
+        String outputString = "Dataset was converted from "+String.valueOf(aType) ;
+        switch (bit_depth) {
+            case 32:
+                aType = Imaris.tType.eTypeFloat;
+                break;
+            case 16:
+                aType = Imaris.tType.eTypeUInt16;
+                break;
+            case 8:
+                aType = Imaris.tType.eTypeUInt8;
+                break;
+        }
+
+        vDataSet.SetType(aType);
+        app.SetDataSet(vDataSet);
+
+        log.accept(outputString+" to "+ String.valueOf(aType)+"bit");
+    }
+
     /**
      * Get the name of the requested item, to avoid using GetName()
      *

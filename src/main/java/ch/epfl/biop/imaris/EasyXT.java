@@ -942,7 +942,7 @@ public class EasyXT {
         ArrayList<ImagePlus> imps = new ArrayList<ImagePlus>(spots_t[spots_t.length-1]);
         for (int t = 0; t < spots_t.length; t++) {
             // if the current spot is from a different time-point
-            if (spots_t[t] != previous_t) {
+            if ((spots_t[t] != previous_t)||(t==spots_t.length-1)) {
                 // store the current status into an ImagePlus
                 // N.B. duplicate is required to store the current time-point
                 imps.add(new ImagePlus("t" + previous_t, obj_creator.getStack().duplicate()));
@@ -1176,15 +1176,12 @@ public class EasyXT {
      * allows to change bit depth of the dataset
      * (Adapted from existing function in EasyXT-Matlab)
      *
-     * TODO discuss renaming function to setDatasetBitDepth()
      * TODO discuss parameter as int, thought it would be nice to directly use it with {@link #getBitDepth(IDataSetPrx)} and imp.getBitDepth()
      *
      * @param bit_depth
      * @throws Error
      */
-    public static void setDataType(int bit_depth) throws Error {
-        // get the dataset type and  and define aType with current
-        IDataSetPrx vDataSet = app.GetDataSet();
+    public static void setDatasetBitDepth(IDataSetPrx vDataSet, int bit_depth) throws Error {
         tType aType = vDataSet.GetType();
         String outputString = "Dataset was converted from "+String.valueOf(aType) ;
         switch (bit_depth) {
@@ -1203,6 +1200,16 @@ public class EasyXT {
         app.SetDataSet(vDataSet);
 
         log.accept(outputString+" to "+ String.valueOf(aType)+"bit");
+    }
+
+    /**
+     * allows to change bit depth of the current dataset
+     *
+     * @param bit_depth
+     */
+    public static void setDatasetBitDepth( int bit_depth) throws Error{
+        IDataSetPrx dataset = getCurrentDataset();
+        setDatasetBitDepth( dataset, bit_depth);
     }
 
     /**

@@ -810,6 +810,7 @@ public class EasyXT {
         int previous_t=0;
         ImagePlus t_label_imp = new Duplicator().run(label_imp, 1, 1, 1, label_imp.getNSlices(), previous_t+1, previous_t+1);
 
+        ImageCalculator ic = new ImageCalculator();
         // next will mutiply each sub-surface of the surface, by a int value
         for (int srf = 0; srf < n_surf; srf++) {
             // should be final for the processor step below
@@ -850,8 +851,8 @@ public class EasyXT {
 
             //now we add the the current_imp to the global t_label_imp
             // TODO take care of interface between touching objects
-            ImageCalculator ic = new ImageCalculator();
-            ic.run("Add stack", t_label_imp, current_imp);
+
+            ic.run("Transparent-zero stack", t_label_imp, current_imp);
             current_imp.changes = false;
             current_imp.close();
 

@@ -955,6 +955,8 @@ public class EasyXT {
             obj_creator.createEllipsoidAxesUnit(spots_center_xyz[t][0], spots_center_xyz[t][1], spots_center_xyz[t][2], spots_radii_xyz[t][0], spots_radii_xyz[t][1], spots_radii_xyz[t][2], (float) val, vector3D_1, vector3D_2, isGauss);
             // set the previous_t
             previous_t = spots_t[t];
+
+            log.accept("label "+String.valueOf(t)+"/"+String.valueOf(spots_t.length));
         }
 
         if (cal.tSize > 1) {

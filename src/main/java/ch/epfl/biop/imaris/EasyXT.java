@@ -1171,6 +1171,16 @@ public class EasyXT {
         return datatype.get(type);
     }
 
+    /**
+     * allows to change bit depth of the dataset
+     * (Adapted from existing function in EasyXT-Matlab)
+     *
+     * TODO discuss renaming function to setDatasetBitDepth()
+     * TODO discuss parameter as int, thought it would be nice to directly use it with {@link #getBitDepth(IDataSetPrx)} and imp.getBitDepth()
+     *
+     * @param bit_depth
+     * @throws Error
+     */
     public static void setDataType(int bit_depth) throws Error {
         // get the dataset type and  and define aType with current
         IDataSetPrx vDataSet = app.GetDataSet();

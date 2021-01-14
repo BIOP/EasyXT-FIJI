@@ -816,8 +816,8 @@ public class EasyXT {
             // should be final for the processor step below
             final int val = srf;
 
-            // if the current spot is from a different time-point
-            if (( surface.GetTimeIndex(srf) != previous_t)||(srf == n_surf-1)){
+            // if the current spot is from a different time-point, or if it's the last spot
+            if ((cal.tSize > 1)&&(( surface.GetTimeIndex(srf) != previous_t)||(srf == n_surf-1))) {
                 // store the current status of t_label_imp into the ArrayList<ImagePlus>
                 // N.B. duplicate is required to store the current time-point
                 imps.add(new ImagePlus("t" + previous_t, t_label_imp.getStack().duplicate()));
@@ -942,7 +942,7 @@ public class EasyXT {
         ArrayList<ImagePlus> imps = new ArrayList<ImagePlus>(spots_t[spots_t.length-1]);
         for (int t = 0; t < spots_t.length; t++) {
             // if the current spot is from a different time-point
-            if ((spots_t[t] != previous_t)||(t==spots_t.length-1)) {
+            if ((cal.tSize > 1)&&((spots_t[t] != previous_t)||(t==spots_t.length-1))) {
                 // store the current status into an ImagePlus
                 // N.B. duplicate is required to store the current time-point
                 imps.add(new ImagePlus("t" + previous_t, obj_creator.getStack().duplicate()));

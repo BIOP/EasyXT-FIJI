@@ -6,7 +6,7 @@
 
     <groupId>ch.epfl.biop.imaris</groupId>
     <artifactId>EasyXT</artifactId>
-    <version>0.1.0</version>
+    <version>0.1.1-SNAPSHOT</version>
 
     <parent>
         <groupId>org.scijava</groupId>
@@ -40,7 +40,7 @@
     </repositories>
 
     <properties>
-        <scijava.app.directory>C:/Users/chiarutt/Desktop/fiji-win64-easyxt/Fiji.app/</scijava.app.directory>
+        <scijava.app.directory>C:/Fiji.app/</scijava.app.directory>
     </properties>
 
     <dependencies>

@@ -2,7 +2,7 @@
  * Copyright (c) 2020 Ecole Polytechnique Fédérale de Lausanne. All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- *
+ * <p>
  * 1. Redistributions of source code must retain the above copyright notice, this list of conditions
  * and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions
@@ -64,20 +64,20 @@ public class SurfacesDetector {
     IDataSetPrx aDataSet;
     int[][] aRegionsOfInterest; // aRegionsOfInterest is a Nx8 matrix with the Rois : public [vMinX, vMinY, vMinZ, vMinT, vMaxX, vMaxY, vMaxZ, vMaxT]
     Integer aChannelIndex;
-    Float   aSmoothFilterWidth;
-    Float   aLocalContrastFilterWidth;
+    Float aSmoothFilterWidth;
+    Float aLocalContrastFilterWidth;
 
     Boolean aIntensityLowerThresholdAutomatic;  //Boolean aIntensityThresholdAutomatic;
-    Float  	aIntensityLowerThresholdManual;     //Float aIntensityThresholdManual;
+    Float aIntensityLowerThresholdManual;     //Float aIntensityThresholdManual;
 
-    String  aSurfaceFiltersString;
+    String aSurfaceFiltersString;
 
     // Additional fields from Imaris API - DetectSurfacesRegionGrowing
     // Example of aSeedsFiltersString: '"Quality" above 7.000'
 
-    Float  	aSeedsEstimateDiameter;
+    Float aSeedsEstimateDiameter;
     Boolean aSeedsSubtractBackground;
-    String  aSeedsFiltersString;
+    String aSeedsFiltersString;
 
     // Additional fields from Imaris API - DetectSurfacesRegionGrowingWithUpperThreshold()
     // Detect Surfaces with upper (or double) threshold and region growing.
@@ -86,12 +86,12 @@ public class SurfacesDetector {
     //  If aUpperThresholdEnabled is true, aIntensityUpperThresholdAutomatic and aIntensityUpperThresholdManual are ignored.
     //  If aIntensityUpperThresholdAutomatic is true, aIntensityUpperThresholdManual is ignored.
 
-    Boolean 	aLowerThresholdEnabled;
+    Boolean aLowerThresholdEnabled;
     //Boolean  	aIntensityLowerThresholdAutomatic;
     //Float  	aIntensityLowerThresholdManual;
-    Boolean  	aUpperThresholdEnabled;
-    Boolean  	aIntensityUpperThresholdAutomatic;
-    Float   	aIntensityUpperThresholdManual;
+    Boolean aUpperThresholdEnabled;
+    Boolean aIntensityUpperThresholdAutomatic;
+    Float aIntensityUpperThresholdManual;
 
     // Fields added to modify output
 
@@ -102,9 +102,9 @@ public class SurfacesDetector {
 
         ISurfacesPrx surfaces;
 
-        if ((aUpperThresholdEnabled!=null)||
-            (aIntensityUpperThresholdAutomatic!=null)||
-            (aIntensityUpperThresholdManual!=null)) {
+        if ((aUpperThresholdEnabled != null) ||
+                (aIntensityUpperThresholdAutomatic != null) ||
+                (aIntensityUpperThresholdManual != null)) {
             // DetectSurfacesRegionGrowingWithUpperThreshold
 
             // ISurfaces* Imaris::IImageProcessing::DetectSurfacesRegionGrowingWithUpperThreshold 	( 	IDataSet *  	aDataSet,
@@ -125,9 +125,9 @@ public class SurfacesDetector {
             //	)
 
             // Need to deal with a Lower Threshold Enabled TODO
-            if (aSeedsEstimateDiameter == null )  {
+            if (aSeedsEstimateDiameter == null) {
 
-                surfaces = EasyXT.getImaris().GetImageProcessing().DetectSurfacesWithUpperThreshold	(	aDataSet,
+                surfaces = EasyXT.getImaris().GetImageProcessing().DetectSurfacesWithUpperThreshold(aDataSet,
                         aRegionsOfInterest,
                         aChannelIndex,
                         aSmoothFilterWidth,
@@ -138,8 +138,8 @@ public class SurfacesDetector {
                         aUpperThresholdEnabled,
                         aIntensityUpperThresholdAutomatic,
                         aIntensityUpperThresholdManual,
-                        aSurfaceFiltersString );
-            }else {
+                        aSurfaceFiltersString);
+            } else {
 
                 surfaces = EasyXT.getImaris().GetImageProcessing().DetectSurfacesRegionGrowingWithUpperThreshold(aDataSet,
                         aRegionsOfInterest,
@@ -211,20 +211,20 @@ public class SurfacesDetector {
 
         // EasyXT Specific
 
-        if (name!=null) {
+        if (name != null) {
             surfaces.SetName(name);
         } // or else it will have the default Imaris name
 
 
-        if (color!=null) {
-            surfaces.SetColorRGBA( color[0] + (color[1] * 256) + (color[2] * 256 * 256 ) );
+        if (color != null) {
+            surfaces.SetColorRGBA(color[0] + (color[1] * 256) + (color[2] * 256 * 256));
         }
 
         return surfaces;
     }
 
     // Removes a bit of the verbosity
-    public static SurfacesDetectorBuilder Channel(int indexChannel ) throws Error {
+    public static SurfacesDetectorBuilder Channel(int indexChannel) throws Error {
         return SurfacesDetectorBuilder.aSurfacesDetector(indexChannel);
     }
 
@@ -238,15 +238,15 @@ public class SurfacesDetector {
         //Boolean aIntensityThresholdAutomatic = new Boolean(true);  // If aIntensityThresholdAutomatic is true, aIntensityThresholdManual is ignored.
         //Float aIntensityThresholdManual = new Float(0); // Disabled by default because aIntensityThresholdAutomatic is true by default
         String aSurfaceFiltersString;
-        Float  	aSeedsEstimateDiameter;
+        Float aSeedsEstimateDiameter;
         Boolean aSeedsSubtractBackground = new Boolean(false);
-        String  aSeedsFiltersString;
-        Boolean 	aLowerThresholdEnabled;
-        Boolean  	aIntensityLowerThresholdAutomatic = new Boolean(true);
-        Float  	aIntensityLowerThresholdManual = new Float(0);
-        Boolean  	aUpperThresholdEnabled;
-        Boolean  	aIntensityUpperThresholdAutomatic;
-        Float  	aIntensityUpperThresholdManual;
+        String aSeedsFiltersString;
+        Boolean aLowerThresholdEnabled;
+        Boolean aIntensityLowerThresholdAutomatic = new Boolean(true);
+        Float aIntensityLowerThresholdManual = new Float(0);
+        Boolean aUpperThresholdEnabled;
+        Boolean aIntensityUpperThresholdAutomatic;
+        Float aIntensityUpperThresholdManual;
 
         Integer[] color;
         String name;
@@ -257,7 +257,7 @@ public class SurfacesDetector {
             this.aChannelIndex = channelIndex;
         }
 
-        public static SurfacesDetectorBuilder aSurfacesDetector(int channelIndex) throws Imaris.Error  {
+        public static SurfacesDetectorBuilder aSurfacesDetector(int channelIndex) throws Imaris.Error {
             return new SurfacesDetectorBuilder(channelIndex);
         }
 

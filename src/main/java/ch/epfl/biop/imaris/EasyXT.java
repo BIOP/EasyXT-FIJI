@@ -797,12 +797,12 @@ public class EasyXT {
 
         int n_surf = surface.GetNumberOfSurfaces();
         int last_timepoint = surface.GetTimeIndex(n_surf - 1);
-        //long[] ids = surface.GetIds();
+        long[] ids = surface.GetIds();
 
         // Get the whole surface as ImagePlus (0 or 1 ), 8-bit image
         ImagePlus label_imp = getImagePlus(getSurfacesDataset(surface));
-        if (n_surf > 255) IJ.run(label_imp, "16-bit", "");
-        if (n_surf > 65535) IJ.run(label_imp, "32-bit", "");
+        if (ids[n_surf-1] > 255) IJ.run(label_imp, "16-bit", "");
+        else if (ids[n_surf-1] > 65535) IJ.run(label_imp, "32-bit", "");
 
         ArrayList<ImagePlus> imps = new ArrayList<ImagePlus>(last_timepoint);
 
@@ -814,7 +814,7 @@ public class EasyXT {
         // next will mutiply each sub-surface of the surface, by a int value
         for (int srf = 0; srf < n_surf; srf++) {
             // should be final for the processor step below
-            final int val = srf;
+            final int val = (int) ids[srf];
 
             // if the current spot is from a different time-point, or if it's the last spot
             if ((cal.tSize > 1) && ((surface.GetTimeIndex(srf) != previous_t) || (srf == n_surf - 1))) {
@@ -841,6 +841,9 @@ public class EasyXT {
                     (float) cal.xEnd, (float) cal.yEnd, (float) cal.zEnd,
                     cal.xSize, cal.ySize, cal.zSize);
             ImagePlus current_imp = getImagePlus(current_dataset);
+            // Change current_imp bit depth to handle larger number of surfaces
+            if (ids[n_surf-1] > 255) IJ.run(current_imp, "16-bit", "");
+            else if (ids[n_surf-1] > 65535) IJ.run(current_imp, "32-bit", "");
 
             // Multiply by val to get a Label
             // val could could be replaced by the surface-Imaris-ID )
@@ -850,17 +853,15 @@ public class EasyXT {
             });
 
             //now we add the the current_imp to the global t_label_imp
-            // TODO take care of interface between touching objects
-
+            // using Transparent-zero to take care of interface between touching objects
             ic.run("Transparent-zero stack", t_label_imp, current_imp);
             current_imp.changes = false;
             current_imp.close();
 
-            log.accept("label " + (srf + 1) + "/" + n_surf);
+            log.accept("label " + (srf + 1) + "/" + n_surf +", val : " +  String.valueOf(val) ) ;
 
             // set the previous_t
             previous_t = surface.GetTimeIndex(srf);
-
         }
 
         if (cal.tSize > 1) {

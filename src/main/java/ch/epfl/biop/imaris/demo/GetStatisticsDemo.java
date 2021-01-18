@@ -11,14 +11,14 @@ import java.util.Arrays;
 
 /**
  * EasyXT Demo
- *
+ * <p>
  * How to retrieve Statistics computed by Imaris into ImageJ Results Tables
  *
  * @author Olivier Burri
  * @author Nicolas Chiaruttini
- *
+ * <p>
  * October 2020
- *
+ * <p>
  * EPFL - SV -PTECH - PTBIOP
  */
 

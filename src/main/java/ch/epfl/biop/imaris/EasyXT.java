@@ -36,6 +36,7 @@ import ij.measure.ResultsTable;
 import ij.plugin.Concatenator;
 import ij.plugin.Duplicator;
 import ij.plugin.HyperStackConverter;
+import ij.plugin.ImageCalculator;
 import ij.process.*;
 import mcib3d.geom.ObjectCreator3D;
 import mcib3d.geom.Vector3D;
@@ -550,7 +551,7 @@ public class EasyXT {
             String errorDetail = "   Dataset:" + dBitDepth + "-bit";
             errorDetail += "\nImage:" + iBitDepth + "-bit";
             // TODO forced conversion below, could or couldn't work, eg 8 -> 16 ok but 16->8 no!
-            log.accept("Bit Depth Mismatch : Imaris Dataset and Fiji ImagePlus do not have same bit depth \n " + errorDetail ) ;
+            log.accept("Bit Depth Mismatch : Imaris Dataset and Fiji ImagePlus do not have same bit depth \n " + errorDetail);
         }
 
         // Issue warning in case voxel sizes do not match
@@ -780,6 +781,104 @@ public class EasyXT {
     }
 
     /**
+     * Return an Label image of the corresponding surface
+     *
+     * @param surface a surface object see {@link  #getSurfaces(String)}
+     * @return a Label image (ImagePlus)
+     * @throws Error
+     */
+    //
+    //
+    public static ImagePlus getSurfacesLabel(ISurfacesPrx surface) throws Error {
+        IDataSetPrx dataset = app.GetDataSet();
+        int dataset_bitDepth = getImagePlus(dataset).getBitDepth();
+
+        ImarisCalibration cal = new ImarisCalibration(dataset);
+
+        int n_surf = surface.GetNumberOfSurfaces();
+        int last_timepoint = surface.GetTimeIndex(n_surf - 1);
+        //long[] ids = surface.GetIds();
+
+        // Get the whole surface as ImagePlus (0 or 1 ), 8-bit image
+        ImagePlus label_imp = getImagePlus(getSurfacesDataset(surface));
+        if (n_surf > 255) IJ.run(label_imp, "16-bit", "");
+        if (n_surf > 65535) IJ.run(label_imp, "32-bit", "");
+
+        ArrayList<ImagePlus> imps = new ArrayList<ImagePlus>(last_timepoint);
+
+        // we extract the first timepoint
+        int previous_t = 0;
+        ImagePlus t_label_imp = new Duplicator().run(label_imp, 1, 1, 1, label_imp.getNSlices(), previous_t + 1, previous_t + 1);
+
+        ImageCalculator ic = new ImageCalculator();
+        // next will mutiply each sub-surface of the surface, by a int value
+        for (int srf = 0; srf < n_surf; srf++) {
+            // should be final for the processor step below
+            final int val = srf;
+
+            // if the current spot is from a different time-point, or if it's the last spot
+            if ((cal.tSize > 1) && ((surface.GetTimeIndex(srf) != previous_t) || (srf == n_surf - 1))) {
+                // store the current status of t_label_imp into the ArrayList<ImagePlus>
+                // N.B. duplicate is required to store the current time-point
+                imps.add(new ImagePlus("t" + previous_t, t_label_imp.getStack().duplicate()));
+                // ... increment previous_t value
+                previous_t++;
+                // and set the t_label_imp to the next time-point
+                t_label_imp = new Duplicator().run(label_imp, 1, 1, 1, label_imp.getNSlices(), previous_t + 1, previous_t + 1);
+            }
+
+            // First we tried to use CopySurfaces(id), but it duplicates the Surface
+            // (visible with color based on statistics that make surface display to crash)
+            // int[] id = {i};
+            // ISurfacesPrx current_surface = surface.CopySurfaces(id);
+            // IDataSetPrx dataset = getSurfacesDataset(current_surface);
+
+            // here we make a copy of the whole stack
+            // To go faster we could use a smaller mask by defining the boundingBox of each sub-surface
+            // (but it will also be needed to at the multiply step below)
+            IDataSetPrx current_dataset = surface.GetSingleMask(srf,
+                    (float) cal.xOrigin, (float) cal.yOrigin, (float) cal.zOrigin,
+                    (float) cal.xEnd, (float) cal.yEnd, (float) cal.zEnd,
+                    cal.xSize, cal.ySize, cal.zSize);
+            ImagePlus current_imp = getImagePlus(current_dataset);
+
+            // Multiply by val to get a Label
+            // val could could be replaced by the surface-Imaris-ID )
+            int nProcessor = current_imp.getStack().getSize();
+            IntStream.range(0, nProcessor).parallel().forEach(index -> {
+                current_imp.getStack().getProcessor(index + 1).multiply(val);
+            });
+
+            //now we add the the current_imp to the global t_label_imp
+            // TODO take care of interface between touching objects
+
+            ic.run("Transparent-zero stack", t_label_imp, current_imp);
+            current_imp.changes = false;
+            current_imp.close();
+
+            log.accept("label " + (srf + 1) + "/" + n_surf);
+
+            // set the previous_t
+            previous_t = surface.GetTimeIndex(srf);
+
+        }
+
+        if (cal.tSize > 1) {
+            // https://stackoverflow.com/questions/9572795/convert-list-to-array-in-java
+            ImagePlus[] imps_array = imps.toArray(new ImagePlus[0]);
+            label_imp = Concatenator.run(imps_array);
+        } else {
+            label_imp = new ImagePlus("t" + previous_t, t_label_imp.getStack().duplicate());
+        }
+
+        label_imp.setTitle(getOpenImageName());
+        label_imp.setCalibration(cal);
+
+        return label_imp;
+    }
+
+
+    /**
      * Get an ImagePlus of the spots as a mask (255)
      *
      * @param spots a spots object see {@link  #getSpots(String)}
@@ -804,9 +903,9 @@ public class EasyXT {
     /**
      * Get an ImagePlus of the spots as a label (object has Imaris-ID value)
      *
-     * @param spots a spots object see {@link  #getSpots(String)}
+     * @param spots       a spots object see {@link  #getSpots(String)}
      * @param is_value_id boolean to define if value will be 255 or Imaris-ID value
-     * @param isGauss boolean to decide to apply gaussian filter on each spot
+     * @param isGauss     boolean to decide to apply gaussian filter on each spot
      * @return and ImagePlus 16-bit
      * @throws Error
      */
@@ -840,10 +939,10 @@ public class EasyXT {
         // by default the value is 255
         int val = 255;
 
-        ArrayList<ImagePlus> imps = new ArrayList<ImagePlus>(spots_t[spots_t.length-1]);
+        ArrayList<ImagePlus> imps = new ArrayList<ImagePlus>(spots_t[spots_t.length - 1]);
         for (int t = 0; t < spots_t.length; t++) {
             // if the current spot is from a different time-point
-            if (spots_t[t] != previous_t) {
+            if ((cal.tSize > 1) && ((spots_t[t] != previous_t) || (t == spots_t.length - 1))) {
                 // store the current status into an ImagePlus
                 // N.B. duplicate is required to store the current time-point
                 imps.add(new ImagePlus("t" + previous_t, obj_creator.getStack().duplicate()));
@@ -856,6 +955,8 @@ public class EasyXT {
             obj_creator.createEllipsoidAxesUnit(spots_center_xyz[t][0], spots_center_xyz[t][1], spots_center_xyz[t][2], spots_radii_xyz[t][0], spots_radii_xyz[t][1], spots_radii_xyz[t][2], (float) val, vector3D_1, vector3D_2, isGauss);
             // set the previous_t
             previous_t = spots_t[t];
+
+            log.accept("label " + String.valueOf(t) + "/" + String.valueOf(spots_t.length));
         }
 
         if (cal.tSize > 1) {
@@ -1071,6 +1172,46 @@ public class EasyXT {
         tType type = dataset.GetType();
         // Thanks NICO
         return datatype.get(type);
+    }
+
+    /**
+     * allows to change bit depth of the dataset
+     * (Adapted from existing function in EasyXT-Matlab)
+     * <p>
+     * TODO discuss parameter as int, thought it would be nice to directly use it with {@link #getBitDepth(IDataSetPrx)} and imp.getBitDepth()
+     *
+     * @param bit_depth
+     * @throws Error
+     */
+    public static void setDatasetBitDepth(IDataSetPrx vDataSet, int bit_depth) throws Error {
+        tType aType = vDataSet.GetType();
+        String outputString = "Dataset was converted from " + String.valueOf(aType);
+        switch (bit_depth) {
+            case 32:
+                aType = Imaris.tType.eTypeFloat;
+                break;
+            case 16:
+                aType = Imaris.tType.eTypeUInt16;
+                break;
+            case 8:
+                aType = Imaris.tType.eTypeUInt8;
+                break;
+        }
+
+        vDataSet.SetType(aType);
+        app.SetDataSet(vDataSet);
+
+        log.accept(outputString + " to " + String.valueOf(aType) + "bit");
+    }
+
+    /**
+     * allows to change bit depth of the current dataset
+     *
+     * @param bit_depth
+     */
+    public static void setDatasetBitDepth(int bit_depth) throws Error {
+        IDataSetPrx dataset = getCurrentDataset();
+        setDatasetBitDepth(dataset, bit_depth);
     }
 
     /**

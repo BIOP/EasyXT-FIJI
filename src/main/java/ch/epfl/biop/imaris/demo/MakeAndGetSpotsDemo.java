@@ -7,14 +7,14 @@ import ch.epfl.biop.imaris.SpotsDetector;
 
 /**
  * EasyXT Demo
- *
+ * <p>
  * How to make a surface using SurfaceDetector and show it in ImageJ
  *
  * @author Nicolas Chiaruttini
  * @author Romain Guiet
- *
+ * <p>
  * January 2021
- *
+ * <p>
  * EPFL - SV -PTECH - PTBIOP
  */
 

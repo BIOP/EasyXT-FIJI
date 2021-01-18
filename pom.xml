@@ -60,11 +60,9 @@
         </dependency>
 
         <dependency>
-            <groupId>ch.imaris</groupId>
-            <artifactId>lib</artifactId>
+            <groupId>com.bitplane</groupId>
+            <artifactId>imaris-lib</artifactId>
             <version>9.5.1</version>
-            <scope>system</scope>
-            <systemPath>${project.basedir}/libs/Imaris-9.5.1/XT/fiji/ImarisBridgeUtils.jar</systemPath>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/com.github.mcib3d/mcib3d-core -->

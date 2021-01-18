@@ -239,7 +239,7 @@ public class SurfacesDetector {
         //Float aIntensityThresholdManual = new Float(0); // Disabled by default because aIntensityThresholdAutomatic is true by default
         String aSurfaceFiltersString;
         Float aSeedsEstimateDiameter;
-        Boolean aSeedsSubtractBackground ;
+        Boolean aSeedsSubtractBackground;
         String aSeedsFiltersString;
         Boolean aLowerThresholdEnabled;
         Boolean aIntensityLowerThresholdAutomatic = new Boolean(true);

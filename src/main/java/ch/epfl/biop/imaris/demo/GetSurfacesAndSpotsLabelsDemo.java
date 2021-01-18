@@ -15,7 +15,7 @@ import java.net.URISyntaxException;
 
 public class GetSurfacesAndSpotsLabelsDemo {
 
-    public static void main(String... args) throws Imaris.Error , URISyntaxException {
+    public static void main(String... args) throws Imaris.Error, URISyntaxException {
         ImageJ ij = new ImageJ();
         ij.ui().showUI();
 

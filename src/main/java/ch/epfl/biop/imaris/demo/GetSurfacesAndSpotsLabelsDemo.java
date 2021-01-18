@@ -61,7 +61,7 @@ public class GetSurfacesAndSpotsLabelsDemo {
         EasyXT.addToScene(detected_ellipticSpots);
 
         ImagePlus spots_label_imp = EasyXT.getSpotsLabel(detected_ellipticSpots);
-
+        spots_label_imp.show();
 
         // Now we add the Label image as a channel to the dataset of the scene
         // The fastest way is to:

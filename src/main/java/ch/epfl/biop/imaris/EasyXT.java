@@ -201,15 +201,8 @@ public class EasyXT {
      * @throws Error an Imaris Error Object
      */
     public static IDataItemPrx getItem(String type, int position) throws Error {
-
-        ItemQuery query = new ItemQuery.ItemQueryBuilder().setPosition(position).setType(type).build();
-        List<IDataItemPrx> items = query.get();
-
-        if (items.size() >= query.getPosition())
-            return items.get(query.getPosition());
-
-        log.accept("No Items of type " + type + " found at position " + position + " inside " + getName(query.getParent()));
-        return null;
+        ItemQuery query = new ItemQuery.ItemQueryBuilder().setType(type).build();
+        return query.get(position);
     }
 
 
@@ -236,10 +229,8 @@ public class EasyXT {
      * @throws Error an Imaris Error Object
      */
     public static ISpotsPrx getSpots(int position) throws Error {
-        ItemQuery query = new ItemQuery.ItemQueryBuilder().setType("Spots").setPosition(position).build();
-        List<IDataItemPrx> items = query.get();
-        if (items.size() > 0) return (ISpotsPrx) items.get(0);
-        return null;
+        ItemQuery query = new ItemQuery.ItemQueryBuilder().setType("Spots").build();
+        return (ISpotsPrx) query.get(0);
     }
 
     /**
@@ -266,10 +257,8 @@ public class EasyXT {
      * @throws Error an Imaris Error Object
      */
     public static ISurfacesPrx getSurfaces(int position) throws Error {
-        ItemQuery query = new ItemQuery.ItemQueryBuilder().setType("Surfaces").setPosition(position).build();
-        List<IDataItemPrx> items = query.get();
-        if (items.size() > 0) return (ISurfacesPrx) items.get(0);
-        return null;
+        ItemQuery query = new ItemQuery.ItemQueryBuilder().setType("Surfaces").build();
+        return (ISurfacesPrx) query.get(position);
     }
 
     /**

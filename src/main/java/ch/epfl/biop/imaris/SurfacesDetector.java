@@ -27,26 +27,26 @@ import Imaris.ISurfacesPrx;
 
 /**
  * Helper functions for surface detection in Imaris
- *
+ * <p>
  * With the use of a builder pattern, this class combines the following Imaris functions :
  * - DetectSurfaces
  * - DetectSurfaceRegionGrowing TODO: implement and explain how the builder switch or not to this function
  * - DetectSurfacesRegionGrowingWithUpperThreshold TODO: implement and explain how the builder switch or not to this function
- *
+ * <p>
  * The Builder is tuned to allow for an invisible switch between these functions depending on the builder methods calls
  * If an upper threshold is set {
- *     calling DetectSurfacesRegionGrowingWithUpperThreshold
+ * calling DetectSurfacesRegionGrowingWithUpperThreshold
  * } else if any of the seed detection parameters is set {
- *     calling DetectSurfaceRegionGrowing
+ * calling DetectSurfaceRegionGrowing
  * } else {
- *     calling DetectSurfaces
+ * calling DetectSurfaces
  * }
  *
  * @author Nicolas Chiaruttini
  * @author Olivier Burri
- *
+ * <p>
  * BIOP, EPFL,  Jan 2020
- *
+ * <p>
  * Useful links:
  * file:///C:/Program%20Files/Bitplane/Imaris%20x64%209.5.1/html/xtinterface/structImaris_1_1IImageProcessing.html
  * file:///C:/Program%20Files/Bitplane/Imaris%20x64%209.5.1/html/xtinterface/structImaris_1_1IImageProcessing.html#a41275043bc718252958bce85f4d4561a
@@ -127,7 +127,7 @@ public class SurfacesDetector {
             // Need to deal with a Lower Threshold Enabled TODO
             if (aSeedsEstimateDiameter == null) {
 
-                surfaces = EasyXT.getImaris().GetImageProcessing().DetectSurfacesWithUpperThreshold(aDataSet,
+                surfaces = EasyXT.getImarisApp().GetImageProcessing().DetectSurfacesWithUpperThreshold(aDataSet,
                         aRegionsOfInterest,
                         aChannelIndex,
                         aSmoothFilterWidth,
@@ -141,7 +141,7 @@ public class SurfacesDetector {
                         aSurfaceFiltersString);
             } else {
 
-                surfaces = EasyXT.getImaris().GetImageProcessing().DetectSurfacesRegionGrowingWithUpperThreshold(aDataSet,
+                surfaces = EasyXT.getImarisApp().GetImageProcessing().DetectSurfacesRegionGrowingWithUpperThreshold(aDataSet,
                         aRegionsOfInterest,
                         aChannelIndex,
                         aSmoothFilterWidth,
@@ -173,7 +173,7 @@ public class SurfacesDetector {
                 //		string  	aSurfaceFiltersString
                 //	)
 
-                surfaces = EasyXT.getImaris().GetImageProcessing().DetectSurfacesRegionGrowing(aDataSet,
+                surfaces = EasyXT.getImarisApp().GetImageProcessing().DetectSurfacesRegionGrowing(aDataSet,
                         aRegionsOfInterest,
                         aChannelIndex,
                         aSmoothFilterWidth,
@@ -198,7 +198,7 @@ public class SurfacesDetector {
                 //		string  	aSurfaceFiltersString
                 //	)
 
-                surfaces = EasyXT.getImaris().GetImageProcessing().DetectSurfaces(aDataSet,
+                surfaces = EasyXT.getImarisApp().GetImageProcessing().DetectSurfaces(aDataSet,
                         aRegionsOfInterest,
                         aChannelIndex,
                         aSmoothFilterWidth,
@@ -253,7 +253,7 @@ public class SurfacesDetector {
 
         private SurfacesDetectorBuilder(int channelIndex) throws Imaris.Error {
             // default values
-            aDataSet = EasyXT.getImaris().GetDataSet();
+            aDataSet = EasyXT.getImarisApp().GetDataSet();
             this.aChannelIndex = channelIndex;
         }
 
@@ -308,7 +308,6 @@ public class SurfacesDetector {
         }
 
         /**
-         *
          * @param aIntensityLowerThresholdManual , corresponds to "Manual Threshold Value" in the "Creation Parameters"
          *                                       (in the "Creation" tab of a completed surface)
          * @return

@@ -7,14 +7,14 @@ import ch.epfl.biop.imaris.SurfacesDetector;
 
 /**
  * EasyXT Demo
- *
+ * <p>
  * How to make a surface using SurfaceDetector and show it in ImageJ
  *
  * @author Nicolas Chiaruttini
- *
+ * <p>
  * October 2020
- *
- * EPFL - SV -PTECH - PTBIOP
+ * <p>
+ * EPFL - SV - PTECH - PTBIOP
  */
 
 public class MakeAndGetSurfaceDemo {
@@ -30,25 +30,25 @@ public class MakeAndGetSurfaceDemo {
             ISurfacesPrx surface = SurfacesDetector.Channel(0)
                     .setSmoothingWidth(1)
                     .setLowerThreshold(40)
-                    .setUpperThreshold( 255.0)
+                    .setUpperThreshold(255.0)
                     .setName("My Surface")
-                    .setColor(new Integer[]{255,120,45})
+                    .setColor(new Integer[]{255, 120, 45})
                     .build()
                     .detect();
 
             // Adds the surface to the scene
-            EasyXT.getImaris().GetSurpassScene().AddChild(surface,0);
+            EasyXT.Scene.addToScene(surface);
 
             // Gets an existing surface
-            surface = EasyXT.getSurfaces( "My Surface" );
+            surface = EasyXT.Scene.getSurfaces("My Surface");
 
             // Display surfaces
-            EasyXT.getSurfacesMask( surface ).show();
+            EasyXT.Surfaces.getSurfacesMask(surface).show();
 
-        } catch ( Error error ) {
-            System.out.println( "ERROR:" + error.mDescription );
-            System.out.println( "LOCATION:" + error.mLocation );
-            System.out.println( "String:" + error.toString() );
+        } catch (Error error) {
+            System.out.println("ERROR:" + error.mDescription);
+            System.out.println("LOCATION:" + error.mLocation);
+            System.out.println("String:" + error.toString());
         }
     }
 }

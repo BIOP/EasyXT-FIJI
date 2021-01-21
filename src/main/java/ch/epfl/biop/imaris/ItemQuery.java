@@ -2,7 +2,7 @@
  * Copyright (c) 2020 Ecole Polytechnique Fédérale de Lausanne. All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- *
+ * <p>
  * 1. Redistributions of source code must retain the above copyright notice, this list of conditions
  * and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions
@@ -44,25 +44,24 @@ public class ItemQuery {
     private static Consumer<String> errlog = (str) -> System.err.println("ItemQuery : " + str);
 
 
-
     // Enum containing the classes of the different ImarisObjects
     public enum ItemType {
 
-        Spots( ISpots.class ),
-        Surfaces( ISurfaces.class ),
-        Volume( IVolume.class ),
-        Camera( ISurpassCamera.class ),
-        Light( ILightSource.class ),
-        Frame( IFrame.class ),
-        Datacontainer( IDataContainer.class );
+        Spots(ISpots.class),
+        Surfaces(ISurfaces.class),
+        Volume(IVolume.class),
+        Camera(ISurpassCamera.class),
+        Light(ILightSource.class),
+        Frame(IFrame.class),
+        Datacontainer(IDataContainer.class);
 
         Class cls;
 
-        ItemType( Class cls ) {
+        ItemType(Class cls) {
             this.cls = cls;
         }
 
-        Class<? extends IDataItem> getType( ) {
+        Class<? extends IDataItem> getType() {
             return this.cls;
         }
     }
@@ -75,52 +74,61 @@ public class ItemQuery {
      * @return class of the contained item
      * @throws Error
      */
-    private static Class<? extends IDataItem> getType( IDataItemPrx item ) throws Error {
-        IFactoryPrx factory = EasyXT.getImaris( ).GetFactory( );
+    private static Class<? extends IDataItem> getType(IDataItemPrx item) throws Error {
+        IFactoryPrx factory = EasyXT.getImarisApp().GetFactory();
 
-        if ( factory.IsSpots( item ) ) {
-            return ItemType.Spots.getType( );
+        if (factory.IsSpots(item)) {
+            return ItemType.Spots.getType();
         }
-        if ( factory.IsSurfaces( item ) ) {
-            return ItemType.Surfaces.getType( );
+        if (factory.IsSurfaces(item)) {
+            return ItemType.Surfaces.getType();
         }
-        if ( factory.IsVolume( item ) ) {
-            return ItemType.Volume.getType( );
+        if (factory.IsVolume(item)) {
+            return ItemType.Volume.getType();
         }
-        if ( factory.IsSurpassCamera( item ) ) {
-            return ItemType.Camera.getType( );
+        if (factory.IsSurpassCamera(item)) {
+            return ItemType.Camera.getType();
         }
-        if ( factory.IsLightSource( item ) ) {
-            return ItemType.Light.getType( );
+        if (factory.IsLightSource(item)) {
+            return ItemType.Light.getType();
         }
-        if ( factory.IsFrame( item ) ) {
-            return ItemType.Frame.getType( );
+        if (factory.IsFrame(item)) {
+            return ItemType.Frame.getType();
         }
-        if ( factory.IsDataContainer( item ) ) {
-            return ItemType.Datacontainer.getType( );
+        if (factory.IsDataContainer(item)) {
+            return ItemType.Datacontainer.getType();
         }
 
-        log.accept("Type not found for item "+item+" of class "+item.getClass().getSimpleName());
+        log.accept("Type not found for item " + item + " of class " + item.getClass().getSimpleName());
 
         return null;
     }
 
+    // Could use the item name to define paths
+    // eg. Folder1/subfolder1/MySpots
+    // todo implement recursive flag
 
-    private ItemQuery( IDataContainerPrx parent, String itemName, Class<? extends IDataItem> itemType ) {
+    /**
+     *
+     * @param parent
+     * @param itemName
+     * @param itemType
+     */
+    private ItemQuery(IDataContainerPrx parent, String itemName, Class<? extends IDataItem> itemType) {
         this.itemParent = parent;
         this.itemName = itemName;
         this.itemType = itemType;
     }
 
-    public IDataContainerPrx getParent( ) {
+    public IDataContainerPrx getParent() {
         return this.itemParent;
     }
 
-    public String getName( ) {
+    public String getName() {
         return this.itemName;
     }
 
-    public Class<? extends IDataItem> getType( ) {
+    public Class<? extends IDataItem> getType() {
         return this.itemType;
     }
 
@@ -161,7 +169,7 @@ public class ItemQuery {
         // Cleanup all items for them to match their class
         items.replaceAll(item -> {
             try {
-                return EasyXT.castToType(item);
+                return EasyXT.Utils.castToType(item);
             } catch (Error error) {
                 error.printStackTrace();
             }
@@ -177,23 +185,23 @@ public class ItemQuery {
      * @return the item in question or null if there is no item.
      * @throws Error
      */
-        public IDataItemPrx get(int position) throws Error {
+    public IDataItemPrx get(int position) throws Error {
         List<IDataItemPrx> items = get();
-        if ( position < items.size() ) return items.get( position );
+        if (position < items.size()) return items.get(position);
 
-        errlog.accept("You requested item number "+position+". There are only "+items.size()+" items" );
+        errlog.accept("You requested item number " + position + ". There are only " + items.size() + " items");
         return null;
     }
 
-        @Override
-    public String toString( ) {
+    @Override
+    public String toString() {
         try {
             return "ItemQuery with the following elements: \n" +
-                    "  parent:\t" + EasyXT.getName( itemParent ) +"\n"+
+                    "  parent:\t" + EasyXT.Scene.getName(itemParent) + "\n" +
                     "  name:\t '" + itemName + "\n" +
                     "  type:\t" + itemType;
-        } catch ( Error error ) {
-            error.printStackTrace( );
+        } catch (Error error) {
+            error.printStackTrace();
         }
         return "ItemQuery with the following elements: \n" +
                 "  name:\t '" + itemName + "\n" +
@@ -207,25 +215,25 @@ public class ItemQuery {
         Integer itemPosition = null;
 
 
-        public ItemQueryBuilder setName( String itemName ) {
+        public ItemQueryBuilder setName(String itemName) {
             this.itemName = itemName;
             return this;
         }
 
-        public ItemQueryBuilder setParent( IDataContainerPrx itemParent ) {
+        public ItemQueryBuilder setParent(IDataContainerPrx itemParent) {
             this.itemParent = itemParent;
             return this;
         }
 
-        public ItemQueryBuilder setType( String itemType ) {
-            this.itemType = ItemType.valueOf( itemType ).getType( );
+        public ItemQueryBuilder setType(String itemType) {
+            this.itemType = ItemType.valueOf(itemType).getType();
             return this;
         }
 
-        public ItemQuery build( ) throws Error {
-            if (this.itemParent == null) this.itemParent = EasyXT.getImaris().GetSurpassScene();
+        public ItemQuery build() throws Error {
+            if (this.itemParent == null) this.itemParent = EasyXT.getImarisApp().GetSurpassScene();
 
-            return new ItemQuery( this.itemParent, this.itemName, this.itemType );
+            return new ItemQuery(this.itemParent, this.itemName, this.itemType);
         }
     }
 }

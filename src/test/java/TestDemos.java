@@ -19,7 +19,7 @@ public class TestDemos {
 
     @Test
     public void AllGetters() throws Exception {
-        AllGetters.main("Test Mode");
+        AllGettersDemo.main("Test Mode");
     }
 
     @Test

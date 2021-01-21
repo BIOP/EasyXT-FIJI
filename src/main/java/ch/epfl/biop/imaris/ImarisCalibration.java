@@ -33,6 +33,9 @@ import ij.measure.Calibration;
 public class ImarisCalibration extends Calibration {
     public final double xEnd, yEnd, zEnd;
     public int xSize, ySize, zSize, cSize, tSize;
+    public float[] cMin, cMax;
+    public int[] cColorsRGBA;
+    public String[] cNames;
 
     public ImarisCalibration( IDataSetPrx dataset ) throws Error {
 
@@ -61,6 +64,20 @@ public class ImarisCalibration extends Calibration {
         this.setUnit( dataset.GetUnit() );
         this.setTimeUnit( "s" );
         this.frameInterval = dataset.GetTimePointsDelta();
+
+        // For each channel get the min and max display values and colors
+        cMin = new float[this.cSize];
+        cMax = new float[this.cSize];
+        cColorsRGBA = new int[this.cSize];
+        cNames = new String[this.cSize];
+
+        for (int c = 0; c < this.cSize; c++) {
+            cMin[c] = dataset.GetChannelRangeMin(c);
+            cMax[c] = dataset.GetChannelRangeMax(c);
+            cColorsRGBA[c] = dataset.GetChannelColorRGBA(c);
+            cNames[c] = dataset.GetChannelName(c);
+        }
+
     }
 
     public ImarisCalibration getDownsampled( double downsample ) {

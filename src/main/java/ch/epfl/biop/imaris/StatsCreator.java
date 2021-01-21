@@ -4,11 +4,15 @@ import Imaris.Error;
 import Imaris.IDataItemPrx;
 import Imaris.cStatisticValues;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 public class StatsCreator {
 
+    private static Consumer<String> log = (str) -> System.out.println("StatsCreator : " + str);
     private String channel = "";
     private String statName;
     private Map<Long, Map<String, Double>> statValues;
@@ -16,8 +20,6 @@ public class StatsCreator {
     private Integer time;
     private List<String> units;
     private String category;
-
-    private static Consumer<String> log = (str) -> System.out.println("StatsCreator : " + str);
 
     // Need IDs
     // Need stat name

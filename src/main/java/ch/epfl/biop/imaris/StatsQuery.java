@@ -41,18 +41,16 @@ import java.util.stream.Collectors;
  * @version 0.1
  */
 public class StatsQuery {
+    private static final List<String> firstColumns = Arrays.asList("Label", "Name", "ID", "Timepoint", "Category");
+    private static Consumer<String> log = (str) -> System.out.println("StatsQuery : " + str);
     private final String itemName;
+    private final cStatisticValues stats;
+    private final int channelIdx, timeIdx, catIdx;
     private List<Long> ids = new ArrayList<>();
     private List<String> names = new ArrayList<>();
     private List<String> timepoints = new ArrayList<>();
     private List<String> channels = new ArrayList<>();
-
     private ResultsTable results = new ResultsTable();
-    private final cStatisticValues stats;
-    private final int channelIdx, timeIdx, catIdx;
-    private static final List<String> firstColumns = Arrays.asList("Label", "Name", "ID", "Timepoint", "Category");
-
-    private static Consumer<String> log = (str) -> System.out.println("StatsQuery : " + str);
 
 
     /**
@@ -74,6 +72,35 @@ public class StatsQuery {
     }
 
     /**
+     * Extracts the selected statistic as a LinkedHashMap where the keys are the ID of the object
+     * We keep the IDs as Longs as that is a _bit_ more compatible with Imaris.
+     *
+     * @param results  the results table, usually an output from {@link EasyXT.Stats#getStatistics(IDataItemPrx)}
+     * @param statName the name of the column, like "Circularity" or "Intensity Mean C1"
+     * @return a map with eack keyset being the ID of the spot and the value of the statistic
+     */
+    public static Map<Long, Map<String, Double>> extractStatistic(ResultsTable results, String statName) {
+        if (results.columnExists(statName)) {
+            Map<Long, Map<String, Double>> stat = new LinkedHashMap<>(results.size());
+            for (int i = 0; i < results.size(); i++) {
+                // Put the default columns
+                Map<String, Double> values = new LinkedHashMap<String, Double>();
+                for (String col : firstColumns) {
+                    values.put(col, results.getValue(col, i));
+                }
+                // Put the result we want, finally
+                values.put(statName, results.getValue(statName, i));
+                stat.put((long) results.getValue("ID", i), values);
+            }
+            return stat;
+        }
+        // The selected statistic does not exist
+        log.accept("The statistic: '" + statName + "' does not exist in the provided Results Table");
+
+        return null;
+    }
+
+    /**
      * Allows for the selection of a specific ID. Note that IDs are not necesarily continuous nor necesarily start at 0.
      * These are the IDs as per Imaris's ID value in the GUI
      *
@@ -87,6 +114,7 @@ public class StatsQuery {
 
     /**
      * Will force StatsQuery to use the given ResultsTable and append to it
+     *
      * @param rt
      * @return
      */
@@ -133,6 +161,7 @@ public class StatsQuery {
     /**
      * Allows to select the timepoint of the statistics to export. 0-based
      * Careful. Imaris results are one-based for timepoints
+     *
      * @param timepoint the timepoint
      * @return
      */
@@ -144,6 +173,7 @@ public class StatsQuery {
     /**
      * Allows to set a list of timepoints from which to get statistics from
      * Careful. Imaris results are one-based for timepoints
+     *
      * @param timepoints
      * @return
      */
@@ -155,6 +185,7 @@ public class StatsQuery {
     /**
      * Allows to select the channel from which to get statistics from
      * Careful. Imaris results are one-based for channels
+     *
      * @param channel
      * @return
      */
@@ -166,6 +197,7 @@ public class StatsQuery {
     /**
      * Allows to set a list of channels from which to get statistics from
      * Careful. Imaris results are one-based for channels
+     *
      * @param channels
      * @return
      */
@@ -185,9 +217,9 @@ public class StatsQuery {
             this.results.incrementCounter();
             for (String c : results.getHeadings()) {
                 String stringVal = results.getStringValue(c, i);
-                if ( !isDoubleValue( stringVal ) ){
-                    this.results.addValue(c, stringVal );
-                }else{
+                if (!isDoubleValue(stringVal)) {
+                    this.results.addValue(c, stringVal);
+                } else {
                     this.results.addValue(c, results.getValue(c, i));
                 }
             }
@@ -201,9 +233,9 @@ public class StatsQuery {
      * @param stringTotTest , try to covnert it as a Double,
      * @return true if can be parse into a Double, false if can't
      */
-    private Boolean isDoubleValue( String stringTotTest ){
+    private Boolean isDoubleValue(String stringTotTest) {
         try {
-            Double dummy = Double.parseDouble( stringTotTest );
+            Double dummy = Double.parseDouble(stringTotTest);
             return true;
         } catch (NumberFormatException e) {
             return false;
@@ -216,6 +248,7 @@ public class StatsQuery {
      * the names, channels and timepoints that were requested. If they all match, then we add them as a Map
      * We return a sorted results table by ID (Rows) and Column names, minus selected columns
      * NOTE: We ignore statistics without IDs (average values in Imaris) as we assume we can get them outside of Imaris
+     *
      * @return the resultsTable with all requested statistics
      * @throws Error
      */
@@ -325,6 +358,7 @@ public class StatsQuery {
 
     /**
      * Convenience to check if we can parse the number or not
+     *
      * @param test the string to test
      * @return
      */
@@ -390,33 +424,4 @@ public class StatsQuery {
             return sortedColumn;
         }
     }
-
-    /**
-     * Extracts the selected statistic as a LinkedHashMap where the keys are the ID of the object
-     * We keep the IDs as Longs as that is a _bit_ more compatible with Imaris.
-     * @param results the results table, usually an output from {@link EasyXT#getStatistics(IDataItemPrx)}
-     * @param statName the name of the column, like "Circularity" or "Intensity Mean C1"
-     * @return a map with eack keyset being the ID of the spot and the value of the statistic
-     */
-    public static Map<Long, Map<String, Double>> extractStatistic(ResultsTable results, String statName) {
-        if (results.columnExists(statName)) {
-            Map<Long, Map<String, Double>> stat = new LinkedHashMap<>(results.size());
-            for (int i = 0; i < results.size(); i++) {
-                // Put the default columns
-                Map<String, Double> values = new LinkedHashMap<String, Double>();
-                for (String col : firstColumns) {
-                    values.put(col, results.getValue(col, i));
-                }
-                // Put the result we want, finally
-                values.put(statName, results.getValue(statName, i));
-                stat.put((long) results.getValue("ID", i), values);
-            }
-            return stat;
-        }
-        // The selected statistic does not exist
-        log.accept("The statistic: '" + statName + "' does not exist in the provided Results Table");
-
-        return null;
-    }
-
 }

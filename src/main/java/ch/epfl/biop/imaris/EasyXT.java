@@ -672,10 +672,7 @@ public class EasyXT {
                     aType = tType.eTypeUInt8;
                     break;
             }
-
             dataset.SetType(aType);
-            getImarisApp().SetDataSet(dataset);
-
             log.info(outputString + " to " + aType + "bit");
         }
 
@@ -1105,8 +1102,10 @@ public class EasyXT {
         //
         //
         public static ImagePlus getSurfacesLabel(ISurfacesPrx surface) throws Error {
+
             IDataSetPrx dataset = getImarisApp().GetDataSet();
-            int dBitDepth = Dataset.getBitDepth(dataset);
+
+            //int dBitDepth = Dataset.getBitDepth(dataset);
 
             ImarisCalibration cal = new ImarisCalibration(dataset);
 

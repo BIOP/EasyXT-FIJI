@@ -672,10 +672,7 @@ public class EasyXT {
                     aType = tType.eTypeUInt8;
                     break;
             }
-
             dataset.SetType(aType);
-            getImarisApp().SetDataSet(dataset);
-
             log.info(outputString + " to " + aType + "bit");
         }
 
@@ -1033,6 +1030,8 @@ public class EasyXT {
                 impSurface.getStack().getProcessor(index + 1).multiply(255);
             });
 
+            // TODO Make for all timepoints
+
             // Set LUT and display range
             impSurface.setLut(LUT.createLutFromColor(Utils.getColorFromInt(surface.GetColorRGBA())));
             impSurface.setDisplayRange(0, 255);
@@ -1105,8 +1104,10 @@ public class EasyXT {
         //
         //
         public static ImagePlus getSurfacesLabel(ISurfacesPrx surface) throws Error {
+
             IDataSetPrx dataset = getImarisApp().GetDataSet();
-            int dBitDepth = Dataset.getBitDepth(dataset);
+
+            //int dBitDepth = Dataset.getBitDepth(dataset);
 
             ImarisCalibration cal = new ImarisCalibration(dataset);
 
@@ -1173,7 +1174,7 @@ public class EasyXT {
                 currentImp.changes = false;
                 currentImp.close();
 
-                log.info("label " + (srf + 1) + "/" + numberOfSurfaces + ", val : " + val);
+                if (srf % 10 == 0) log.info("Creating labelled surfaces " + (srf + 1) + "/" + numberOfSurfaces + ", val : " + val);
 
                 // set the previous_t
                 previousT = surface.GetTimeIndex(srf);
@@ -1318,8 +1319,7 @@ public class EasyXT {
                 objCreator.createEllipsoidAxesUnit(spotsCenterXYZ[t][0], spotsCenterXYZ[t][1], spotsCenterXYZ[t][2], spotsRadiiXYZ[t][0], spotsRadiiXYZ[t][1], spotsRadiiXYZ[t][2], (float) val, vector3D1, vector3D2, isGauss);
                 // set the previous_t
                 previousT = spotsT[t];
-
-                log.info("label " + t + "/" + spotsT.length);
+                if (t % 10 == 0) log.info("Creating Labelled Spots " + (t + 1) + "/" + spotsT.length);
             }
 
             if (cal.tSize > 1) {

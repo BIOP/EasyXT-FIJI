@@ -6,13 +6,12 @@
 
     <groupId>ch.epfl.biop.imaris</groupId>
     <artifactId>EasyXT</artifactId>
-    <version>0.1.1-SNAPSHOT</version>
+    <version>0.1.2-SNAPSHOT</version>
 
     <parent>
         <groupId>org.scijava</groupId>
         <artifactId>pom-scijava</artifactId>
-        <version>29.2.1</version>
-        <relativePath />
+        <version>30.0.0</version>
     </parent>
 
     <build>

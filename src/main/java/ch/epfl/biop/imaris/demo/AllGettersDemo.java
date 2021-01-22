@@ -1,7 +1,7 @@
 package ch.epfl.biop.imaris.demo;
 
-import Imaris.*;
 import Imaris.Error;
+import Imaris.*;
 import ch.epfl.biop.imaris.EasyXT;
 import ch.epfl.biop.imaris.ItemQuery;
 import ch.epfl.biop.imaris.SpotsDetector;
@@ -27,7 +27,7 @@ import java.util.List;
  * <p>
  * EPFL - SV -PTECH - PTBIOP
  */
-public class AllGetters {
+public class AllGettersDemo {
 
     public static void main(String... args) throws Exception {
         try {
@@ -35,8 +35,8 @@ public class AllGetters {
             FreshStartWithIJAndBIOPImsSample.main();
 
             //Get Extents of currently open dataset to create he same thing, but with two channels
-            IDataContainerPrx new_group = EasyXT.createGroup("Spots And Surface");
-            EasyXT.addToScene(new_group);
+            IDataContainerPrx new_group = EasyXT.Scene.createGroup("Spots And Surface");
+            EasyXT.Scene.addToScene(new_group);
 
             // Make a spot detector and detect the spots
             ISpotsPrx spots = SpotsDetector.Channel(2)
@@ -49,7 +49,7 @@ public class AllGetters {
                     .isCreateRegionsChannel(false)
                     .build().detect();
 
-            EasyXT.addToScene(spots); // EasyXT.addToScene( new_group, spots ); doesn't work TODO : see TODO below
+            EasyXT.Scene.addToScene(spots); // EasyXT.addToScene( new_group, spots ); doesn't work TODO : see TODO below
 
             // Makes a surface detector and detect the surface
             ISurfacesPrx surface = SurfacesDetector.Channel(0)
@@ -60,42 +60,41 @@ public class AllGetters {
                     .build()
                     .detect();
 
-            EasyXT.addToScene(surface);
+            EasyXT.Scene.addToScene(surface);
 
             //Highest level getters for spots and surfaces
 
             // Single spot
-            ISpotsPrx spotByName = EasyXT.getSpots("My Spots"); // TODO : provide a way to access spots within a group
-            ISpotsPrx spotByPosition = EasyXT.getSpots(0); // 0 based // TODO : understand this NPE
+            ISpotsPrx spotByName = EasyXT.Spots.getSpots("My Spots"); // TODO : provide a way to access spots within a group
 
             // All Spots in Scene
-            List<ISpotsPrx> spotsList = EasyXT.getAllSpots();
+            List<ISpotsPrx> spotsList = EasyXT.Spots.getAllSpots();
 
             // Single surface
-            ISurfacesPrx surfaceByName = EasyXT.getSurfaces("My Surface");
+            ISurfacesPrx surfaceByName = EasyXT.Surfaces.getSurfaces("My Surface");
             //ISurfacesPrx surfaceByPosition = EasyXT.getSurfaces( 0 ); // 0 based
 
             // All Surfaces in Scene
-            List<ISurfacesPrx> surfacesList = EasyXT.getAllSurfaces();
+            List<ISurfacesPrx> surfacesList = EasyXT.Surfaces.getAllSurfaces();
 
             // Generic Getter if you need other things
-            IDataItemPrx rawFrame = EasyXT.getItem("Frame 1");
+            IDataItemPrx rawFrame = EasyXT.Scene.getItem("Frame 1");
 
             //it returns the right type
-            IJ.log("Is " + EasyXT.getName(rawFrame) + " an IFramePrx?  - " + (rawFrame instanceof IFramePrx));
+            IJ.log("Is " + EasyXT.Scene.getName(rawFrame) + " an IFramePrx?  - " + (rawFrame instanceof IFramePrx));
 
             // And you can cast it directly if you feel like it
             IFramePrx frame = (IFramePrx) rawFrame;
 
             // Lowest level getter, uses an ItemQuery
-            IDataContainerPrx parent = EasyXT.createGroup("Some Parent");
+            IDataContainerPrx parent = EasyXT.Scene.createGroup("Some Parent");
 
             ItemQuery query = new ItemQuery.ItemQueryBuilder().setName("Spots 1").setParent(parent).build();
             List<IDataItemPrx> items = query.get();
 
-            List<IDataItemPrx> allRawSpots = EasyXT.getAll("Spots");
-            List<IDataItemPrx> allRawSurfaces = EasyXT.getAll("Surfaces");
-            List<IDataItemPrx> allVolumes = EasyXT.getAll("Volume");
+            List<IDataItemPrx> allRawSpots = EasyXT.Scene.getAll("Spots");
+            List<IDataItemPrx> allRawSurfaces = EasyXT.Scene.getAll("Surfaces");
+            List<IDataItemPrx> allVolumes = EasyXT.Scene.getAll("Volume");
 
             IJ.log("Spot: " + spotByName.GetName());
         } catch (Error error) {

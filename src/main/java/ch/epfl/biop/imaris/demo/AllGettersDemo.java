@@ -9,6 +9,7 @@ import ch.epfl.biop.imaris.SurfacesDetector;
 import ij.IJ;
 
 import java.util.List;
+import java.util.logging.Level;
 
 /**
  * EasyXT Demo
@@ -25,7 +26,7 @@ import java.util.List;
  * <p>
  * October 2020
  * <p>
- * EPFL - SV -PTECH - PTBIOP
+ * EPFL - SV - PTECH - PTBIOP
  */
 public class AllGettersDemo {
 
@@ -35,8 +36,8 @@ public class AllGettersDemo {
             FreshStartWithIJAndBIOPImsSample.main();
 
             //Get Extents of currently open dataset to create he same thing, but with two channels
-            IDataContainerPrx new_group = EasyXT.Scene.createGroup("Spots And Surface");
-            EasyXT.Scene.addToScene(new_group);
+            IDataContainerPrx itemGroup = EasyXT.Scene.createGroup("Spots And Surface");
+            EasyXT.Scene.addToScene(itemGroup);
 
             // Make a spot detector and detect the spots
             ISpotsPrx spots = SpotsDetector.Channel(2)
@@ -49,10 +50,24 @@ public class AllGettersDemo {
                     .isCreateRegionsChannel(false)
                     .build().detect();
 
-            EasyXT.Scene.addToScene(spots); // EasyXT.addToScene( new_group, spots ); doesn't work TODO : see TODO below
+            EasyXT.Scene.addToScene(spots);
+
+            // Make a spot detector and detect the spots
+            ISpotsPrx spots2 = SpotsDetector.Channel(1)
+                    .setName("Sub Spots")
+                    .setDiameter(2.0)
+                    .setRegionsThresholdManual(100)
+                    .isSubtractBackground(true)
+                    .isRegionsFromLocalContrast(true)
+                    .isRegionsSpotsDiameterFromVolume(false)
+                    .isCreateRegionsChannel(false)
+                    .build().detect();
+
+            // Add it again
+            EasyXT.Scene.addToScene( spots2, itemGroup );
 
             // Makes a surface detector and detect the surface
-            ISurfacesPrx surface = SurfacesDetector.Channel(0)
+            ISurfacesPrx surface = EasyXT.Surfaces.create(0)
                     .setSmoothingWidth(1)
                     .setLowerThreshold(40)
                     .setName("My Surface")
@@ -65,11 +80,25 @@ public class AllGettersDemo {
             //Highest level getters for spots and surfaces
 
             // Single spot
-            ISpotsPrx spotByName = EasyXT.Spots.getSpots("My Spots"); // TODO : provide a way to access spots within a group
+            ISpotsPrx spotByName = EasyXT.Spots.getSpots("My Spots");
+
+            // A Subspot
+            ISpotsPrx subSpotByName = EasyXT.Spots.getSpots("Sub Spots", itemGroup);
 
             // All Spots in Scene
             List<ISpotsPrx> spotsList = EasyXT.Spots.getAllSpots();
+            for (ISpotsPrx iSpotsPrx : spotsList) {
+                IJ.log(EasyXT.Scene.getName(iSpotsPrx));
+            }
 
+            // All spots recursively
+            ItemQuery.isRecursiveSearch = true;
+
+            List<ISpotsPrx> recursiveSpotsList = EasyXT.Spots.getAllSpots();
+            for (ISpotsPrx iSpotsPrx : recursiveSpotsList) {
+                IJ.log("Recursively: "+EasyXT.Scene.getName(iSpotsPrx));
+            }
+            ItemQuery.isRecursiveSearch = false;
             // Single surface
             ISurfacesPrx surfaceByName = EasyXT.Surfaces.getSurfaces("My Surface");
             //ISurfacesPrx surfaceByPosition = EasyXT.getSurfaces( 0 ); // 0 based
@@ -98,9 +127,7 @@ public class AllGettersDemo {
 
             IJ.log("Spot: " + spotByName.GetName());
         } catch (Error error) {
-            System.out.println("ERROR:" + error.mDescription);
-            System.out.println("LOCATION:" + error.mLocation);
-            System.out.println("String:" + error.toString());
+            EasyXT.log.log(Level.SEVERE, "Error during Demo:", error);
         }
     }
 }

@@ -23,25 +23,21 @@ package ch.epfl.biop.imaris;
 
 import Imaris.*;
 import Imaris.Error;
+import ch.epfl.biop.imaris.demo.FreshStartWithIJAndBIOPImsSample;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.logging.Logger;
 
 public class ItemQuery {
     private IDataContainerPrx itemParent = null;
     private String itemName = null;
     private Class<? extends IDataItem> itemType = null;
+    public static Boolean isRecursiveSearch = false;
 
-    /**
-     * Standard logger
-     */
-    private static Consumer<String> log = (str) -> System.out.println("ItemQuery : " + str);
-
-    /**
-     * Error logger
-     */
-    private static Consumer<String> errlog = (str) -> System.err.println("ItemQuery : " + str);
+    private List<IDataItemPrx> items;
+    private static final Logger log = Logger.getLogger(ItemQuery.class.getName());
 
 
     // Enum containing the classes of the different ImarisObjects
@@ -99,56 +95,46 @@ public class ItemQuery {
             return ItemType.Datacontainer.getType();
         }
 
-        log.accept("Type not found for item " + item + " of class " + item.getClass().getSimpleName());
-
+        log.warning("Type not found for item " + item + " of class " + item.getClass().getSimpleName());
         return null;
     }
 
-    // Could use the item name to define paths
-    // eg. Folder1/subfolder1/MySpots
-    // todo implement recursive flag
-
     /**
-     *
-     * @param parent
-     * @param itemName
-     * @param itemType
+     * The class that does the item query. You do not have access to its constructor. use {@link ItemQueryBuilder}
+     * to instantiate an object of this type
+     * @param parent the parent group, null for the main surpass scene
+     * @param itemName the name of the item, null if not used
+     * @param itemType the type of the item This is an Imaris type, but the builder uses a string for convenience.
      */
     private ItemQuery(IDataContainerPrx parent, String itemName, Class<? extends IDataItem> itemType) {
         this.itemParent = parent;
         this.itemName = itemName;
         this.itemType = itemType;
-    }
-
-    public IDataContainerPrx getParent() {
-        return this.itemParent;
-    }
-
-    public String getName() {
-        return this.itemName;
-    }
-
-    public Class<? extends IDataItem> getType() {
-        return this.itemType;
+        items = new ArrayList<>();
     }
 
     public List<IDataItemPrx> get() throws Error {
+        IDataContainerPrx parent = this.itemParent;
+        return get(parent);
+    }
+    private List<IDataItemPrx> get(IDataContainerPrx parent) throws Error {
 
-        IDataContainerPrx parent = this.getParent();
         int nChildren = parent.GetNumberOfChildren();
 
-        List<IDataItemPrx> items = new ArrayList<>();
-
         for (int i = 0; i < nChildren; i++) {
-            IDataItemPrx child = parent.GetChild(i);
+            IDataItemPrx child =   EasyXT.Utils.castToType( parent.GetChild(i) );
 
             String aName = child.GetName();
             Class aCls = getType(child);
+            // If it's a group, recurse before continuing
+            if ( aCls.equals(ItemType.Datacontainer.getType()) && isRecursiveSearch ) {
+                get((IDataContainerPrx) child);
+            }
 
-            if (this.getName() != null) { // Name set
-                if (aName.equals(this.getName())) {  // Name matches
-                    if (this.getType() != null) { // Name and Type set
-                        if (aCls.equals(this.getType())) { // Name an Type match
+            if (this.itemName != null) { // Name set
+                if (aName.equals(this.itemName)) {  // Name matches
+                    if (this.itemType != null) { // Name and Type set
+                        if (aCls.equals(this.itemType)) { // Name an Type match
                             items.add(child); // We found the right child with the right name, right class
                         }
                     } else { // Name set but Type Unset: Keep
@@ -156,8 +142,8 @@ public class ItemQuery {
                     }
                 }
             } else { // Name not is set, use only type and number
-                if (this.getType() != null) { // Type set
-                    if (aCls.equals(this.getType())) { // Type matches
+                if (this.itemType != null) { // Type set
+                    if (aCls.equals(this.itemType)) { // Type matches
                         items.add(child); // We found the right child at the right position
                     }
                 } else { // Name not set, Type not set, only Position
@@ -189,7 +175,7 @@ public class ItemQuery {
         List<IDataItemPrx> items = get();
         if (position < items.size()) return items.get(position);
 
-        errlog.accept("You requested item number " + position + ". There are only " + items.size() + " items");
+        log.warning("You requested item number " + position + ". There are only " + items.size() + " items");
         return null;
     }
 
@@ -208,18 +194,33 @@ public class ItemQuery {
                 "  type:\t" + itemType;
     }
 
+    /**
+     * Inner builder class to access ItemQueryBuilder.
+     */
     public static class ItemQueryBuilder {
         private IDataContainerPrx itemParent = null;
         String itemName = null;
         Class<? extends IDataItem> itemType = null;
-        Integer itemPosition = null;
+        Boolean isRecursiveSearch = false;
 
-
+        /**
+         * Set the name of the item to find
+         * You can use slashes to start the search in the given group
+         * Eg. My Folder/My Spots
+         * @param itemName
+         * @return
+         */
         public ItemQueryBuilder setName(String itemName) {
             this.itemName = itemName;
             return this;
         }
 
+        /**
+         * provide the parent object from which to start the search. If not provided it will
+         * either start
+         * @param itemParent
+         * @return
+         */
         public ItemQueryBuilder setParent(IDataContainerPrx itemParent) {
             this.itemParent = itemParent;
             return this;
@@ -230,10 +231,45 @@ public class ItemQuery {
             return this;
         }
 
+
+        /**
+         * Generates the desired ItemQuery
+         * @return
+         * @throws Error
+         */
         public ItemQuery build() throws Error {
             if (this.itemParent == null) this.itemParent = EasyXT.getImarisApp().GetSurpassScene();
 
+            // Special case where there are slashes denoting a shortcut to finding the object
+            if (this.itemName != null) {
+                String[] parts = this.itemName.split("/");
+                if (parts.length > 1) {
+                    Boolean isRecursiveTmp = ItemQuery.isRecursiveSearch;
+                    ItemQuery.isRecursiveSearch = false;
+
+                    // Find all child objects from the left onwards, to find the right parent to start the search
+                    IDataContainerPrx scene = EasyXT.Scene.getScene();
+                    for (int i=0; i<parts.length-1; i++ ) {
+                        String child = parts[i];
+                        IDataItemPrx tempItem = new ItemQuery(scene, child, ItemType.Datacontainer.getType()).get(0); // Find the next child
+                        // if it exists, then it is a container and we change the Scene
+                        if (tempItem != null) scene = (IDataContainerPrx) tempItem;
+                    }
+                    //At the end of this, we should have the last parent and we can build the query
+                    // Reset recursive search flag back to whatever it was
+                    ItemQuery.isRecursiveSearch = isRecursiveTmp;
+
+                    return new ItemQuery( scene, parts[parts.length-1], this.itemType);
+                }
+            }
+            // Normal query
             return new ItemQuery(this.itemParent, this.itemName, this.itemType);
         }
     }
-}
+
+    public static void main(String[] args) throws Error {
+
+            ISpotsPrx spotByName = EasyXT.Spots.getSpots("Spots And Surface/Sub Spots");
+            log.info(spotByName.GetName());
+        }
+    }

@@ -25,10 +25,10 @@ public class AddChildObjects {
             FreshStartWithIJAndBIOPImsSample.main();
 
             // Creates a group
-            IDataContainerPrx my_group = EasyXT.Scene.createGroup("Spots");
+            IDataContainerPrx myGroup = EasyXT.Scene.createGroup("Spots");
 
             // Adds it to the scene
-            EasyXT.Scene.addToScene(my_group);
+            EasyXT.Scene.addToScene(myGroup);
 
             // Makes a Spot Detector and detect them
             ISpotsPrx spots = EasyXT.Spots.create(2)
@@ -42,7 +42,7 @@ public class AddChildObjects {
                     .build().detect();
 
             // Adds the detected spots into the 'my_group' group
-            EasyXT.Scene.addToScene(my_group, spots);
+            EasyXT.Scene.addToScene(spots, myGroup);
 
         } catch (Error error) {
             System.out.println("ERROR:" + error.mDescription);

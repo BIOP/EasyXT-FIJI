@@ -12,7 +12,6 @@ import ij.gui.WaitForUserDialog;
  * EasyXT Demo
  * <p>
  * How to modify a surface in ImageJ and send a modified version to Imaris
- * TODO name is confusing, may we consider renaming it to UpdateSurfaceDemo as we're not really sending a new surface but just modifying an existing one
  *
  * @author Romain Guiet
  * @author Nicolas Chiaruttini
@@ -22,7 +21,7 @@ import ij.gui.WaitForUserDialog;
  * EPFL - SV - PTECH - PTBIOP
  */
 
-public class SendNewSurfaceDemo {
+public class ModifySurfaceDemo {
 
     public static void main(String... args) throws Exception {
 

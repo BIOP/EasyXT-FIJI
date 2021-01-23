@@ -39,6 +39,7 @@ import ij.plugin.ImageCalculator;
 import ij.process.*;
 import mcib3d.geom.ObjectCreator3D;
 import mcib3d.geom.Vector3D;
+import net.imagej.ImageJ;
 
 import java.awt.*;
 import java.io.File;
@@ -70,7 +71,6 @@ import java.util.stream.IntStream;
 
 /**
  * Main EasyXT Static class
- *
  * @author Olivier Burri
  * @author Nicolas Chiaruttini
  * @author Romain Guiet
@@ -129,7 +129,6 @@ public class EasyXT {
     /**
      * Returns instance of Imaris App
      * This is so you can access the Imaris API functionalities directly.
-     *
      * @return an Imaris Application connection.
      */
     public static IApplicationPrx getImarisApp() {
@@ -140,7 +139,6 @@ public class EasyXT {
 
     /**
      * openImage, opens the file from filepath in a new imaris scene
-     *
      * @param filepath path  to an *.ims file
      * @param options  option string cf : xtinterface/structImaris_1_1IApplication.html/FileOpen
      * @throws Error
@@ -168,7 +166,6 @@ public class EasyXT {
 
     /**
      * overloaded method, see {@link #openImage(File, String)}
-     *
      * @param filepath to an *.ims file
      * @throws Error
      */
@@ -178,7 +175,6 @@ public class EasyXT {
 
     /**
      * Saves the current imaris scene to an imaris file
-     *
      * @param filepath path to save ims file
      * @param options  option string cf : xtinterface/structImaris_1_1IApplication.html/FileSave eg writer="BMPSeries".
      *                 List of formats available: Imaris5, Imaris3, Imaris2,SeriesAdjustable, TiffSeriesRGBA, ICS,
@@ -195,7 +191,6 @@ public class EasyXT {
 
     /**
      * overloaded method , see {@link #saveImage(File, String)}
-     *
      * @param filepath path to save ims file
      * @throws Error
      */
@@ -205,7 +200,6 @@ public class EasyXT {
 
     /**
      * Gets the name of the currently open imaris file, as shown on the top of the Imaris window
-     *
      * @return the name of the currently open imaris file
      * @throws Error
      */
@@ -225,7 +219,6 @@ public class EasyXT {
         /**
          * returns a File pointing to a demo dataset that can be used with {@link EasyXT#openImage(File)}
          * It will try to find the main Fiji folder, and place it in a "samples" subdirectory. It will not download it again if it is not present.
-         *
          * @return the file that was either already local or downloaded
          */
         public static File getSampleFile() {
@@ -274,7 +267,6 @@ public class EasyXT {
         /**
          * casts each Imaris Object to its right Class for easier downstream processing Not sure if this is needed but have
          * not tested without
-         *
          * @param item the item to return the specific class of
          * @return the same item but cast to its appropriate subclass
          * @throws Error an Imaris Error Object
@@ -305,7 +297,6 @@ public class EasyXT {
 
         /**
          * Recover a Color for use to set ImagePlus LUTs
-         *
          * @param color the Imaris Color descriptor
          * @return the Java Color
          */
@@ -320,7 +311,6 @@ public class EasyXT {
 
         /**
          * recover an RGB color for use with ImageJ from a 3 element (R,G,B) array
-         *
          * @param color the Java Color
          * @return
          */
@@ -352,19 +342,40 @@ public class EasyXT {
         }
 
         /**
-         * Get the name of the requested item, to avoid using GetName()
-         *
+         * Returns the name of the item, prepended by the name of all parent items
+         * until we reach the main Surpass Scene.
+         * @param item the item whose name we need
+         * @return the name of the item
+         * @throws Error an Imaris Error Object
+         */
+        public static String getFullName(IDataItemPrx item) throws Error {
+            // Make names recursive
+            String finalName = item.GetName();
+
+            IDataContainerPrx scene = getScene();
+            IDataContainerPrx parent = item.GetParent();
+
+            while( !scene.equals(parent) ) {
+                // Append parent to name and go one step up
+                finalName = parent.GetName()+"/"+finalName;
+            }
+
+            return finalName;
+        }
+
+        /**
+         * Returns the name of the item as seen from the Imaris GUI
          * @param item the item whose name we need
          * @return the name of the item
          * @throws Error an Imaris Error Object
          */
         public static String getName(IDataItemPrx item) throws Error {
+
             return item.GetName();
         }
 
         /**
          * Set the name of this item, avoiding the use of SetName()
-         *
          * @param item the item whose name we wish to set
          * @param name the name we wish to set it to
          * @throws Error an Imaris Error Object
@@ -376,7 +387,6 @@ public class EasyXT {
         /**
          * Return the first item with the selected name inside the given parent object
          * Returns null if not found
-         *
          * @param name   the name of the item to find
          * @param parent the parent object, a group
          * @return the requested item, null if not found
@@ -392,7 +402,6 @@ public class EasyXT {
         /**
          * Return the first item with the selected name inside the surpass scene
          * Returns null if not found
-         *
          * @param name the name of the item to find
          * @return the requested item, null if not found
          * @throws Error an Imaris Error Object
@@ -404,7 +413,6 @@ public class EasyXT {
 
         /**
          * Get the first spots object with the given name
-         *
          * @param name   the name of the spots object to get. Returns the first spots object if there are multiple spots with
          *               the same name (Don't do that)
          * @param parent the parent object, a group
@@ -423,7 +431,6 @@ public class EasyXT {
 
         /**
          * returns the first spots object in the main surpass scene with the given name
-         *
          * @param name the name of the spots object to get. Returns the first spots object if there are multiple spots with
          *             the same name (Don't do that)
          * @return the requested spots, null if not found
@@ -435,7 +442,6 @@ public class EasyXT {
 
         /**
          * Get the first surfaces object with the given name
-         *
          * @param name   the name of the surfaces object to get. Returns the first surfaces object if there are multiple
          *               surfaces with the same name (Don't do that)
          * @param parent the parent object, a group
@@ -454,7 +460,6 @@ public class EasyXT {
 
         /**
          * Get all items of the requested type in the main scene as a list (not within subfolder, groups)
-         *
          * @param type   the type, defined by a String. See {@link ItemQuery.ItemType}
          * @param parent the parent object, a group
          * @return a list containins the objects
@@ -467,8 +472,8 @@ public class EasyXT {
         }
 
         /**
-         * Get all items of the requested type in the main scene as a list (not within subfolder, groups)
-         *
+         * Get all items of the requested type in the main scene as a list
+         * You can set the public field {@link ItemQuery#isRecursiveSearch} to true if you want a recursive search
          * @param type the type, defined by a String. See {@link ItemQuery.ItemType}
          * @return a list containins the objects
          * @throws Error an Imaris Error Object
@@ -478,8 +483,8 @@ public class EasyXT {
         }
 
         /**
-         * Get all spots objects in the main scene as a list (not within a group)
-         *
+         * Get all spots objects in the main scene as a list
+         * You can set the public field {@link ItemQuery#isRecursiveSearch} to true if you want a recursive search
          * @return the properly cast spots as a list
          * @throws Error an Imaris Error Object
          */
@@ -495,8 +500,8 @@ public class EasyXT {
         }
 
         /**
-         * Get all surfaces objects in the main scene as a list (not within subfolder, groups)
-         *
+         * Get all surfaces objects in the main scene as a list
+         * You can set the public field {@link ItemQuery#isRecursiveSearch} to true if you want a recursive search
          * @return the surfaces as a list
          * @throws Error an Imaris Error Object
          */
@@ -513,7 +518,7 @@ public class EasyXT {
 
         /**
          * Get all Group objects in the main scene as a list
-         *
+         * You can set the public field {@link ItemQuery#isRecursiveSearch} to true if you want a recursive search
          * @return the surfaces as a list
          * @throws Error an Imaris Error Object
          */
@@ -531,29 +536,26 @@ public class EasyXT {
 
         /**
          * Adds the provided Item to the Main Imaris Scene (at the bottom)
-         *
          * @param item the item (Spot, Surface, Folder) to add
          * @throws Error an Imaris Error Object
          */
         public static void addToScene(IDataItemPrx item) throws Error {
-            addToScene(Scene.getScene(), item);
+            addToScene(item, Scene.getScene());
         }
 
         /**
          * Adds the provided item as the last child to the provided parent item
-         *
          * @param parent The parent item
          * @param item   the item to add as a child
          * @throws Error an Imaris Error Object
          */
-        public static void addToScene(IDataContainerPrx parent, IDataItemPrx item) throws Error {
+        public static void addToScene(IDataItemPrx item, IDataContainerPrx parent) throws Error {
             parent.AddChild(item, -1); // last element is position. -1 to append at the end.
         }
 
         /**
          * Removes the provided item from its parent,
          * if it's a Group, it removes the children explicitly as well. Unsure of necessary
-         *
          * @param item the item in question
          * @throws Error an Imaris Error Object
          */
@@ -573,7 +575,6 @@ public class EasyXT {
 
         /**
          * Removes the provided List of items from its parent
-         *
          * @param items, the list of items in question
          * @throws Error an Imaris Error Object
          */
@@ -585,7 +586,6 @@ public class EasyXT {
 
         /**
          * Reset the Imaris Scene
-         *
          * @throws Error an Imaris Error Object
          */
         public static void resetScene() throws Error {
@@ -607,10 +607,9 @@ public class EasyXT {
 
         /**
          * Creates a "Group" (folder) that can contain other items
-         *
          * @param groupName the name to identify the group with
          * @return an item that can be added to a scene ({@link Scene#addToScene(IDataItemPrx)}) or to which other items
-         * can be added as children {@link Scene#addToScene(IDataContainerPrx, IDataItemPrx)}
+         * can be added as children {@link Scene#addToScene(IDataItemPrx, IDataContainerPrx)}
          * IDataContainerPrx extends IDataItemPrx
          * @throws Error
          */
@@ -622,7 +621,6 @@ public class EasyXT {
 
         /**
          * Selects the given item on the Imaris Surpass Scene GUI.
-         *
          * @param item
          */
         public static void selectItem(IDataItemPrx item) throws Error {
@@ -638,7 +636,6 @@ public class EasyXT {
 
         /**
          * Returns bitdepth of a dataset. See {@link EasyXT#datatype}
-         *
          * @param dataset the dataset to query the type from
          * @return an integer with the dataset type (8, 16, 32 or -1 if the type is not known)
          * @throws Error an Imaris Error Object
@@ -651,10 +648,7 @@ public class EasyXT {
 
         /**
          * allows to change bit depth of the dataset
-         * (Adapted from existing function in EasyXT-Matlab)
-         * <p>
-         * TODO discuss parameter as int, thought it would be nice to directly use it with {@link #getBitDepth(IDataSetPrx)} and imp.getBitDepth()
-         *
+         * (Adapted from existing function in EasyXT-Matlab)*
          * @param bitDepth
          * @throws Error
          */
@@ -678,7 +672,6 @@ public class EasyXT {
 
         /**
          * allows to change bit depth of the current dataset
-         *
          * @param bitDepth
          */
         public static void setBitDepth(int bitDepth) throws Error {
@@ -688,7 +681,6 @@ public class EasyXT {
 
         /**
          * Returns an ImagePlus image of a dataset TODO : add a way to select only a subpart of it
-         *
          * @param dataset
          * @return
          * @throws Error
@@ -766,11 +758,11 @@ public class EasyXT {
 
         /**
          * Set data from an ImagePlus image into a dataset TODO : add a way to select only a subpart of it
-         *
          * @param dataset the dataset to insert the imagePlus into
          * @throws Error an Imaris Error Object
          */
         public static void setImagePlus(IDataSetPrx dataset, ImagePlus imp) throws Error {
+
             ImarisCalibration cal = new ImarisCalibration(dataset);
 
             // TODO: Ensure that the image is not larger than the dataset
@@ -809,7 +801,6 @@ public class EasyXT {
 
         /**
          * Convenience method to return the currently active dataset
-         *
          * @return a IDatasetPrx object containing a reference to all the pixel data
          * @throws Error an Imaris Error Object
          */
@@ -819,7 +810,6 @@ public class EasyXT {
 
         /**
          * Convenience method to set/replace the current dataset within the current Imaris scene with the one provided
-         *
          * @param dataset a IDataSetPrx object containing a reference to all the pixel data
          * @throws Error an Imaris Error Object
          */
@@ -830,7 +820,6 @@ public class EasyXT {
         /**
          * Adds the selected ImagePlus to the current Dataset by appending it as new channels If the dataset is visible in
          * the Imaris Scene, this is a lot slower
-         *
          * @param imp the image to add to the current dataset
          * @throws Error an Imaris Error object
          */
@@ -842,7 +831,6 @@ public class EasyXT {
 
         /**
          * Adds the selected ImagePlus to the provided IDatasetPrx by appending it as new channels
-         *
          * @param dataset
          * @param imp     the image to add to the current dataset
          * @throws Error an Imaris Error object
@@ -860,8 +848,7 @@ public class EasyXT {
          *     <li>Ensure consistent bit-depth between ImagePlus and IDataSetPrx. throws Error if otherwise</li>
          *     <li>Ensure consistent voxel size (ignore framerate) between ImagePlus and Dataset. Issues warning if otherwise</li>
          * </ul>
-         * The user can define the start location XYZT in pixel coordinates
-         *
+         * The user can define the start location XYZT in pixel coordinates.
          * @param imp     the image from which to extract the channels to append
          * @param dataset the receiver dataset
          * @param xStart  start X position, in pixels (from top-left in ImageJ, will translate to bottom-left in Imaris)
@@ -949,20 +936,20 @@ public class EasyXT {
 
     public static class Surfaces {
         /**
-         *
-         * @param channel
-         * @return
+         * allows to create a surface {@link SurfacesDetector} object that runs the Imaris surface detection wizard
+         * @param channel the 0-based channel index to use
+         * @return the resulting detected surfaces object
          * @throws Error
          */
         public static SurfacesDetector.SurfacesDetectorBuilder create(int channel) throws Error {
             return SurfacesDetector.Channel(channel);
         }
 
-        //TODO make new create() method to create a surfaces object from an imageplus
+        //TODO make new create() method to create a surfaces object from an ImagePlus
 
         /**
          * Get all surfaces objects in the main scene as a list (not within subfolder, groups)
-         *
+         * You can set the public field {@link ItemQuery#isRecursiveSearch} to true if you want a recursive search
          * @return the surfaces as a list
          * @throws Error an Imaris Error Object
          */
@@ -972,7 +959,7 @@ public class EasyXT {
 
         /**
          * Get the first surfaces object with the given name
-         *
+         * You can set the public field {@link ItemQuery#isRecursiveSearch} to true if you want a recursive search
          * @param name   the name of the surfaces object to get. Returns the first surfaces object if there are multiple
          *               surfaces with the same name (Don't do that)
          * @param parent the parent object, a group
@@ -983,18 +970,24 @@ public class EasyXT {
             return Scene.getSurfaces(name, parent);
         }
 
+        /**
+         * Overloaded version of {@link #getSurfaces(String, IDataContainerPrx)}
+         * @param name
+         * @return
+         * @throws Error
+         */
         public static ISurfacesPrx getSurfaces(String name) throws Error {
             return Scene.getSurfaces(name);
         }
 
         /**
-         *
-         * @param surface
+         * Returns the Surfaces as an Imaris Dataset.
+         * The difference with the direct Imaris API here is that this includes timepoints as well.
+         * @param surface the surface to extract the dataset from
          * @return
          * @throws Error
          */
         public static IDataSetPrx getSurfacesDataset(ISurfacesPrx surface) throws Error {
-
             IDataSetPrx finalDataset = Dataset.getCurrentDataset().Clone();
             ImarisCalibration cal = new ImarisCalibration(finalDataset);
 
@@ -1002,7 +995,7 @@ public class EasyXT {
             finalDataset.SetSizeC(1);
 
             // Why do we set it to 8 bit? What type is it?
-            Dataset.setBitDepth(finalDataset, 8);
+            //Dataset.setBitDepth(finalDataset, 8);
 
             // Loop through each timepoint, and get the dataset, then replace
             for (int t = 0; t < cal.tSize; t++) {
@@ -1031,6 +1024,7 @@ public class EasyXT {
             });
 
             // TODO Make for all timepoints
+            // TODO move to better location
 
             // Set LUT and display range
             impSurface.setLut(LUT.createLutFromColor(Utils.getColorFromInt(surface.GetColorRGBA())));
@@ -1456,5 +1450,14 @@ public class EasyXT {
         public static StatsCreator create(IDataItemPrx item, String statName, Map<Long, Map<String, Double>> statValues) {
             return new StatsCreator(item, statName, statValues);
         }
+    }
+
+    /**
+     * Main methods for debugging EasyXT
+     * @param args
+     */
+    public static void main(String... args) {
+        ImageJ ij = new ImageJ();
+        ij.ui().showUI();
     }
 }

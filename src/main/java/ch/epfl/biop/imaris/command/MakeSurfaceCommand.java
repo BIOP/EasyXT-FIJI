@@ -3,7 +3,6 @@ package ch.epfl.biop.imaris.command;
 import Imaris.Error;
 import Imaris.ISurfacesPrx;
 import ch.epfl.biop.imaris.EasyXT;
-import ch.epfl.biop.imaris.SurfacesDetector;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -39,7 +38,7 @@ public class MakeSurfaceCommand implements Command {
                     .detect();
 
             // Adds the surface to the scene
-            EasyXT.Scene.addToScene(surf);
+            EasyXT.Scene.putItem(surf);
             surf.SetVisible(false);
             surf.SetVisible(true);
 

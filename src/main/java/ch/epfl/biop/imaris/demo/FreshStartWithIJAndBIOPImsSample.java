@@ -24,7 +24,7 @@ public class FreshStartWithIJAndBIOPImsSample {
         ImageJ ij = new ImageJ();
         ij.ui().showUI();
         File sample = EasyXT.Samples.getSampleFile();
-        EasyXT.openImage(sample);
+        EasyXT.Files.openImage(sample);
     }
 
 }

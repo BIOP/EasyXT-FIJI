@@ -31,7 +31,7 @@ public class AddChannelsToDataset {
             FreshStartWithIJAndBIOPImsSample.main();
 
             //Get Extents of currently open dataset to create the same thing, but with two channels
-            IDataSetPrx dataset = EasyXT.Dataset.getCurrentDataset();
+            IDataSetPrx dataset = EasyXT.Dataset.getCurrent();
 
             ImarisCalibration cal = new ImarisCalibration(dataset);
             int bitDepth = EasyXT.Dataset.getBitDepth(dataset);
@@ -47,7 +47,7 @@ public class AddChannelsToDataset {
             EasyXT.Dataset.addChannels(newDataset, channels_imp1);
 
             // Place the dataset into the scene
-            EasyXT.Dataset.setCurrentDataset(newDataset);
+            EasyXT.Dataset.setCurrent(newDataset);
             long t1 = System.currentTimeMillis() - t0;
             IJ.log("New dataset time: " + t1 + " ms");
 

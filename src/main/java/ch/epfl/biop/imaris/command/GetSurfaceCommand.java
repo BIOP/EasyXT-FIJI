@@ -16,15 +16,15 @@ public class GetSurfaceCommand implements Command {
     String surfaceName;
 
     @Parameter(type = ItemIO.OUTPUT)
-    ImagePlus surface;
+    ImagePlus surfaceImp;
 
     @Override
     public void run() {
         // Gets an existing surface
         try {
-            ISurfacesPrx surfprx = EasyXT.Surfaces.getSurfaces(surfaceName);
+            ISurfacesPrx surfprx = EasyXT.Surfaces.find(surfaceName);
             // Display surfaces
-            surface = EasyXT.Surfaces.getSurfacesMask(surfprx);
+            surfaceImp = EasyXT.Surfaces.getMaskImage(surfprx);
 
         } catch (Error error) {
             error.printStackTrace();

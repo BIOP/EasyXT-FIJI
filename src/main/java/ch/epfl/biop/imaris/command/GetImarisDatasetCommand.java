@@ -17,7 +17,7 @@ public class GetImarisDatasetCommand implements Command {
     @Override
     public void run() {
         try {
-            dataset = EasyXT.Dataset.getImagePlus(EasyXT.Dataset.getCurrentDataset());
+            dataset = EasyXT.Dataset.getImagePlus(EasyXT.Dataset.getCurrent());
         } catch (Error error) {
             error.printStackTrace();
         }

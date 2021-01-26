@@ -36,6 +36,7 @@ public class ImarisCalibration extends Calibration {
     public float[] cMin, cMax;
     public int[] cColorsRGBA;
     public String[] cNames;
+    public int bitDepth;
 
     public ImarisCalibration( IDataSetPrx dataset ) throws Error {
 
@@ -57,9 +58,9 @@ public class ImarisCalibration extends Calibration {
         this.cSize = dataset.GetSizeC();
         this.tSize = dataset.GetSizeT();
 
-        this.pixelWidth  = Math.abs( this.xEnd - this.xOrigin ) / this.xSize;
-        this.pixelHeight = Math.abs( this.yEnd - this.yOrigin ) / this.ySize;
-        this.pixelDepth  = Math.abs( this.zEnd - this.zOrigin ) / this.zSize;
+        this.pixelWidth  = (this.xEnd - this.xOrigin) / this.xSize;
+        this.pixelHeight = (this.yEnd - this.yOrigin) / this.ySize;
+        this.pixelDepth  = (this.zEnd - this.zOrigin) / this.zSize;
 
         this.setUnit( dataset.GetUnit() );
         this.setTimeUnit( "s" );
@@ -77,21 +78,22 @@ public class ImarisCalibration extends Calibration {
             cColorsRGBA[c] = dataset.GetChannelColorRGBA(c);
             cNames[c] = dataset.GetChannelName(c);
         }
-
     }
 
     public ImarisCalibration getDownsampled( double downsample ) {
 
         ImarisCalibration new_calibration = (ImarisCalibration) this.clone();
 
-        new_calibration.xSize /= downsample;
-        new_calibration.ySize /= downsample;
-        new_calibration.zSize /= downsample;
+        new_calibration.xSize *= downsample;
+        new_calibration.ySize *= downsample;
+        new_calibration.zSize *= downsample;
 
-        new_calibration.pixelWidth *= downsample;
+        new_calibration.pixelWidth /= downsample;
         new_calibration.pixelHeight /= downsample;
         new_calibration.pixelDepth /= downsample;
 
         return new_calibration;
     }
+
+
 }

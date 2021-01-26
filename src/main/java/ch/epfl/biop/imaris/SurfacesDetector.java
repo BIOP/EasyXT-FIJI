@@ -127,7 +127,7 @@ public class SurfacesDetector {
             // Need to deal with a Lower Threshold Enabled TODO
             if (aSeedsEstimateDiameter == null) {
 
-                surfaces = EasyXT.getImarisApp().GetImageProcessing().DetectSurfacesWithUpperThreshold(aDataSet,
+                surfaces = EasyXT.Utils.getImarisApp().GetImageProcessing().DetectSurfacesWithUpperThreshold(aDataSet,
                         aRegionsOfInterest,
                         aChannelIndex,
                         aSmoothFilterWidth,
@@ -141,7 +141,7 @@ public class SurfacesDetector {
                         aSurfaceFiltersString);
             } else {
 
-                surfaces = EasyXT.getImarisApp().GetImageProcessing().DetectSurfacesRegionGrowingWithUpperThreshold(aDataSet,
+                surfaces = EasyXT.Utils.getImarisApp().GetImageProcessing().DetectSurfacesRegionGrowingWithUpperThreshold(aDataSet,
                         aRegionsOfInterest,
                         aChannelIndex,
                         aSmoothFilterWidth,
@@ -173,7 +173,7 @@ public class SurfacesDetector {
                 //		string  	aSurfaceFiltersString
                 //	)
 
-                surfaces = EasyXT.getImarisApp().GetImageProcessing().DetectSurfacesRegionGrowing(aDataSet,
+                surfaces = EasyXT.Utils.getImarisApp().GetImageProcessing().DetectSurfacesRegionGrowing(aDataSet,
                         aRegionsOfInterest,
                         aChannelIndex,
                         aSmoothFilterWidth,
@@ -198,7 +198,7 @@ public class SurfacesDetector {
                 //		string  	aSurfaceFiltersString
                 //	)
 
-                surfaces = EasyXT.getImarisApp().GetImageProcessing().DetectSurfaces(aDataSet,
+                surfaces = EasyXT.Utils.getImarisApp().GetImageProcessing().DetectSurfaces(aDataSet,
                         aRegionsOfInterest,
                         aChannelIndex,
                         aSmoothFilterWidth,
@@ -253,7 +253,7 @@ public class SurfacesDetector {
 
         private SurfacesDetectorBuilder(int channelIndex) throws Imaris.Error {
             // default values
-            aDataSet = EasyXT.getImarisApp().GetDataSet();
+            aDataSet = EasyXT.Utils.getImarisApp().GetDataSet();
             this.aChannelIndex = channelIndex;
         }
 

@@ -28,7 +28,7 @@ public class AddChildObjects {
             IDataContainerPrx myGroup = EasyXT.Scene.createGroup("Spots");
 
             // Adds it to the scene
-            EasyXT.Scene.addToScene(myGroup);
+            EasyXT.Scene.putItem(myGroup);
 
             // Makes a Spot Detector and detect them
             ISpotsPrx spots = EasyXT.Spots.create(2)
@@ -42,7 +42,7 @@ public class AddChildObjects {
                     .build().detect();
 
             // Adds the detected spots into the 'my_group' group
-            EasyXT.Scene.addToScene(spots, myGroup);
+            EasyXT.Scene.putItem(spots, myGroup);
 
         } catch (Error error) {
             System.out.println("ERROR:" + error.mDescription);

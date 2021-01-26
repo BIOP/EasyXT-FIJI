@@ -139,7 +139,7 @@ public class SpotsDetector {
             //	)
 
             if (aEstimateDiameterXYZ != null) { // look for ellipses
-                spots = EasyXT.getImarisApp().GetImageProcessing().DetectEllipticSpotsRegionGrowing(aDataSet,
+                spots = EasyXT.Utils.getImarisApp().GetImageProcessing().DetectEllipticSpotsRegionGrowing(aDataSet,
                         aRegionsOfInterest,
                         aChannelIndex,
                         aEstimateDiameterXYZ,
@@ -153,7 +153,7 @@ public class SpotsDetector {
 
             } else { // or simple spots
 
-                spots = EasyXT.getImarisApp().GetImageProcessing().DetectSpotsRegionGrowing(aDataSet,
+                spots = EasyXT.Utils.getImarisApp().GetImageProcessing().DetectSpotsRegionGrowing(aDataSet,
                         aRegionsOfInterest,
                         aChannelIndex,
                         aEstimateDiameter,
@@ -178,7 +178,7 @@ public class SpotsDetector {
 
             // TODO Understand what happens with the Map<String, String> with detectspots2
             if (aEstimateDiameterXYZ != null) { // look for ellipses
-                spots = EasyXT.getImarisApp().GetImageProcessing().DetectEllipticSpots(aDataSet,
+                spots = EasyXT.Utils.getImarisApp().GetImageProcessing().DetectEllipticSpots(aDataSet,
                         aRegionsOfInterest,
                         aChannelIndex,
                         aEstimateDiameterXYZ,
@@ -186,7 +186,7 @@ public class SpotsDetector {
                         aSpotFiltersString);
 
             } else { // or simple spots
-                spots = EasyXT.getImarisApp().GetImageProcessing().DetectSpots2(aDataSet,
+                spots = EasyXT.Utils.getImarisApp().GetImageProcessing().DetectSpots2(aDataSet,
                         aRegionsOfInterest,
                         aChannelIndex,
                         aEstimateDiameter,
@@ -241,7 +241,7 @@ public class SpotsDetector {
 
         private SpotsDetectorBuilder(int channelIndex) throws Error {
             // default values
-            aDataSet = EasyXT.getImarisApp().GetDataSet();
+            aDataSet = EasyXT.Utils.getImarisApp().GetDataSet();
             this.aChannelIndex = channelIndex;
         }
 

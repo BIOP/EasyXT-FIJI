@@ -38,10 +38,10 @@ public class MakeAndGetSpotsDemo {
                     .detect();
 
             // Adds the surface to the scene
-            EasyXT.Scene.addToScene(detected_spots);
+            EasyXT.Scene.putItem(detected_spots);
 
             // Gets an existing surface
-            ISpotsPrx got_spots = EasyXT.Spots.getSpots("My Spots");
+            ISpotsPrx got_spots = EasyXT.Spots.find("My Spots");
 
             ISpotsPrx detected_ellipticSpots = EasyXT.Spots.create(0)
                     .setName("My Elliptic Region Grown Spots")
@@ -59,11 +59,11 @@ public class MakeAndGetSpotsDemo {
                     .detect();
 
             // Adds the surface to the scene
-            EasyXT.Scene.addToScene(detected_ellipticSpots);
+            EasyXT.Scene.putItem(detected_ellipticSpots);
 
             // Display spots in Fiji
-            EasyXT.Spots.getSpotsMask(got_spots).show();
-            EasyXT.Spots.getSpotsLabel(got_spots).show();
+            EasyXT.Spots.getMaskImage(got_spots).show();
+            EasyXT.Spots.getLabelsImage(got_spots).show();
 
         } catch (Error error) {
             error.printStackTrace();

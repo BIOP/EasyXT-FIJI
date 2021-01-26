@@ -49,8 +49,8 @@ private static String mode = "Test Mode";
     }
 
     @Test
-    public void SendNewSurfaceDemo() throws Exception {
-        ModifySurfaceDemo.main(mode);
+    public void MakeSurfaceFromMaskDemo() throws Exception {
+        MakeSurfaceFromMaskDemo.main(mode);
     }
 
 }

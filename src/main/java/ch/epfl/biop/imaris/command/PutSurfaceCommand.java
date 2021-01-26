@@ -18,11 +18,8 @@ public class PutSurfaceCommand implements Command {
     public void run() {
         // Using the Image Name as a key to access the surface
         try {
-            ISurfacesPrx surfprx = EasyXT.Surfaces.getSurfaces(surface_imp.getTitle());
-            //IDataSetPrx dataset = EasyXT.getSurfaceDataset(surfprx);
-            //surfprx.RemoveAllSurfaces();
-            EasyXT.Surfaces.setSurfacesMask(surfprx, surface_imp);
-            //surfprx.AddSurface(dataset,0);
+            ISurfacesPrx surface = EasyXT.Surfaces.makeFromMask(surface_imp);
+            EasyXT.Scene.putItem(surface);
         } catch (Error error) {
             error.printStackTrace();
         }

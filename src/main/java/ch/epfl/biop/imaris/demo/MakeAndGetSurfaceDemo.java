@@ -37,13 +37,13 @@ public class MakeAndGetSurfaceDemo {
                     .detect();
 
             // Adds the surface to the scene
-            EasyXT.Scene.addToScene(surface);
+            EasyXT.Scene.putItem(surface);
 
             // Gets an existing surface
-            surface = EasyXT.Scene.getSurfaces("My Surface");
+            surface = EasyXT.Scene.findSurfaces("My Surface");
 
             // Display surfaces
-            EasyXT.Surfaces.getSurfacesMask(surface).show();
+            EasyXT.Surfaces.getMaskImage(surface).show();
 
         } catch (Error error) {
             System.out.println("ERROR:" + error.mDescription);

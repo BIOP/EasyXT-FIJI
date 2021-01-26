@@ -75,7 +75,7 @@ public class StatsQuery {
      * Extracts the selected statistic as a LinkedHashMap where the keys are the ID of the object
      * We keep the IDs as Longs as that is a _bit_ more compatible with Imaris.
      *
-     * @param results  the results table, usually an output from {@link EasyXT.Stats#getStatistics(IDataItemPrx)}
+     * @param results  the results table, usually an output from {@link EasyXT.Stats#export(IDataItemPrx)}
      * @param statName the name of the column, like "Circularity" or "Intensity Mean C1"
      * @return a map with eack keyset being the ID of the spot and the value of the statistic
      */
@@ -261,7 +261,7 @@ public class StatsQuery {
         Map<Long, Map<String, String>> statsById = new HashMap<>();
 
         // Name of object we are getting the statistics from
-        String imageName = new File(EasyXT.getOpenImageName()).getName();
+        String imageName = new File(EasyXT.Files.getOpenFileName()).getName();
         for (int i = 0; i < this.stats.mIds.length; i++) {
 
             boolean matchesName, matchesChannel, matchesTime, matchesID;

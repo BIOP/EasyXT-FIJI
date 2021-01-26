@@ -36,11 +36,11 @@ public class AddStatsDemo {
                 .setFilter("\"Quality\" above automatic threshold")
                 .build().detect();
 
-        EasyXT.Scene.addToScene(spots);
+        EasyXT.Scene.putItem(spots);
         //spots = EasyXT.getSpots( "My Spots" );
 
         // Get the spot statistics first before adding a new one
-        ResultsTable stats = EasyXT.Stats.getStatistics(spots, Arrays.asList("Intensity Mean"), Arrays.asList(1, 2));
+        ResultsTable stats = EasyXT.Stats.export(spots, Arrays.asList("Intensity Mean"), Arrays.asList(1, 2));
 
         // Compute the mean of the two channels in ImageJ from the results table
         for (int i = 0; i < stats.size(); i++) {
@@ -54,7 +54,7 @@ public class AddStatsDemo {
         stats.show("Some Stats");
 
         // Export the new statistic into a format that we can insert into Imaris
-        Map<Long, Map<String, Double>> means = EasyXT.Stats.extractStatistic(stats, "C1-C2 Mean");
+        Map<Long, Map<String, Double>> means = EasyXT.Stats.extract(stats, "C1-C2 Mean");
 
         // Finally, we should be able to add these as a new result
         EasyXT.Stats.create(spots, "C1-C2 Mean", means)

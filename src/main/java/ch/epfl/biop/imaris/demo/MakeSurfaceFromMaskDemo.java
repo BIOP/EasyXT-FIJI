@@ -11,17 +11,16 @@ import ij.gui.WaitForUserDialog;
 /**
  * EasyXT Demo
  * <p>
- * How to modify a surface in ImageJ and send a modified version to Imaris
+ * How to get a surface in ImageJ and send a modified version back to Imaris
  *
  * @author Romain Guiet
  * @author Nicolas Chiaruttini
- * <p>
- * October 2020
- * <p>
+ * @author Olivier Burri
+ * January 2021
  * EPFL - SV - PTECH - PTBIOP
  */
 
-public class ModifySurfaceDemo {
+public class MakeSurfaceFromMaskDemo {
 
     public static void main(String... args) throws Exception {
 
@@ -46,10 +45,11 @@ public class ModifySurfaceDemo {
                 new WaitForUserDialog("And sent back to Imaris ...").show();
             }
 
-            ISurfacesPrx surface = EasyXT.Surfaces.getAllSurfaces().get(0);
+            ISurfacesPrx surface = EasyXT.Surfaces.findAll().get(0);
 
-            EasyXT.Surfaces.setSurfacesMask(surface, surfaceIJ);
+            surface = EasyXT.Surfaces.makeFromMask(surfaceIJ);
 
+            EasyXT.Scene.putItem(surface);
             surfaceIJ.changes = false;
 
         } catch (Error error) {

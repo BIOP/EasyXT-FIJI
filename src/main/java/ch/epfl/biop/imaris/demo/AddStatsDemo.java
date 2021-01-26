@@ -10,15 +10,12 @@ import java.util.Map;
 
 /**
  * EasyXT Demo
- * <p>
  * Show how to add statistics from ImageJ/Fiji to Imaris
  *
  * @author Olivier Burri
  * @author Nicolas Chiaruttini
- * <p>
  * October 2020
- * <p>
- * EPFL - SV -PTECH - PTBIOP
+ * EPFL - SV - PTECH - PTBIOP
  */
 
 public class AddStatsDemo {
@@ -27,7 +24,7 @@ public class AddStatsDemo {
         // Fresh Start with the sample dataset
         FreshStartWithIJAndBIOPImsSample.main();
 
-        // Makes a surface detector and detect the surface
+        // Makes a spots detector and detect the spots
         ISpotsPrx spots = EasyXT.Spots.create(2)
                 .isSubtractBackground(true)
                 .setDiameter(1.0)
@@ -37,7 +34,6 @@ public class AddStatsDemo {
                 .build().detect();
 
         EasyXT.Scene.putItem(spots);
-        //spots = EasyXT.getSpots( "My Spots" );
 
         // Get the spot statistics first before adding a new one
         ResultsTable stats = EasyXT.Stats.export(spots, Arrays.asList("Intensity Mean"), Arrays.asList(1, 2));
@@ -51,7 +47,7 @@ public class AddStatsDemo {
         }
 
         // Update the stats in Fiji
-        stats.show("Some Stats");
+        stats.show("The Statistics Stats");
 
         // Export the new statistic into a format that we can insert into Imaris
         Map<Long, Map<String, Double>> means = EasyXT.Stats.extract(stats, "C1-C2 Mean");

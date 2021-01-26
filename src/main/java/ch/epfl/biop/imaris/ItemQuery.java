@@ -1,8 +1,8 @@
-/**
- * Copyright (c) 2020 Ecole Polytechnique Fédérale de Lausanne. All rights reserved.
+/*
+ * Copyright (c) 2021 Ecole Polytechnique Fédérale de Lausanne. All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * <p>
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this list of conditions
  * and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions
@@ -31,6 +31,8 @@ import java.util.logging.Logger;
 /**
  * ItemQuery is a class of EasyXT that handles searches in the surpass scene
  * This is used by EasyXT to locate objects and returns them.
+ * @author Olivier Burri
+ * @version 1.0
  */
 public class ItemQuery {
     private IDataContainerPrx itemParent = null;

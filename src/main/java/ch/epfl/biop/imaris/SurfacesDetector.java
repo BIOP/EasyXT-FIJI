@@ -1,8 +1,8 @@
-/**
- * Copyright (c) 2020 Ecole Polytechnique Fédérale de Lausanne. All rights reserved.
+/*
+ * Copyright (c) 2021 Ecole Polytechnique Fédérale de Lausanne. All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * <p>
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this list of conditions
  * and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions
@@ -27,12 +27,10 @@ import Imaris.ISurfacesPrx;
 
 /**
  * Helper functions for surface detection in Imaris
- * <p>
  * With the use of a builder pattern, this class combines the following Imaris functions :
  * - DetectSurfaces
  * - DetectSurfaceRegionGrowing TODO: implement and explain how the builder switch or not to this function
  * - DetectSurfacesRegionGrowingWithUpperThreshold TODO: implement and explain how the builder switch or not to this function
- * <p>
  * The Builder is tuned to allow for an invisible switch between these functions depending on the builder methods calls
  * If an upper threshold is set {
  * calling DetectSurfacesRegionGrowingWithUpperThreshold
@@ -41,17 +39,14 @@ import Imaris.ISurfacesPrx;
  * } else {
  * calling DetectSurfaces
  * }
- *
  * @author Nicolas Chiaruttini
  * @author Olivier Burri
- * <p>
- * BIOP, EPFL,  Jan 2020
- * <p>
+ * @version 1.0
+ * BIOP, EPFL, Jan 2020
  * Useful links:
  * file:///C:/Program%20Files/Bitplane/Imaris%20x64%209.5.1/html/xtinterface/structImaris_1_1IImageProcessing.html
  * file:///C:/Program%20Files/Bitplane/Imaris%20x64%209.5.1/html/xtinterface/structImaris_1_1IImageProcessing.html#a41275043bc718252958bce85f4d4561a
  */
-
 public class SurfacesDetector {
 
     // Fields from Imaris API - DetectSurfaces
@@ -310,7 +305,7 @@ public class SurfacesDetector {
         /**
          * @param aIntensityLowerThresholdManual , corresponds to "Manual Threshold Value" in the "Creation Parameters"
          *                                       (in the "Creation" tab of a completed surface)
-         * @return
+         * @return the builder for detecting surfaces
          */
 
         public SurfacesDetectorBuilder setLowerThreshold(double aIntensityLowerThresholdManual) {

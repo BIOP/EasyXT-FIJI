@@ -1,8 +1,8 @@
-/**
- * Copyright (c) 2020 Ecole Polytechnique Fédérale de Lausanne. All rights reserved.
+/*
+ * Copyright (c) 2021 Ecole Polytechnique Fédérale de Lausanne. All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * <p>
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this list of conditions
  * and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions
@@ -38,7 +38,7 @@ import java.util.stream.Collectors;
  * See the example uses in the source code of {@link ch.epfl.biop.imaris.demo.GetStatisticsDemo}
  *
  * @author Olivier Burri
- * @version 0.1
+ * @version 1.0
  */
 public class StatsQuery {
     private static final List<String> firstColumns = Arrays.asList("Label", "Name", "ID", "Timepoint", "Category");
@@ -105,7 +105,7 @@ public class StatsQuery {
      * These are the IDs as per Imaris's ID value in the GUI
      *
      * @param id the ID to recover statistics from
-     * @return
+     * @return the same StatsQuery object to continue configuration
      */
     public StatsQuery selectId(final Integer id) {
         this.ids.add(id.longValue());
@@ -115,8 +115,8 @@ public class StatsQuery {
     /**
      * Will force StatsQuery to use the given ResultsTable and append to it
      *
-     * @param rt
-     * @return
+     * @param rt the results table to which results will be appended
+     * @return the same StatsQuery object to continue configuration
      */
     public StatsQuery resultsTable(ResultsTable rt) {
         this.results = rt;
@@ -127,7 +127,7 @@ public class StatsQuery {
      * Allows to set a list of IDs from which to get statistics from
      *
      * @param ids the list of spot or surface IDs to recover statistics from
-     * @return
+     * @return the same StatsQuery object to continue configuration
      */
     public StatsQuery selectIds(final List<Integer> ids) {
         this.ids.addAll(ids.stream().map(id -> id.longValue()).collect(Collectors.toList()));
@@ -140,7 +140,7 @@ public class StatsQuery {
      * StatsQuery#selectChannels(List)} and {@link StatsQuery#selectChannel(Integer)} to specify channels
      *
      * @param name the name of the statistic to recover as it appears in the Imaris GUI.
-     * @return
+     * @return the same StatsQuery object to continue configuration
      */
     public StatsQuery selectStatistic(final String name) {
         this.names.add(name);
@@ -151,7 +151,7 @@ public class StatsQuery {
      * Allows to set a list of IDs from which to get statistics from
      *
      * @param names the list of statistic names to recover as they appear in the Imaris GUI
-     * @return
+     * @return the same StatsQuery object to continue configuration
      */
     public StatsQuery selectStatistics(final List<String> names) {
         this.names.addAll(names);
@@ -162,8 +162,8 @@ public class StatsQuery {
      * Allows to select the timepoint of the statistics to export. 0-based
      * Careful. Imaris results are one-based for timepoints
      *
-     * @param timepoint the timepoint
-     * @return
+     * @param timepoint the timpoint to get the stats from. One-based
+     * @return the same StatsQuery object to continue configuration
      */
     public StatsQuery selectTime(final Integer timepoint) {
         this.timepoints.add(timepoint.toString());
@@ -174,8 +174,8 @@ public class StatsQuery {
      * Allows to set a list of timepoints from which to get statistics from
      * Careful. Imaris results are one-based for timepoints
      *
-     * @param timepoints
-     * @return
+     * @param timepoints the timpoints to get the stats from. One-based
+     * @return the same StatsQuery object to continue configuration
      */
     public StatsQuery selectTimes(final List<Integer> timepoints) {
         this.timepoints = timepoints.stream().map(t -> t.toString()).collect(Collectors.toList());
@@ -186,8 +186,8 @@ public class StatsQuery {
      * Allows to select the channel from which to get statistics from
      * Careful. Imaris results are one-based for channels
      *
-     * @param channel
-     * @return
+     * @param channel the channel to get the stats from. One-based
+     * @return the same StatsQuery object to continue configuration
      */
     public StatsQuery selectChannel(Integer channel) {
         if (channel > 0) this.channels.add(channel.toString());
@@ -198,8 +198,8 @@ public class StatsQuery {
      * Allows to set a list of channels from which to get statistics from
      * Careful. Imaris results are one-based for channels
      *
-     * @param channels
-     * @return
+     * @param channels a list of channels to get the stats from (one based)
+     * @return the same StatsQuery object to continue configuration
      */
     public StatsQuery selectChannels(final List<Integer> channels) {
         this.channels = channels.stream().map(c -> c.toString()).collect(Collectors.toList());
@@ -210,7 +210,7 @@ public class StatsQuery {
      * Allows appending results from a previous run
      *
      * @param results a results table from ImageJ or from a finished StatsQuery
-     * @return
+     * @return the same StatsQuery object to continue configuration
      */
     public StatsQuery appendTo(ResultsTable results) {
         for (int i = 0; i < results.size(); i++) {
@@ -250,7 +250,7 @@ public class StatsQuery {
      * NOTE: We ignore statistics without IDs (average values in Imaris) as we assume we can get them outside of Imaris
      *
      * @return the resultsTable with all requested statistics
-     * @throws Error
+     * @throws Error an Imaris Error
      */
     public ResultsTable get() throws Error {
         // identify what we need

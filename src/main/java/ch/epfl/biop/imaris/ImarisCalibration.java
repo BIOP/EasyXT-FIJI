@@ -1,5 +1,5 @@
-/**
- * Copyright (c) 2020 Ecole Polytechnique Fédérale de Lausanne. All rights reserved.
+/*
+ * Copyright (c) 2021 Ecole Polytechnique Fédérale de Lausanne. All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
  *
@@ -23,12 +23,18 @@ package ch.epfl.biop.imaris;
 
 import Imaris.Error;
 import Imaris.IDataSetPrx;
+import ij.ImagePlus;
 import ij.measure.Calibration;
+
+import java.util.Objects;
 
 /**
  * Extension of ImageJ calibration:
  * Easy way to set ImageJ calibration from an Imaris dataset
  * by using a custom constructor
+ * @author Olivier Burri
+ * @author Nicolas Chiaruttini
+ * @version 1.0
  */
 public class ImarisCalibration extends Calibration {
     public final double xEnd, yEnd, zEnd;
@@ -36,8 +42,6 @@ public class ImarisCalibration extends Calibration {
     public float[] cMin, cMax;
     public int[] cColorsRGBA;
     public String[] cNames;
-    public int bitDepth;
-
     public ImarisCalibration( IDataSetPrx dataset ) throws Error {
 
         // I know it's supposed to be pixels... BUT
@@ -78,6 +82,7 @@ public class ImarisCalibration extends Calibration {
             cColorsRGBA[c] = dataset.GetChannelColorRGBA(c);
             cNames[c] = dataset.GetChannelName(c);
         }
+
     }
 
     public ImarisCalibration getDownsampled( double downsample ) {
@@ -95,5 +100,12 @@ public class ImarisCalibration extends Calibration {
         return new_calibration;
     }
 
-
+    /**
+     * Compares this calibration to the provided image. Returns true if size in XYCZT is the same as the image
+     * @param imp the image to compare the dimensions of
+     * @return true if the current calibration and the image match in XYCZT
+     */
+    public boolean isSameSize(ImagePlus imp) {
+        return xSize == imp.getWidth() && ySize == imp.getHeight() && zSize == imp.getNSlices() && cSize == imp.getNChannels() && tSize == imp.getNFrames();
+    }
 }

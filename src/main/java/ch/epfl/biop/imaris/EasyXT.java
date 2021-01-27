@@ -119,13 +119,93 @@ public class EasyXT {
     }
 
     /**
-     * Main methods for debugging EasyXT
+     * Main method for debugging EasyXT
      *
-     * @param args
+     * @param args optional parameters
      */
     public static void main(String... args) {
         ImageJ ij = new ImageJ();
         ij.ui().showUI();
+    }
+    /**
+     * This subclass contains methods to open images in Imaris
+     * There are also methods to find all the demo Images from Imaris
+     */
+    public static class Files {
+        /**
+         * overloaded method, see {@link #openImage(File, String)}
+         *
+         * @param filepath to an *.ims file
+         * @throws Error an Imaris Error
+         */
+        public static void openImage(File filepath) throws Error {
+            openImage(filepath, "");
+        }
+
+        /**
+         * openImage, opens the file from filepath in a new imaris scene
+         *
+         * @param filepath path  to an *.ims file
+         * @param options  option string cf : xtinterface/structImaris_1_1IApplication.html/FileOpen
+         * @throws Error an Imaris Error
+         */
+        public static void openImage(File filepath, String options) throws Error {
+            if (!filepath.exists()) {
+                log.severe(filepath + "doesn't exist");
+                throw new Error();
+            }
+
+            if (!filepath.isFile()) {
+                log.severe(filepath + "is not a file");
+                throw new Error();
+            }
+
+            if (!filepath.getName().endsWith("ims")) {
+                log.severe(filepath + "is not an imaris file, please convert your image first");
+                throw new Error();
+            }
+
+            // All sanity checks passed, open the file
+            Utils.getImarisApp().FileOpen(filepath.getAbsolutePath(), options);
+
+        }
+
+        /**
+         * overloaded method , see {@link #saveImage(File, String)}
+         *
+         * @param filepath path to save ims file
+         * @throws Error an Imaris Error
+         */
+        public static void saveImage(File filepath) throws Error {
+            saveImage(filepath, "");
+        }
+
+        /**
+         * Saves the current imaris scene to an imaris file
+         *
+         * @param filepath path to save ims file
+         * @param options  option string cf : xtinterface/structImaris_1_1IApplication.html/FileSave eg writer="BMPSeries".
+         *                 List of formats available: Imaris5, Imaris3, Imaris2,SeriesAdjustable, TiffSeriesRGBA, ICS,
+         *                 OlympusCellR, OmeXml, BMPSeries, MovieFromSlices.
+         * @throws Error an Imaris Error
+         */
+        public static void saveImage(File filepath, String options) throws Error {
+            if (!filepath.getName().endsWith("ims")) {
+                filepath = new File(filepath.getAbsoluteFile() + ".ims");
+                log.info("Saved as : " + filepath.getAbsoluteFile());
+            }
+            Utils.getImarisApp().FileSave(filepath.getAbsolutePath(), options);
+        }
+
+        /**
+         * Gets the name of the currently open imaris file, as shown on the top of the Imaris window
+         *
+         * @return the name of the currently open imaris file
+         * @throws Error an Imaris Error
+         */
+        public static String getOpenFileName() throws Error {
+            return new File(Utils.getImarisApp().GetCurrentFileName()).getName();
+        }
     }
 
     /**
@@ -224,121 +304,11 @@ public class EasyXT {
     }
 
     /**
-     * This internal class contains methods that normally do not need to be used and are mostly internal
-     */
-    public static class Utils {
-        /**
-         * Returns instance of Imaris App
-         * This is so you can access the Imaris API functionalities directly.
-         *
-         * @return an Imaris Application connection.
-         */
-        public static IApplicationPrx getImarisApp() {
-            return APP;
-        }
-
-        /**
-         * casts each Imaris Object to its right Class for easier downstream processing Not sure if this is needed but have
-         * not tested without
-         *
-         * @param item the item to return the specific class of
-         * @return the same item but cast to its appropriate subclass
-         * @throws Error an Imaris Error Object
-         */
-        static IDataItemPrx castToType(ObjectPrx item) throws Error {
-            IFactoryPrx factory = getImarisApp().GetFactory();
-
-            if (factory.IsSpots(item)) {
-                return factory.ToSpots(item);
-            }
-            if (factory.IsSurfaces(item)) {
-                return factory.ToSurfaces(item);
-            }
-            if (factory.IsVolume(item)) {
-                return factory.ToVolume(item);
-            }
-            if (factory.IsLightSource(item)) {
-                return factory.ToLightSource(item);
-            }
-            if (factory.IsFrame(item)) {
-                return factory.ToFrame(item);
-            }
-            if (factory.IsDataContainer(item)) {
-                return factory.ToDataContainer(item);
-            }
-            return null;
-        }
-
-        /**
-         * Recover a Color for use to set ImagePlus LUTs
-         *
-         * @param color the Imaris Color descriptor
-         * @return the Java Color
-         */
-        public static Color getColorFromInt(int color) {
-            byte[] bytes = ByteBuffer.allocate(4).putInt(color).array();
-            int[] colorArray = new int[3];
-            colorArray[0] = bytes[3] & 0xFF;
-            colorArray[1] = bytes[2] & 0xFF;
-            colorArray[2] = bytes[1] & 0xFF;
-            return getColorIntFromIntArray(colorArray);
-        }
-
-        public static int getRGBAColor(Color color) {
-            return color.getRed() + 256*color.getGreen() + 256*256*color.getBlue();
-        }
-
-        /**
-         * recover an RGB color for use with ImageJ from a 3 element (R,G,B) array
-         *
-         * @param color the Java Color
-         * @return the java color object to use in ImageJ
-         */
-        public static Color getColorIntFromIntArray(int[] color) {
-
-            if (color.length < 3) {
-                log.warning("You did not provide enough colors. need 3. Returning white.");
-                return new Color(255, 255, 255);
-            }
-            return new Color(color[0], color[1], color[2]);
-        }
-
-        /**
-         * returns the Imaris enum value corresponding to the requested bit depth
-         * Mostly useful internally when creating dataets
-         * @param bitDepth the bitdepth (8,16 or 32)
-         * @return the corresponding Imaris bit depth type
-         */
-        private static tType getImarisDatasetType(int bitDepth) {
-            switch (bitDepth) {
-                case 8:
-                    return tType.eTypeUInt8;
-                case 16:
-                    return tType.eTypeUInt16;
-                case 32:
-                    return tType.eTypeFloat;
-                default:
-                    return tType.eTypeUnknown;
-            }
-        }
-    }
-
-    /**
      * This class handles all queries to the surpass scene and to its related Items
      * Method to find spots, surfaces, groups, or arbitrary objects are found inside
      * Methods to get or set item names
      */
     public static class Scene {
-
-        /**
-         * Returns a reference to the Surpass Scene, which is basically the Parent Group
-         *
-         * @return the first object of the Imaris Scene. The Scene itself
-         * @throws Error an Imaris Error
-         */
-        public static IDataContainerPrx getScene() throws Error {
-            return Utils.getImarisApp().GetSurpassScene();
-        }
 
         /**
          * Returns the name of the item, prepended by the name of all parent items
@@ -361,6 +331,16 @@ public class EasyXT {
             }
 
             return finalName;
+        }
+
+        /**
+         * Returns a reference to the Surpass Scene, which is basically the Parent Group
+         *
+         * @return the first object of the Imaris Scene. The Scene itself
+         * @throws Error an Imaris Error
+         */
+        public static IDataContainerPrx getScene() throws Error {
+            return Utils.getImarisApp().GetSurpassScene();
         }
 
         /**
@@ -387,6 +367,19 @@ public class EasyXT {
         }
 
         /**
+         * Return the first item with the selected name inside the surpass scene
+         * Returns null if not found
+         *
+         * @param name the name of the item to find
+         * @return the requested item, null if not found
+         * @throws Error an Imaris Error Object
+         */
+        public static IDataItemPrx findItem(String name) throws Error {
+            // If you use parent as null, it is the same as getImarisApp.GetSurpassScene()
+            return findItem(name, Scene.getScene());
+        }
+
+        /**
          * Return the first item with the selected name inside the given parent object
          * Returns null if not found
          *
@@ -403,16 +396,15 @@ public class EasyXT {
         }
 
         /**
-         * Return the first item with the selected name inside the surpass scene
-         * Returns null if not found
+         * returns the first spots object in the main surpass scene with the given name
          *
-         * @param name the name of the item to find
-         * @return the requested item, null if not found
+         * @param name the name of the spots object to get. Returns the first spots object if there are multiple spots with
+         *             the same name (Don't do that)
+         * @return the requested spots, null if not found
          * @throws Error an Imaris Error Object
          */
-        public static IDataItemPrx findItem(String name) throws Error {
-            // If you use parent as null, it is the same as getImarisApp.GetSurpassScene()
-            return findItem(name, Scene.getScene());
+        public static ISpotsPrx findSpots(String name) throws Error {
+            return findSpots(name, Scene.getScene());
         }
 
         /**
@@ -434,16 +426,8 @@ public class EasyXT {
             return (ISpotsPrx) query.findFirst();
         }
 
-        /**
-         * returns the first spots object in the main surpass scene with the given name
-         *
-         * @param name the name of the spots object to get. Returns the first spots object if there are multiple spots with
-         *             the same name (Don't do that)
-         * @return the requested spots, null if not found
-         * @throws Error an Imaris Error Object
-         */
-        public static ISpotsPrx findSpots(String name) throws Error {
-            return findSpots(name, Scene.getScene());
+        public static ISurfacesPrx findSurfaces(String name) throws Error {
+            return findSurfaces(name, Scene.getScene());
         }
 
         /**
@@ -459,10 +443,6 @@ public class EasyXT {
             ItemQuery query = new ItemQuery.ItemQueryBuilder().setName(name).setParent(parent).setType("Surfaces").build();
 
             return (ISurfacesPrx) query.findFirst();
-        }
-
-        public static ISurfacesPrx findSurfaces(String name) throws Error {
-            return findSurfaces(name, Scene.getScene());
         }
 
         /**
@@ -636,8 +616,19 @@ public class EasyXT {
         /**
          * returns the requested group from the surpass scene or null if empty
          *
+         * @param groupName the name of the Group to find
+         * @return the requested Group, null otherwise
+         * @throws Error an Imaris Error
+         */
+        public static IDataContainerPrx findGroup(String groupName) throws Error {
+            return findGroup(groupName, EasyXT.Scene.getScene());
+        }
+
+        /**
+         * returns the requested group from the surpass scene or null if empty
+         *
          * @param groupName the name of the group to Find
-         * @param parent the parent group to start the search from
+         * @param parent    the parent group to start the search from
          * @return the requested Group, null otherwise
          * @throws Error an Imaris Error
          */
@@ -653,22 +644,11 @@ public class EasyXT {
         }
 
         /**
-         * returns the requested group from the surpass scene or null if empty
-         *
-         * @param groupName the name of the Group to find
-         * @return the requested Group, null otherwise
-         * @throws Error an Imaris Error
-         */
-        public static IDataContainerPrx findGroup(String groupName) throws Error {
-            return findGroup(groupName, EasyXT.Scene.getScene());
-        }
-
-        /**
          * Selects the given item on the Imaris Surpass Scene GUI.
          *
          * @param item the item to select on the scene. Does not matter if it is in a group. Imaris finds it
          * @throws Error an Imaris Error
-        */
+         */
         public static void selectItem(IDataItemPrx item) throws Error {
             Utils.getImarisApp().SetSurpassSelection(item);
         }
@@ -681,6 +661,7 @@ public class EasyXT {
     public static class Dataset {
         /**
          * The the calibration information from the current dataset. This includes extents, pixel size, channel names
+         *
          * @return an ImarisCalibration
          */
         public static ImarisCalibration getCalibration() throws Error {
@@ -689,82 +670,50 @@ public class EasyXT {
 
         /**
          * The the calibration information from a dataset. This includes extents, pixel size, channel names
+         *
          * @param dataset the dataset to extract calibration information from
          * @return an ImarisCalibration
          */
-        public static ImarisCalibration getCalibration( IDataSetPrx dataset) throws Error {
+        public static ImarisCalibration getCalibration(IDataSetPrx dataset) throws Error {
             return new ImarisCalibration(dataset);
         }
+
+        /**
+         * Convenience method to return the currently active dataset
+         *
+         * @return a IDatasetPrx object containing a reference to all the pixel data
+         * @throws Error an Imaris Error Object
+         */
+        public static IDataSetPrx getCurrent() throws Error {
+            return Utils.getImarisApp().GetDataSet();
+        }
+
+        /**
+         * Convenience method to set/replace the current dataset within the current Imaris scene with the one provided
+         *
+         * @param dataset a IDataSetPrx object containing a reference to all the pixel data
+         * @throws Error an Imaris Error Object
+         */
+        public static void setCurrent(IDataSetPrx dataset) throws Error {
+            Utils.getImarisApp().SetDataSet(dataset);
+        }
+
         /**
          * Creates a new dataset with the right shape and calibration information
+         *
          * @param calibration a calibration object with the bounds and dimensions of the desired dataset
          * @return the new shaped dataset
          * @throws Error an Imaris Error
          */
-        public static IDataSetPrx create(ImarisCalibration calibration, int bitDepth) throws Error{
+        public static IDataSetPrx create(ImarisCalibration calibration, int bitDepth) throws Error {
             IDataSetPrx dataset = EasyXT.Utils.getImarisApp().GetFactory().CreateDataSet();
             return matchDimensionsFromCalibration(dataset, calibration, bitDepth);
         }
 
         /**
-         * Creates a new dataset with the right shape and calibration information
-         * @param imp an ImagePlus with the desired shape
-         * @return the new shaped dataset
-         * @throws Error an Imaris Error
-         */
-        public static IDataSetPrx create(ImagePlus imp) throws Error{
-            IDataSetPrx dataset = EasyXT.Utils.getImarisApp().GetFactory().CreateDataSet();
-            matchDimensionsFromImagePlus(dataset, imp);
-            setFromImagePlus(dataset, imp);
-            return dataset;
-        }
-
-        /**
          * Will set the dataset to match the sizes and positions of this calibration. Useful when creating datasets
          *
-         * @param dataset the dataset to modify
-         * @param imp the imagePlus to use as reference
-         * @throws Error
-         */
-        public static IDataSetPrx matchDimensionsFromImagePlus(IDataSetPrx dataset, ImagePlus imp) throws Error {
-
-            Calibration cal = imp.getCalibration();
-
-            // Note that Imaris dataset creation order is XYZCT, and ImageJ is usually XYCZT
-            dataset.Create(Utils.getImarisDatasetType(imp.getBitDepth()),
-                    imp.getWidth(),
-                    imp.getHeight(),
-                    imp.getNSlices(),
-                    imp.getNChannels(),
-                    imp.getNFrames());
-
-            dataset.SetExtendMinX((float) cal.xOrigin);
-            dataset.SetExtendMinY((float) cal.yOrigin);
-            dataset.SetExtendMinZ((float) cal.yOrigin);
-
-            dataset.SetExtendMaxX((float) (cal.xOrigin + (imp.getWidth()) * cal.pixelWidth));
-            dataset.SetExtendMaxY((float) (cal.yOrigin + (imp.getHeight()) * cal.pixelHeight));
-            dataset.SetExtendMaxZ((float) (cal.zOrigin + (imp.getNSlices()) * cal.pixelDepth));
-
-            // Set channel color and range for dataset
-            for(int c=0; c<imp.getNChannels(); c++) {
-                imp.setC(c+1);
-                // Set the color based on the last color in the LUT of this image
-                if( imp instanceof CompositeImage) {
-                    CompositeImage cimp = (CompositeImage) imp;
-                    cimp.setC(c+1);
-                    Color color = cimp.getChannelColor();
-                    dataset.SetChannelColorRGBA(c, Utils.getRGBAColor(color));
-                }
-                dataset.SetChannelRange(c, (float) imp.getDisplayRangeMin(), (float) imp.getDisplayRangeMax());
-            }
-            return dataset;
-        }
-
-        /**
-         * Will set the dataset to match the sizes and positions of this calibration. Useful when creating datasets
-         *
-         * @param dataset the dataset to modify
+         * @param dataset     the dataset to modify
          * @param calibration the calibration to base it off
          * @throws Error
          */
@@ -793,6 +742,126 @@ public class EasyXT {
             }
 
             return dataset;
+        }
+
+        /**
+         * Creates a new dataset with the right shape and calibration information
+         *
+         * @param imp an ImagePlus with the desired shape
+         * @return the new shaped dataset
+         * @throws Error an Imaris Error
+         */
+        public static IDataSetPrx create(ImagePlus imp) throws Error {
+            IDataSetPrx dataset = EasyXT.Utils.getImarisApp().GetFactory().CreateDataSet();
+            matchDimensionsFromImagePlus(dataset, imp);
+            setFromImagePlus(dataset, imp);
+            return dataset;
+        }
+
+        /**
+         * Will set the dataset to match the sizes and positions of this calibration. Useful when creating datasets
+         *
+         * @param dataset the dataset to modify
+         * @param imp     the imagePlus to use as reference
+         * @throws Error
+         */
+        public static IDataSetPrx matchDimensionsFromImagePlus(IDataSetPrx dataset, ImagePlus imp) throws Error {
+
+            Calibration cal = imp.getCalibration();
+
+            // Note that Imaris dataset creation order is XYZCT, and ImageJ is usually XYCZT
+            dataset.Create(Utils.getImarisDatasetType(imp.getBitDepth()),
+                    imp.getWidth(),
+                    imp.getHeight(),
+                    imp.getNSlices(),
+                    imp.getNChannels(),
+                    imp.getNFrames());
+
+            dataset.SetExtendMinX((float) cal.xOrigin);
+            dataset.SetExtendMinY((float) cal.yOrigin);
+            dataset.SetExtendMinZ((float) cal.yOrigin);
+
+            dataset.SetExtendMaxX((float) (cal.xOrigin + (imp.getWidth()) * cal.pixelWidth));
+            dataset.SetExtendMaxY((float) (cal.yOrigin + (imp.getHeight()) * cal.pixelHeight));
+            dataset.SetExtendMaxZ((float) (cal.zOrigin + (imp.getNSlices()) * cal.pixelDepth));
+
+            // Set channel color and range for dataset
+            for (int c = 0; c < imp.getNChannels(); c++) {
+                imp.setC(c + 1);
+                // Set the color based on the last color in the LUT of this image
+                if (imp instanceof CompositeImage) {
+                    CompositeImage cimp = (CompositeImage) imp;
+                    cimp.setC(c + 1);
+                    Color color = cimp.getChannelColor();
+                    dataset.SetChannelColorRGBA(c, Utils.getRGBAColor(color));
+                }
+                dataset.SetChannelRange(c, (float) imp.getDisplayRangeMin(), (float) imp.getDisplayRangeMax());
+            }
+            return dataset;
+        }
+
+        /**
+         * Set data from an ImagePlus image into a dataset
+         *
+         * @param dataset the dataset to insert the imagePlus into
+         * @throws Error an Imaris Error Object
+         */
+        public static void setFromImagePlus(IDataSetPrx dataset, ImagePlus imp) throws Error {
+
+            ImarisCalibration cal = new ImarisCalibration(dataset);
+
+            // Sanity check, ImagePlus should be the same size as dataset
+            if (!cal.isSameSize(imp))
+                throw new Error("Inconsistent Sizes", "ImagePlus does not have the same dimensions as dataset", "");
+
+            int w = cal.xSize;
+            int h = cal.ySize;
+
+            int nc = cal.cSize;
+            int nz = cal.zSize;
+            int nt = cal.tSize;
+
+            int dBitDepth = getBitDepth(dataset);
+            int iBitDepth = imp.getBitDepth();
+
+            // Ideally we need to convert the bit depth of the dataset to that of the ImagePlus
+            if (dBitDepth != iBitDepth) {
+                log.warning("Provided dataset bitdepth (" + dBitDepth + "-bit)differs from image bitdepth (" + iBitDepth + "-bit)");
+                log.warning("   dataset will be changed to (" + iBitDepth + " bits");
+                Dataset.setBitDepth(iBitDepth, dataset);
+                dBitDepth = iBitDepth;
+            }
+            for (int c = 0; c < nc; c++) {
+                for (int z = 0; z < nz; z++) {
+                    for (int t = 0; t < nt; t++) {
+                        int idx = imp.getStackIndex(c + 1, z + 1, t + 1);
+                        ImageProcessor ip = imp.getStack().getProcessor(idx);
+                        switch (dBitDepth) {
+                            case 8:
+                                dataset.SetDataSubVolumeAs1DArrayBytes(((byte[]) ip.getPixels()), 0, 0, z, c, t, w, h, 1);
+                                break;
+                            case 16:
+                                dataset.SetDataSubVolumeAs1DArrayShorts((short[]) ip.getPixels(), 0, 0, z, c, t, w, h, 1);
+                                break;
+                            case 32:
+                                dataset.SetDataSubVolumeAs1DArrayFloats((float[]) ip.getPixels(), 0, 0, z, c, t, w, h, 1);
+                                break;
+                        }
+                    }
+                }
+            }
+            // Set channel color and range for dataset
+            for (int c = 0; c < imp.getNChannels(); c++) {
+                imp.setC(c + 1);
+                // Set the color based on the last color in the LUT of this image
+                if (imp instanceof CompositeImage) {
+                    CompositeImage cimp = (CompositeImage) imp;
+                    cimp.setC(c + 1);
+                    Color color = cimp.getChannelColor();
+                    dataset.SetChannelColorRGBA(c, Utils.getRGBAColor(color));
+                }
+                dataset.SetChannelRange(c, (float) imp.getDisplayRangeMin(), (float) imp.getDisplayRangeMax());
+            }
         }
 
         /**
@@ -922,70 +991,8 @@ public class EasyXT {
         }
 
         /**
-         * Set data from an ImagePlus image into a dataset
-         *
-         * @param dataset the dataset to insert the imagePlus into
-         * @throws Error an Imaris Error Object
-         */
-        public static void setFromImagePlus(IDataSetPrx dataset, ImagePlus imp) throws Error {
-
-            ImarisCalibration cal = new ImarisCalibration(dataset);
-
-            // Sanity check, ImagePlus should be the same size as dataset
-            if (!cal.isSameSize(imp)) throw new Error("Inconsistent Sizes", "ImagePlus does not have the same dimensions as dataset", "");
-
-            int w = cal.xSize;
-            int h = cal.ySize;
-
-            int nc = cal.cSize;
-            int nz = cal.zSize;
-            int nt = cal.tSize;
-
-            int dBitDepth = getBitDepth(dataset);
-            int iBitDepth = imp.getBitDepth();
-
-            // Ideally we need to convert the bit depth of the dataset to that of the ImagePlus
-            if(dBitDepth != iBitDepth) {
-                log.warning("Provided dataset bitdepth ("+dBitDepth+"-bit)differs from image bitdepth ("+iBitDepth+"-bit)");
-                log.warning("   dataset will be changed to ("+iBitDepth+" bits");
-                Dataset.setBitDepth(iBitDepth, dataset);
-                dBitDepth = iBitDepth;
-            }
-            for (int c = 0; c < nc; c++) {
-                for (int z = 0; z < nz; z++) {
-                    for (int t = 0; t < nt; t++) {
-                        int idx = imp.getStackIndex(c + 1, z + 1, t + 1);
-                        ImageProcessor ip = imp.getStack().getProcessor(idx);
-                        switch (dBitDepth) {
-                            case 8:
-                                dataset.SetDataSubVolumeAs1DArrayBytes(((byte[]) ip.getPixels()), 0, 0, z, c, t, w, h, 1);
-                                break;
-                            case 16:
-                                dataset.SetDataSubVolumeAs1DArrayShorts((short[]) ip.getPixels(), 0, 0, z, c, t, w, h, 1);
-                                break;
-                            case 32:
-                                dataset.SetDataSubVolumeAs1DArrayFloats((float[]) ip.getPixels(), 0, 0, z, c, t, w, h, 1);
-                                break;
-                        }
-                    }
-                }
-            }
-            // Set channel color and range for dataset
-            for(int c=0; c<imp.getNChannels(); c++) {
-                imp.setC(c+1);
-                // Set the color based on the last color in the LUT of this image
-                if( imp instanceof CompositeImage) {
-                    CompositeImage cimp = (CompositeImage) imp;
-                    cimp.setC(c+1);
-                    Color color = cimp.getChannelColor();
-                    dataset.SetChannelColorRGBA(c, Utils.getRGBAColor(color));
-                }
-                dataset.SetChannelRange(c, (float) imp.getDisplayRangeMin(), (float) imp.getDisplayRangeMax());
-            }
-        }
-
-        /**
          * Possibility to add an extra dataset to the Imaris File
+         *
          * @param dataset
          * @param position
          * @throws Error
@@ -998,32 +1005,13 @@ public class EasyXT {
 
         /**
          * Possibility to get datasets other than the current dataset from the Imaris File
+         *
          * @param position
-         * @throws Error
          * @return the dataset at that position
+         * @throws Error
          */
         public static IDataSetPrx getDataset(int position) throws Error {
             return Utils.getImarisApp().GetImage(position);
-        }
-
-        /**
-         * Convenience method to return the currently active dataset
-         *
-         * @return a IDatasetPrx object containing a reference to all the pixel data
-         * @throws Error an Imaris Error Object
-         */
-        public static IDataSetPrx getCurrent() throws Error {
-            return Utils.getImarisApp().GetDataSet();
-        }
-
-        /**
-         * Convenience method to set/replace the current dataset within the current Imaris scene with the one provided
-         *
-         * @param dataset a IDataSetPrx object containing a reference to all the pixel data
-         * @throws Error an Imaris Error Object
-         */
-        public static void setCurrent(IDataSetPrx dataset) throws Error {
-            Utils.getImarisApp().SetDataSet(dataset);
         }
 
         /**
@@ -1044,17 +1032,6 @@ public class EasyXT {
 
             // Clear some memory
             dataset.Dispose();
-        }
-
-        /**
-         * Adds the selected ImagePlus to the provided IDatasetPrx by appending it as new channels
-         *
-         * @param imp     the image to add to the current dataset
-         * @param dataset the dataset to which to add the imageplus as channel(s)
-         * @throws Error an Imaris Error object
-         */
-        public static void addChannels(ImagePlus imp, IDataSetPrx dataset) throws Error {
-            addChannels(imp, dataset, 0, 0, 0, 0);
         }
 
         /**
@@ -1113,12 +1090,12 @@ public class EasyXT {
                     // We can convert
                     if (dBitDepth == 16) new ImageConverter(imp).convertToGray16();
                     if (dBitDepth == 32) new ImageConverter(imp).convertToGray32();
-                    log.warning("Image converted: "+imp.getBitDepth()+"-bit to match dataset bit depth ("+dBitDepth+"-bit)");
+                    log.warning("Image converted: " + imp.getBitDepth() + "-bit to match dataset bit depth (" + dBitDepth + "-bit)");
 
-                }else {
+                } else {
                     log.severe("ImagePlus has higher bit depth than dataset. Cannot convert");
-                    throw new Error("Bit depth Mismatch", "Image is "+iBitDepth+"-bit, dataset is "+dBitDepth+"-bit","");
-                    }
+                    throw new Error("Bit depth Mismatch", "Image is " + iBitDepth + "-bit, dataset is " + dBitDepth + "-bit", "");
+                }
             }
 
             // Issue warning in case voxel sizes do not match
@@ -1163,85 +1140,22 @@ public class EasyXT {
                 }
             }
         }
-    }
-
-    public static class Files {
-        /**
-         * openImage, opens the file from filepath in a new imaris scene
-         *
-         * @param filepath path  to an *.ims file
-         * @param options  option string cf : xtinterface/structImaris_1_1IApplication.html/FileOpen
-         * @throws Error an Imaris Error
-         */
-        public static void openImage(File filepath, String options) throws Error {
-            if (!filepath.exists()) {
-                log.severe(filepath + "doesn't exist");
-                throw new Error();
-            }
-
-            if (!filepath.isFile()) {
-                log.severe(filepath + "is not a file");
-                throw new Error();
-            }
-
-            if (!filepath.getName().endsWith("ims")) {
-                log.severe(filepath + "is not an imaris file, please convert your image first");
-                throw new Error();
-            }
-
-            // All sanity checks passed, open the file
-            Utils.getImarisApp().FileOpen(filepath.getAbsolutePath(), options);
-
-        }
 
         /**
-         * overloaded method, see {@link #openImage(File, String)}
+         * Adds the selected ImagePlus to the provided IDatasetPrx by appending it as new channels
          *
-         * @param filepath to an *.ims file
-         * @throws Error an Imaris Error
+         * @param imp     the image to add to the current dataset
+         * @param dataset the dataset to which to add the imageplus as channel(s)
+         * @throws Error an Imaris Error object
          */
-        public static void openImage(File filepath) throws Error {
-            openImage(filepath, "");
-        }
-
-        /**
-         * Saves the current imaris scene to an imaris file
-         *
-         * @param filepath path to save ims file
-         * @param options  option string cf : xtinterface/structImaris_1_1IApplication.html/FileSave eg writer="BMPSeries".
-         *                 List of formats available: Imaris5, Imaris3, Imaris2,SeriesAdjustable, TiffSeriesRGBA, ICS,
-         *                 OlympusCellR, OmeXml, BMPSeries, MovieFromSlices.
-         * @throws Error an Imaris Error
-         */
-        public static void saveImage(File filepath, String options) throws Error {
-            if (!filepath.getName().endsWith("ims")) {
-                filepath = new File(filepath.getAbsoluteFile() + ".ims");
-                log.info("Saved as : " + filepath.getAbsoluteFile());
-            }
-            Utils.getImarisApp().FileSave(filepath.getAbsolutePath(), options);
-        }
-
-        /**
-         * overloaded method , see {@link #saveImage(File, String)}
-         *
-         * @param filepath path to save ims file
-         * @throws Error an Imaris Error
-         */
-        public static void saveImage(File filepath) throws Error {
-            saveImage(filepath, "");
-        }
-
-        /**
-         * Gets the name of the currently open imaris file, as shown on the top of the Imaris window
-         *
-         * @return the name of the currently open imaris file
-         * @throws Error an Imaris Error
-         */
-        public static String getOpenFileName() throws Error {
-            return new File(Utils.getImarisApp().GetCurrentFileName()).getName();
+        public static void addChannels(ImagePlus imp, IDataSetPrx dataset) throws Error {
+            addChannels(imp, dataset, 0, 0, 0, 0);
         }
     }
 
+    /**
+     * This class contains all methods directly related to surfaces. Creation, search and conversion to and from images
+     */
     public static class Surfaces {
         /**
          * allows to create a surface {@link SurfacesDetector} object that runs the Imaris surface detection wizard
@@ -1325,6 +1239,27 @@ public class EasyXT {
         }
 
         /**
+         * Get surface mask instead of labels
+         *
+         * @param surface the surface to extract the mask from
+         * @return an 8-bit image with the surface masks
+         * @throws Error an Imaris Error
+         */
+        public static ImagePlus getMaskImage(ISurfacesPrx surface) throws Error {
+            ImagePlus masks = getLabelsImage(surface);
+
+            masks.getProcessor().setThreshold(1, Double.MAX_VALUE, ImageProcessor.NO_LUT_UPDATE);
+            Prefs.blackBackground = true;
+            IJ.run(masks, "Convert to Mask", "method=Default background=Dark black");
+            masks.setTitle(Scene.getName(surface) + "-Masks");
+
+            masks.setLut(LUT.createLutFromColor(Utils.getColorFromInt(surface.GetColorRGBA())));
+            masks.setDisplayRange(0, 255);
+
+            return masks;
+        }
+
+        /**
          * Get surfaces as fast as possible as labels
          *
          * @param surface a surface object see {@link Scene#findSurfaces(String)}
@@ -1352,73 +1287,9 @@ public class EasyXT {
 
             // the labelImage is 32 bit (because this makes it easier to user internally,
             // we can convert it here to the right bit depth to save memory
-            if ( maxSurfaceID < 256 ) new ImageConverter(labelImage).convertToGray8();
-            if ( maxSurfaceID < 65536 ) new ImageConverter(labelImage).convertToGray16();
+            if (maxSurfaceID < 256) new ImageConverter(labelImage).convertToGray8();
+            if (maxSurfaceID < 65536) new ImageConverter(labelImage).convertToGray16();
             return labelImage;
-        }
-
-        /**
-         * Get surface mask instead of labels
-         *
-         * @param surface the surface to extract the mask from
-         * @return an 8-bit image with the surface masks
-         * @throws Error an Imaris Error
-         */
-        public static ImagePlus getMaskImage(ISurfacesPrx surface) throws Error {
-            ImagePlus masks = getLabelsImage(surface);
-
-            masks.getProcessor().setThreshold(1, Double.MAX_VALUE, ImageProcessor.NO_LUT_UPDATE);
-            Prefs.blackBackground = true;
-            IJ.run(masks, "Convert to Mask", "method=Default background=Dark black");
-            masks.setTitle(Scene.getName(surface) + "-Masks");
-
-            masks.setLut(LUT.createLutFromColor(Utils.getColorFromInt(surface.GetColorRGBA())));
-            masks.setDisplayRange(0, 255);
-
-            return masks;
-        }
-
-        /**
-         * Returns the Surfaces as an Imaris Dataset.
-         * The difference with the direct Imaris API here is that this includes timepoints as well.
-         *
-         * @param surface the surface to extract the dataset from
-         * @return a dataset of the surface mask with all timpeoints included
-         * @throws Error an Imaris error
-         */
-        public static IDataSetPrx getMaskDataset(ISurfacesPrx surface) throws Error {
-            IDataSetPrx finalDataset = Dataset.getCurrent().Clone();
-            ImarisCalibration cal = new ImarisCalibration(finalDataset);
-
-            // Check if there are channels
-            finalDataset.SetSizeC(1);
-
-            Dataset.setBitDepth(8, finalDataset);
-
-            // Loop through each timepoint, and get the dataset, then replace
-            for (int t = 0; t < cal.tSize; t++) {
-                IDataSetPrx oneTimepoint = getMaskDataset(surface, 1.0, t);
-                finalDataset.SetDataVolumeAs1DArrayBytes(oneTimepoint.GetDataVolumeAs1DArrayBytes(0, 0), 0, t);
-            }
-            return finalDataset;
-        }
-
-        /**
-         * Returns an Imaris dataset with all surfaces as a mask for the given timepoint
-         * This method ensures that the surface dataset will be the same dimensions as the original dataset
-         * @param surface the surface to extract the dataset from
-         * @param downsample whether we want a downsampled version of the dataset (in x z and z)
-         * @param timepoint the timepoint (0-based) whose surface we want
-         * @return an Imaris binary dataset, where voxels in the surface have value 1
-         * @throws Error an Imaris Error
-         */
-        public static IDataSetPrx getMaskDataset(ISurfacesPrx surface, double downsample, int timepoint) throws Error {
-            ImarisCalibration cal = new ImarisCalibration(Utils.getImarisApp().GetDataSet()).getDownsampled(downsample);
-
-            IDataSetPrx data = surface.GetMask((float) cal.xOrigin, (float) cal.yOrigin, (float) cal.zOrigin,
-                    (float) cal.xEnd, (float) cal.yEnd, (float) cal.zEnd,
-                    cal.xSize, cal.ySize, cal.zSize, timepoint);
-            return data;
         }
 
         /**
@@ -1517,10 +1388,54 @@ public class EasyXT {
 
             return newLayout;
         }
+
+        /**
+         * Returns the Surfaces as an Imaris Dataset.
+         * The difference with the direct Imaris API here is that this includes timepoints as well.
+         *
+         * @param surface the surface to extract the dataset from
+         * @return a dataset of the surface mask with all timpeoints included
+         * @throws Error an Imaris error
+         */
+        public static IDataSetPrx getMaskDataset(ISurfacesPrx surface) throws Error {
+            IDataSetPrx finalDataset = Dataset.getCurrent().Clone();
+            ImarisCalibration cal = new ImarisCalibration(finalDataset);
+
+            // Check if there are channels
+            finalDataset.SetSizeC(1);
+
+            Dataset.setBitDepth(8, finalDataset);
+
+            // Loop through each timepoint, and get the dataset, then replace
+            for (int t = 0; t < cal.tSize; t++) {
+                IDataSetPrx oneTimepoint = getMaskDataset(surface, 1.0, t);
+                finalDataset.SetDataVolumeAs1DArrayBytes(oneTimepoint.GetDataVolumeAs1DArrayBytes(0, 0), 0, t);
+            }
+            return finalDataset;
+        }
+
+        /**
+         * Returns an Imaris dataset with all surfaces as a mask for the given timepoint
+         * This method ensures that the surface dataset will be the same dimensions as the original dataset
+         *
+         * @param surface    the surface to extract the dataset from
+         * @param downsample whether we want a downsampled version of the dataset (in x z and z)
+         * @param timepoint  the timepoint (0-based) whose surface we want
+         * @return an Imaris binary dataset, where voxels in the surface have value 1
+         * @throws Error an Imaris Error
+         */
+        public static IDataSetPrx getMaskDataset(ISurfacesPrx surface, double downsample, int timepoint) throws Error {
+            ImarisCalibration cal = new ImarisCalibration(Utils.getImarisApp().GetDataSet()).getDownsampled(downsample);
+
+            IDataSetPrx data = surface.GetMask((float) cal.xOrigin, (float) cal.yOrigin, (float) cal.zOrigin,
+                    (float) cal.xEnd, (float) cal.yEnd, (float) cal.zEnd,
+                    cal.xSize, cal.ySize, cal.zSize, timepoint);
+            return data;
+        }
     }
 
     /**
-     * This class contains all methods directly related to spots.
+     * This class contains all methods directly related to spots. Creation, search and conversion to and from images
      */
     public static class Spots {
         /**
@@ -1535,48 +1450,10 @@ public class EasyXT {
         }
 
         /**
-         * Create Spots object based on a list of coordinates, radii and timepoints
-         * @param coordinates the coordinates, in calibrated units in X Y Z
-         * @param radiiXYZ the radii for each spot in X Y Z
-         * @param timepoints the 0-based timepoints for each spot
-         * @return
-         * @throws Error
-         */
-        public static ISpotsPrx create(List<Point3D> coordinates, List<Point3D> radiiXYZ, List<Integer> timepoints) throws Error {
-            if (coordinates.size() != radiiXYZ.size() || coordinates.size() != timepoints.size() ) {
-                throw new Error("Inconsistent Sizes", "Coordinates, Radii and timepoints lists must be the same size", "");
-            }
-
-            // convert to match Imaris Library constructor
-            int n = coordinates.size();
-            int[] t = new int[n];
-
-            // Imaris Spots constructor only takes a single value radius for xyz, so we need to extract it for the initialization
-            float[] rad = new float[n];
-            float[][] coords = new float[n][];
-            float[][] rads = new float[n][];
-
-            for( int i=0; i<coordinates.size(); i++) {
-               Point3D p = coordinates.get(i);
-               Point3D r = radiiXYZ.get(i);
-               coords[i] = new float[] {p.getPoint3f().getX(), p.getPoint3f().getY(), p.getPoint3f().getZ()};
-               t[i] = timepoints.get(i).intValue();
-               rad[i] = radiiXYZ.get(i).getPoint3f().getX();
-               rads[i] = new float[] {r.getPoint3f().getX(), r.getPoint3f().getY(), r.getPoint3f().getZ()};
-            }
-
-            ISpotsPrx spots = Utils.getImarisApp().GetFactory().CreateSpots();
-            spots.Set(coords, t, rad);
-
-            // Radii can only be set in XYZ afterwards
-            spots.SetRadiiXYZ(rads);
-            return spots;
-        }
-
-        /**
          * Allows to create a spots object from the coordinate list at the given timepoint
          * Spots objects in Imaris cannot have more coordinates added afterwards
          * So spots for all timepoints should be made in advance and use {@link #create(List, List, List)} instead
+         *
          * @param coordinates
          * @param radiusXYZ
          * @param timepoint
@@ -1598,12 +1475,52 @@ public class EasyXT {
             return Spots.create(coordinates, radii, timepoints);
         }
 
-            /**
-             * Get all spots objects in the main scene as a list (not within a group)
-             *
-             * @return the properly cast spots as a list
-             * @throws Error an Imaris Error Object
-             */
+        /**
+         * Create Spots object based on a list of coordinates, radii and timepoints
+         *
+         * @param coordinates the coordinates, in calibrated units in X Y Z
+         * @param radiiXYZ    the radii for each spot in X Y Z
+         * @param timepoints  the 0-based timepoints for each spot
+         * @return
+         * @throws Error
+         */
+        public static ISpotsPrx create(List<Point3D> coordinates, List<Point3D> radiiXYZ, List<Integer> timepoints) throws Error {
+            if (coordinates.size() != radiiXYZ.size() || coordinates.size() != timepoints.size()) {
+                throw new Error("Inconsistent Sizes", "Coordinates, Radii and timepoints lists must be the same size", "");
+            }
+
+            // convert to match Imaris Library constructor
+            int n = coordinates.size();
+            int[] t = new int[n];
+
+            // Imaris Spots constructor only takes a single value radius for xyz, so we need to extract it for the initialization
+            float[] rad = new float[n];
+            float[][] coords = new float[n][];
+            float[][] rads = new float[n][];
+
+            for (int i = 0; i < coordinates.size(); i++) {
+                Point3D p = coordinates.get(i);
+                Point3D r = radiiXYZ.get(i);
+                coords[i] = new float[]{p.getPoint3f().getX(), p.getPoint3f().getY(), p.getPoint3f().getZ()};
+                t[i] = timepoints.get(i).intValue();
+                rad[i] = radiiXYZ.get(i).getPoint3f().getX();
+                rads[i] = new float[]{r.getPoint3f().getX(), r.getPoint3f().getY(), r.getPoint3f().getZ()};
+            }
+
+            ISpotsPrx spots = Utils.getImarisApp().GetFactory().CreateSpots();
+            spots.Set(coords, t, rad);
+
+            // Radii can only be set in XYZ afterwards
+            spots.SetRadiiXYZ(rads);
+            return spots;
+        }
+
+        /**
+         * Get all spots objects in the main scene as a list (not within a group)
+         *
+         * @return the properly cast spots as a list
+         * @throws Error an Imaris Error Object
+         */
         public static List<ISpotsPrx> findAll() throws Error {
             return Scene.findAllSpots();
         }
@@ -1642,17 +1559,6 @@ public class EasyXT {
          */
         public static ImagePlus getMaskImage(ISpotsPrx spots) throws Error {
             return getImage(spots, false, false);
-        }
-
-        /**
-         * Get an ImagePlus of the spots as a label (object has Imaris-ID value)
-         *
-         * @param spots a spots object see {@link  Scene#findSpots(String)}
-         * @return an ImagePlus
-         * @throws Error an Imaris Error
-         */
-        public static ImagePlus getLabelsImage(ISpotsPrx spots) throws Error {
-            return getImage(spots, true, false);
         }
 
         /**
@@ -1726,6 +1632,17 @@ public class EasyXT {
                 IJ.run(finalImp, "8-bit", "");
             }
             return finalImp;
+        }
+
+        /**
+         * Get an ImagePlus of the spots as a label (object has Imaris-ID value)
+         *
+         * @param spots a spots object see {@link  Scene#findSpots(String)}
+         * @return an ImagePlus
+         * @throws Error an Imaris Error
+         */
+        public static ImagePlus getLabelsImage(ISpotsPrx spots) throws Error {
+            return getImage(spots, true, false);
         }
     }
 
@@ -1828,7 +1745,6 @@ public class EasyXT {
          *
          * @param statistics the results table from which to extract the statistics. The table should have the following columns
          *                   "Label", "Name", "ID", "Timepoint", "Category". After that you can have the columns you want.
-         *
          * @param columnName The column you want to use for the statistic. Only one column at a time for now
          * @return a double Map that can be used with {@link #create(IDataItemPrx, String, Map)}
          */
@@ -1841,14 +1757,115 @@ public class EasyXT {
          * the Imaris object. Use the methods of {@link StatsCreator} to set more information about the statistic such as
          * the channel, unit and category.
          *
-         * @param item the item to which to append statistics
-         * @param statName the name of the statistic we wish to add. This is how you will see it in Imaris
+         * @param item       the item to which to append statistics
+         * @param statName   the name of the statistic we wish to add. This is how you will see it in Imaris
          * @param statValues the actual statistics to add. Each key is the id of the object
          *                   each value is a Map where the key is the name of the statistic and the value is the numerical value of the statistic
          * @return the same object, to continue with optional parameter configuration
          */
         public static StatsCreator create(IDataItemPrx item, String statName, Map<Long, Map<String, Double>> statValues) {
             return new StatsCreator(item, statName, statValues);
+        }
+    }
+
+    /**
+     * This internal class contains methods that normally do not need to be used and are mostly internal
+     */
+    public static class Utils {
+        /**
+         * casts each Imaris Object to its right Class for easier downstream processing Not sure if this is needed but have
+         * not tested without
+         *
+         * @param item the item to return the specific class of
+         * @return the same item but cast to its appropriate subclass
+         * @throws Error an Imaris Error Object
+         */
+        static IDataItemPrx castToType(ObjectPrx item) throws Error {
+            IFactoryPrx factory = getImarisApp().GetFactory();
+
+            if (factory.IsSpots(item)) {
+                return factory.ToSpots(item);
+            }
+            if (factory.IsSurfaces(item)) {
+                return factory.ToSurfaces(item);
+            }
+            if (factory.IsVolume(item)) {
+                return factory.ToVolume(item);
+            }
+            if (factory.IsLightSource(item)) {
+                return factory.ToLightSource(item);
+            }
+            if (factory.IsFrame(item)) {
+                return factory.ToFrame(item);
+            }
+            if (factory.IsDataContainer(item)) {
+                return factory.ToDataContainer(item);
+            }
+            return null;
+        }
+
+        /**
+         * Returns instance of Imaris App
+         * This is so you can access the Imaris API functionalities directly.
+         *
+         * @return an Imaris Application connection.
+         */
+        public static IApplicationPrx getImarisApp() {
+            return APP;
+        }
+
+        /**
+         * Recover a Color for use to set ImagePlus LUTs
+         *
+         * @param color the Imaris Color descriptor
+         * @return the Java Color
+         */
+        public static Color getColorFromInt(int color) {
+            byte[] bytes = ByteBuffer.allocate(4).putInt(color).array();
+            int[] colorArray = new int[3];
+            colorArray[0] = bytes[3] & 0xFF;
+            colorArray[1] = bytes[2] & 0xFF;
+            colorArray[2] = bytes[1] & 0xFF;
+            return getColorIntFromIntArray(colorArray);
+        }
+
+        /**
+         * recover an RGB color for use with ImageJ from a 3 element (R,G,B) array
+         *
+         * @param color the Java Color
+         * @return the java color object to use in ImageJ
+         */
+        public static Color getColorIntFromIntArray(int[] color) {
+
+            if (color.length < 3) {
+                log.warning("You did not provide enough colors. need 3. Returning white.");
+                return new Color(255, 255, 255);
+            }
+            return new Color(color[0], color[1], color[2]);
+        }
+
+        public static int getRGBAColor(Color color) {
+            return color.getRed() + 256 * color.getGreen() + 256 * 256 * color.getBlue();
+        }
+
+        /**
+         * returns the Imaris enum value corresponding to the requested bit depth
+         * Mostly useful internally when creating dataets
+         *
+         * @param bitDepth the bitdepth (8,16 or 32)
+         * @return the corresponding Imaris bit depth type
+         */
+        private static tType getImarisDatasetType(int bitDepth) {
+            switch (bitDepth) {
+                case 8:
+                    return tType.eTypeUInt8;
+                case 16:
+                    return tType.eTypeUInt16;
+                case 32:
+                    return tType.eTypeFloat;
+                default:
+                    return tType.eTypeUnknown;
+            }
         }
     }
 }

@@ -7,20 +7,16 @@ import ch.epfl.biop.imaris.SurfacesDetector;
 
 /**
  * EasyXT Demo
- * <p>
  * How to make a surface using SurfaceDetector and show it in ImageJ
  *
  * @author Nicolas Chiaruttini
- * <p>
  * October 2020
- * <p>
  * EPFL - SV - PTECH - PTBIOP
  */
 
 public class MakeAndGetSurfaceDemo {
 
     // Note : you need to be in the 3D View in order to perform
-
     public static void main(String... args) throws Exception {
         try {
             // Fresh Start with the sample dataset

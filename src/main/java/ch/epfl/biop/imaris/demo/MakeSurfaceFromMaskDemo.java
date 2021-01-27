@@ -10,7 +10,6 @@ import ij.gui.WaitForUserDialog;
 
 /**
  * EasyXT Demo
- * <p>
  * How to get a surface in ImageJ and send a modified version back to Imaris
  *
  * @author Romain Guiet

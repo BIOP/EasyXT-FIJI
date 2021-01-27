@@ -38,7 +38,7 @@ public class MakeSurfaceCommand implements Command {
                     .detect();
 
             // Adds the surface to the scene
-            EasyXT.Scene.putItem(surf);
+            EasyXT.Scene.addItem(surf);
             surf.SetVisible(false);
             surf.SetVisible(true);
 

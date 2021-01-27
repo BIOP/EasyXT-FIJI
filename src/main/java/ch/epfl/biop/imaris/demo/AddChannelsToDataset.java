@@ -39,24 +39,28 @@ public class AddChannelsToDataset {
             new WaitForUserDialog("Creating a new dataset, adding channels and sending the dataset back").show();
             long t0 = System.currentTimeMillis();
 
-            ImagePlus channels_imp1 = IJ.createImage("HyperStack One", bitDepth + "-bit color-mode label", cal.xSize, cal.ySize, 2, cal.zSize, cal.tSize);
-            channels_imp1.show();
+            ImagePlus channelsImp1 = IJ.createImage("HyperStack One", bitDepth + "-bit color-mode label", cal.xSize, cal.ySize, 2, cal.zSize, cal.tSize);
+            channelsImp1.show();
 
             // Copy the dataset
             IDataSetPrx newDataset = dataset.Clone();
-            EasyXT.Dataset.addChannels(newDataset, channels_imp1);
+            EasyXT.Dataset.addChannels(channelsImp1, newDataset);
 
             // Place the dataset into the scene
             EasyXT.Dataset.setCurrent(newDataset);
+
+            // Close the dataset
+            dataset.Dispose();
+
             long t1 = System.currentTimeMillis() - t0;
             IJ.log("New dataset time: " + t1 + " ms");
 
             new WaitForUserDialog("We will now add channels to the current dataset").show();
 
             long t2 = System.currentTimeMillis();
-            ImagePlus channels_imp2 = IJ.createImage("HyperStack Two", bitDepth + "-bit color-mode label", cal.xSize, cal.ySize, 2, cal.zSize, cal.tSize);
-            channels_imp2.show();
-            EasyXT.Dataset.addChannels(channels_imp2);
+            ImagePlus channelsImp2 = IJ.createImage("HyperStack Two", bitDepth + "-bit color-mode label", cal.xSize, cal.ySize, 2, cal.zSize, cal.tSize);
+            channelsImp2.show();
+            EasyXT.Dataset.addChannels(channelsImp2);
             long t3 = System.currentTimeMillis() - t2;
             IJ.log("Append to current  dataset time: " + t3 + " ms");
 

@@ -37,7 +37,7 @@ public class MakeAndGetSurfaceDemo {
                     .detect();
 
             // Adds the surface to the scene
-            EasyXT.Scene.putItem(surface);
+            EasyXT.Scene.addItem(surface);
 
             // Gets an existing surface
             surface = EasyXT.Scene.findSurfaces("My Surface");

@@ -36,7 +36,7 @@ public class AllGettersDemo {
 
             //Get Extents of currently open dataset to create he same thing, but with two channels
             IDataContainerPrx itemGroup = EasyXT.Scene.createGroup("Spots And Surface");
-            EasyXT.Scene.putItem(itemGroup);
+            EasyXT.Scene.addItem(itemGroup);
 
             // Make a spot detector and detect the spots
             ISpotsPrx spots = SpotsDetector.Channel(2)
@@ -49,7 +49,7 @@ public class AllGettersDemo {
                     .isCreateRegionsChannel(false)
                     .build().detect();
 
-            EasyXT.Scene.putItem(spots);
+            EasyXT.Scene.addItem(spots);
 
             // Make a spot detector and detect the spots
             ISpotsPrx spots2 = SpotsDetector.Channel(1)
@@ -63,7 +63,7 @@ public class AllGettersDemo {
                     .build().detect();
 
             // Add it again
-            EasyXT.Scene.putItem( spots2, itemGroup );
+            EasyXT.Scene.addItem( spots2, itemGroup );
 
             // Makes a surface detector and detect the surface
             ISurfacesPrx surface = EasyXT.Surfaces.create(0)
@@ -74,7 +74,7 @@ public class AllGettersDemo {
                     .build()
                     .detect();
 
-            EasyXT.Scene.putItem(surface);
+            EasyXT.Scene.addItem(surface);
 
             //Highest level getters for spots and surfaces
 

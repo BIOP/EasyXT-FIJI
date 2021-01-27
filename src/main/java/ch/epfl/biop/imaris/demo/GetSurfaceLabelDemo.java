@@ -43,8 +43,8 @@ public class GetSurfaceLabelDemo {
 
             IDataSetPrx dataset = EasyXT.Dataset.getCurrent().Clone();
 
-            EasyXT.Dataset.setBitDepth(dataset, 32);
-            EasyXT.Dataset.addChannels(dataset, image);
+            EasyXT.Dataset.setBitDepth(32, dataset);
+            EasyXT.Dataset.addChannels(image, dataset);
 
             EasyXT.Dataset.setCurrent(dataset);
             long time2 = System.currentTimeMillis();

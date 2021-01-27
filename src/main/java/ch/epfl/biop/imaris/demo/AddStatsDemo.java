@@ -33,7 +33,7 @@ public class AddStatsDemo {
                 .setFilter("\"Quality\" above automatic threshold")
                 .build().detect();
 
-        EasyXT.Scene.putItem(spots);
+        EasyXT.Scene.addItem(spots);
 
         // Get the spot statistics first before adding a new one
         ResultsTable stats = EasyXT.Stats.export(spots, Arrays.asList("Intensity Mean"), Arrays.asList(1, 2));

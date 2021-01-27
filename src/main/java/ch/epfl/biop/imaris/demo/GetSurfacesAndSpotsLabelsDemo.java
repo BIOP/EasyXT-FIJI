@@ -28,7 +28,7 @@ public class GetSurfacesAndSpotsLabelsDemo {
                 .setColor(new Integer[]{255, 120, 45})
                 .build()
                 .detect();
-        EasyXT.Scene.putItem(surface);
+        EasyXT.Scene.addItem(surface);
 
         // Here we ask for a Label image of the surfaces
         ImagePlus label_imp = EasyXT.Surfaces.getLabelsImage(surface);
@@ -54,7 +54,7 @@ public class GetSurfacesAndSpotsLabelsDemo {
                 .setColor(new Integer[]{255, 128, 0})
                 .build()
                 .detect();
-        EasyXT.Scene.putItem(detected_ellipticSpots);
+        EasyXT.Scene.addItem(detected_ellipticSpots);
 
         ImagePlus spots_label_imp = EasyXT.Spots.getLabelsImage(detected_ellipticSpots);
         spots_label_imp.show();
@@ -65,8 +65,8 @@ public class GetSurfacesAndSpotsLabelsDemo {
         //  - add the imp to it
         //  - and finally set the current dataset.
         IDataSetPrx newDataset = EasyXT.Dataset.getCurrent().Clone();
-        EasyXT.Dataset.addChannels(newDataset, label_imp);
-        EasyXT.Dataset.addChannels(newDataset, spots_label_imp);
+        EasyXT.Dataset.addChannels(label_imp, newDataset);
+        EasyXT.Dataset.addChannels(spots_label_imp, newDataset);
         EasyXT.Dataset.setCurrent(newDataset);
 
         System.out.println("Done!");

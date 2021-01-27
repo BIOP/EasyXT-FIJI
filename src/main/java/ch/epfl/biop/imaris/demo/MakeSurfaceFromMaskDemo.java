@@ -28,7 +28,7 @@ public class MakeSurfaceFromMaskDemo {
             // Surface created and shown in ImageJ
             MakeAndGetSurfaceDemo.main();
 
-            ImagePlus surfaceIJ = IJ.getImage(); // Surface Image
+            ImagePlus surfaceImp = IJ.getImage(); // Surface Image
 
             if ((args.length > 0) && (args[0].equals("Test Mode"))) {
                 IJ.log("The surface will be skeletonized ...");
@@ -37,7 +37,7 @@ public class MakeSurfaceFromMaskDemo {
             }
             // because of skeletonize
             Prefs.blackBackground = true;
-            IJ.run(surfaceIJ, "Skeletonize", "stack");
+            IJ.run(surfaceImp, "Skeletonize", "stack");
 
             if ((args.length > 0) && (args[0].equals("Test Mode"))) {
                 IJ.log("And sent back to Imaris ...");
@@ -45,12 +45,10 @@ public class MakeSurfaceFromMaskDemo {
                 new WaitForUserDialog("And sent back to Imaris ...").show();
             }
 
-            ISurfacesPrx surface = EasyXT.Surfaces.findAll().get(0);
+            ISurfacesPrx surface = EasyXT.Surfaces.create(surfaceImp);
 
-            surface = EasyXT.Surfaces.makeFromMask(surfaceIJ);
-
-            EasyXT.Scene.putItem(surface);
-            surfaceIJ.changes = false;
+            EasyXT.Scene.addItem(surface);
+            surfaceImp.changes = false;
 
         } catch (Error error) {
             error.printStackTrace();

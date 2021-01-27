@@ -33,6 +33,7 @@ import ij.plugin.Duplicator;
 import ij.plugin.HyperStackConverter;
 import ij.process.*;
 import mcib3d.geom.ObjectCreator3D;
+import mcib3d.geom.Point3D;
 import mcib3d.geom.Vector3D;
 import net.imagej.ImageJ;
 
@@ -302,7 +303,13 @@ public class EasyXT {
             return new Color(color[0], color[1], color[2]);
         }
 
-        public static tType getImarisDatasetType( int bitDepth) {
+        /**
+         * returns the Imaris enum value corresponding to the requested bit depth
+         * Mostly useful internally when creating dataets
+         * @param bitDepth the bitdepth (8,16 or 32)
+         * @return the corresponding Imaris bit depth type
+         */
+        private static tType getImarisDatasetType(int bitDepth) {
             switch (bitDepth) {
                 case 8:
                     return tType.eTypeUInt8;
@@ -405,7 +412,7 @@ public class EasyXT {
          */
         public static IDataItemPrx findItem(String name) throws Error {
             // If you use parent as null, it is the same as getImarisApp.GetSurpassScene()
-            return findItem(name, null);
+            return findItem(name, Scene.getScene());
         }
 
         /**
@@ -455,7 +462,7 @@ public class EasyXT {
         }
 
         public static ISurfacesPrx findSurfaces(String name) throws Error {
-            return findSurfaces(name, null);
+            return findSurfaces(name, Scene.getScene());
         }
 
         /**
@@ -545,8 +552,8 @@ public class EasyXT {
          * @param item the item (Spot, Surface, Folder) to add
          * @throws Error an Imaris Error Object
          */
-        public static void putItem(IDataItemPrx item) throws Error {
-            putItem(item, Scene.getScene());
+        public static void addItem(IDataItemPrx item) throws Error {
+            addItem(item, Scene.getScene());
         }
 
         /**
@@ -556,7 +563,7 @@ public class EasyXT {
          * @param item   the item to add as a child
          * @throws Error an Imaris Error Object
          */
-        public static void putItem(IDataItemPrx item, IDataContainerPrx parent) throws Error {
+        public static void addItem(IDataItemPrx item, IDataContainerPrx parent) throws Error {
             parent.AddChild(item, -1); // last element is position. -1 to append at the end.
         }
 
@@ -587,7 +594,7 @@ public class EasyXT {
          * @param items, the list of items in question
          * @throws Error an Imaris Error Object
          */
-        public static void removeItem(List<? extends IDataItemPrx> items) throws Error {
+        public static void removeItems(List<? extends IDataItemPrx> items) throws Error {
             for (IDataItemPrx it : items) {
                 removeItem(it);
             }
@@ -602,9 +609,9 @@ public class EasyXT {
             List<ISpotsPrx> spots = findAllSpots();
             List<ISurfacesPrx> surfaces = findAllSurfaces();
             List<IDataContainerPrx> groups = findAllGroups();
-            removeItem(spots);
-            removeItem(surfaces);
-            removeItem(groups);
+            removeItems(spots);
+            removeItems(surfaces);
+            removeItems(groups);
             //for ( ISpotsPrx sp: spots ) { EasyXT.removeFromScene( sp ); }
             //for ( ISurfacesPrx srf: surfaces ) { EasyXT.removeFromScene( srf ); }
             //for ( IDataContainerPrx grp: groups ) { EasyXT.removeFromScene( grp ); }
@@ -616,8 +623,8 @@ public class EasyXT {
          * Creates a "Group" (folder) that can contain other items
          *
          * @param groupName the name to identify the group with
-         * @return an item that can be added to a scene ({@link Scene#putItem(IDataItemPrx)}) or to which other items
-         * can be added as children {@link Scene#putItem(IDataItemPrx, IDataContainerPrx)}
+         * @return an item that can be added to a scene ({@link Scene#addItem(IDataItemPrx)}) or to which other items
+         * can be added as children {@link Scene#addItem(IDataItemPrx, IDataContainerPrx)}
          * @throws Error an Imaris Error
          */
         public static IDataContainerPrx createGroup(String groupName) throws Error {
@@ -672,7 +679,22 @@ public class EasyXT {
      * This includes methods to transfer, convert and move datasets around Imaris and Fiji
      */
     public static class Dataset {
+        /**
+         * The the calibration information from the current dataset. This includes extents, pixel size, channel names
+         * @return an ImarisCalibration
+         */
+        public static ImarisCalibration getCalibration() throws Error {
+            return getCalibration(Dataset.getCurrent());
+        }
 
+        /**
+         * The the calibration information from a dataset. This includes extents, pixel size, channel names
+         * @param dataset the dataset to extract calibration information from
+         * @return an ImarisCalibration
+         */
+        public static ImarisCalibration getCalibration( IDataSetPrx dataset) throws Error {
+            return new ImarisCalibration(dataset);
+        }
         /**
          * Creates a new dataset with the right shape and calibration information
          * @param calibration a calibration object with the bounds and dimensions of the desired dataset
@@ -681,7 +703,7 @@ public class EasyXT {
          */
         public static IDataSetPrx create(ImarisCalibration calibration, int bitDepth) throws Error{
             IDataSetPrx dataset = EasyXT.Utils.getImarisApp().GetFactory().CreateDataSet();
-            return shapeFromCalibration(dataset, calibration, bitDepth);
+            return matchDimensionsFromCalibration(dataset, calibration, bitDepth);
         }
 
         /**
@@ -692,9 +714,8 @@ public class EasyXT {
          */
         public static IDataSetPrx create(ImagePlus imp) throws Error{
             IDataSetPrx dataset = EasyXT.Utils.getImarisApp().GetFactory().CreateDataSet();
-            shapeFromImagePlus(dataset, imp);
+            matchDimensionsFromImagePlus(dataset, imp);
             setFromImagePlus(dataset, imp);
-
             return dataset;
         }
 
@@ -705,10 +726,11 @@ public class EasyXT {
          * @param imp the imagePlus to use as reference
          * @throws Error
          */
-        public static IDataSetPrx shapeFromImagePlus(IDataSetPrx dataset, ImagePlus imp) throws Error {
+        public static IDataSetPrx matchDimensionsFromImagePlus(IDataSetPrx dataset, ImagePlus imp) throws Error {
 
             Calibration cal = imp.getCalibration();
 
+            // Note that Imaris dataset creation order is XYZCT, and ImageJ is usually XYCZT
             dataset.Create(Utils.getImarisDatasetType(imp.getBitDepth()),
                     imp.getWidth(),
                     imp.getHeight(),
@@ -746,7 +768,7 @@ public class EasyXT {
          * @param calibration the calibration to base it off
          * @throws Error
          */
-        public static IDataSetPrx shapeFromCalibration(IDataSetPrx dataset, ImarisCalibration calibration, int bitDepth) throws Error {
+        public static IDataSetPrx matchDimensionsFromCalibration(IDataSetPrx dataset, ImarisCalibration calibration, int bitDepth) throws Error {
 
             dataset.Create(Utils.getImarisDatasetType(bitDepth),
                     calibration.xSize,
@@ -793,7 +815,7 @@ public class EasyXT {
          * @param bitDepth the bit depth (8,16 or 32) to set the dataset to
          * @throws Error and Imaris Error
          */
-        public static void setBitDepth(IDataSetPrx dataset, int bitDepth) throws Error {
+        public static void setBitDepth(int bitDepth, IDataSetPrx dataset) throws Error {
             tType aType = dataset.GetType();
             String outputString = "Dataset was converted from " + aType;
             switch (bitDepth) {
@@ -818,7 +840,7 @@ public class EasyXT {
          */
         public static void setBitDepth(int bitDepth) throws Error {
             IDataSetPrx dataset = Dataset.getCurrent();
-            setBitDepth(dataset, bitDepth);
+            setBitDepth(bitDepth, dataset);
         }
 
         /**
@@ -926,7 +948,7 @@ public class EasyXT {
             if(dBitDepth != iBitDepth) {
                 log.warning("Provided dataset bitdepth ("+dBitDepth+"-bit)differs from image bitdepth ("+iBitDepth+"-bit)");
                 log.warning("   dataset will be changed to ("+iBitDepth+" bits");
-                Dataset.setBitDepth(dataset, iBitDepth);
+                Dataset.setBitDepth(iBitDepth, dataset);
                 dBitDepth = iBitDepth;
             }
             for (int c = 0; c < nc; c++) {
@@ -971,7 +993,7 @@ public class EasyXT {
         public static void addDataset(IDataSetPrx dataset, int position) throws Error {
             Utils.getImarisApp().SetImage(position, dataset);
             IFramePrx frame = Utils.getImarisApp().GetFactory().CreateFrame();
-            Scene.putItem(frame);
+            Scene.addItem(frame);
         }
 
         /**
@@ -1005,26 +1027,34 @@ public class EasyXT {
         }
 
         /**
-         * Adds the selected ImagePlus to the current Dataset by appending it as new channels If the dataset is visible in
-         * the Imaris Scene, this is a lot slower
+         * Adds the selected ImagePlus to the current Dataset by appending it as new channels.
+         * To speed things up, but with a higher memory footprint, we first clone the dataset
+         * and append the channels. Finally we replace the current dataset with the new one
+         * This avoids the Imaris GUI refreshing as the dataset is being modified, which is very slow
          *
          * @param imp the image to add to the current dataset
          * @throws Error an Imaris Error object
          */
         public static void addChannels(ImagePlus imp) throws Error {
             IDataSetPrx dataset = EasyXT.Dataset.getCurrent();
-            addChannels(dataset, imp, 0, 0, 0, 0);
+            IDataSetPrx newDataset = dataset.Clone();
+
+            addChannels(imp, newDataset, 0, 0, 0, 0);
+            setCurrent(newDataset);
+
+            // Clear some memory
+            dataset.Dispose();
         }
 
         /**
          * Adds the selected ImagePlus to the provided IDatasetPrx by appending it as new channels
          *
-         * @param dataset the dataset to which to add the imageplus as channel(s)
          * @param imp     the image to add to the current dataset
+         * @param dataset the dataset to which to add the imageplus as channel(s)
          * @throws Error an Imaris Error object
          */
-        public static void addChannels(IDataSetPrx dataset, ImagePlus imp) throws Error {
-            addChannels(dataset, imp, 0, 0, 0, 0);
+        public static void addChannels(ImagePlus imp, IDataSetPrx dataset) throws Error {
+            addChannels(imp, dataset, 0, 0, 0, 0);
         }
 
         /**
@@ -1047,7 +1077,7 @@ public class EasyXT {
          * @param tStart  start T position, in pixels (from top-left in ImageJ, will translate to bottom-left in Imaris)
          * @throws Error an Imaris Error Object
          */
-        public static void addChannels(IDataSetPrx dataset, ImagePlus imp, int xStart, int yStart, int zStart, int tStart) throws Error {
+        public static void addChannels(ImagePlus imp, IDataSetPrx dataset, int xStart, int yStart, int zStart, int tStart) throws Error {
             // Get Metadata on dataset and image
 
             ImarisCalibration dCal = new ImarisCalibration(dataset);
@@ -1078,22 +1108,17 @@ public class EasyXT {
             if (dBitDepth != iBitDepth) {
                 String errorDetail = "   Dataset:" + dBitDepth + "-bit";
                 errorDetail += "\n    Image:" + iBitDepth + "-bit";
-                // TODO forced conversion below, could or couldn't work, eg 8 -> 16 ok but 16->8 no!
                 log.warning("Bit Depth Mismatch : Imaris Dataset and Fiji ImagePlus do not have same bit depth \n " + errorDetail);
-                /**  // Convert ImageJ to Dataset
-                 switch (dBitDepth) {
-                 case 8:
-                 new ImageConverter(imp).convertToGray8();
-                 break;
-                 case 16:
-                 new ImageConverter(imp).convertToGray16();
-                 break;
-                 case 32:
-                 new ImageConverter(imp).convertToGray32();
-                 }
+                if (iBitDepth <= dBitDepth) {
+                    // We can convert
+                    if (dBitDepth == 16) new ImageConverter(imp).convertToGray16();
+                    if (dBitDepth == 32) new ImageConverter(imp).convertToGray32();
+                    log.warning("Image converted: "+imp.getBitDepth()+"-bit to match dataset bit depth ("+dBitDepth+"-bit)");
 
-                 log.warning("Image converted: "+imp.getBitDepth());
-                 */
+                }else {
+                    log.severe("ImagePlus has higher bit depth than dataset. Cannot convert");
+                    throw new Error("Bit depth Mismatch", "Image is "+iBitDepth+"-bit, dataset is "+dBitDepth+"-bit","");
+                    }
             }
 
             // Issue warning in case voxel sizes do not match
@@ -1111,11 +1136,14 @@ public class EasyXT {
 
             // Now loop through the dimensions of the ImagePlus to add data
             for (int c = 0; c < ic; c++) {
+
+                // Set the color of this channel
                 int idx = imp.getStackIndex(c + 1, 1, 1);
                 int color = imp.getStack().getProcessor(idx).getColorModel().getRGB(255);
 
                 dataset.SetChannelColorRGBA(c, color);
 
+                // Set the volume from arrays
                 for (int z = 0; z < iz; z++) {
                     for (int t = 0; t < it; t++) {
                         idx = imp.getStackIndex(c + 1, z + 1, t + 1);
@@ -1226,7 +1254,39 @@ public class EasyXT {
             return SurfacesDetector.Channel(channel);
         }
 
-        //TODO make new create() method to create a surfaces object from an ImagePlus
+        /**
+         * create a new surfaces object from this imagePlus
+         *
+         * @param imp the image to get a surface from. Must be 8-bit and binary
+         * @return a surfaces object that should render in Imaris (though pixellated)
+         * @throws Error an Imaris Error if there was a problem
+         */
+        public static ISurfacesPrx create(ImagePlus imp) throws Error {
+            // Ensure image is binary
+            if (!imp.getProcessor().isBinary()) {
+                log.severe("Provided image is not binary");
+                throw new Error("Image Type Error", "Image " + imp.getTitle() + " is not binary", "");
+            }
+            // Divide by 255
+            int nProcessor = imp.getStack().getSize();
+            IntStream.range(0, nProcessor).parallel().forEach(index -> {
+                imp.getStack().getProcessor(index + 1).multiply(1.0 / 255.0);
+            });
+
+            // build empty surface object
+            ISurfacesPrx surface = Utils.getImarisApp().GetFactory().CreateSurfaces();
+
+            // Go through the timepoints and generate a surface for each timepoint
+            for (int t = 0; t < imp.getNFrames(); t++) {
+                // Temporary ImagePlus required to work!
+                ImagePlus tImp = new Duplicator().run(imp, 1, 1, 1, imp.getNSlices(), t + 1, t + 1);
+                IDataSetPrx data = Dataset.create(tImp);
+                surface.AddSurface(data, t);
+            }
+            EasyXT.Scene.setName(surface, imp.getTitle());
+
+            return surface;
+        }
 
         /**
          * Get all surfaces objects in the main scene as a list (not within subfolder, groups)
@@ -1290,6 +1350,10 @@ public class EasyXT {
                 addSurfaceIndexToLabelImage(surface, i, labelImage);
             }
 
+            // the labelImage is 32 bit (because this makes it easier to user internally,
+            // we can convert it here to the right bit depth to save memory
+            if ( maxSurfaceID < 256 ) new ImageConverter(labelImage).convertToGray8();
+            if ( maxSurfaceID < 65536 ) new ImageConverter(labelImage).convertToGray16();
             return labelImage;
         }
 
@@ -1329,8 +1393,7 @@ public class EasyXT {
             // Check if there are channels
             finalDataset.SetSizeC(1);
 
-            // Why do we set it to 8 bit? What type is it?
-            //Dataset.setBitDepth(finalDataset, 8);
+            Dataset.setBitDepth(8, finalDataset);
 
             // Loop through each timepoint, and get the dataset, then replace
             for (int t = 0; t < cal.tSize; t++) {
@@ -1338,73 +1401,6 @@ public class EasyXT {
                 finalDataset.SetDataVolumeAs1DArrayBytes(oneTimepoint.GetDataVolumeAs1DArrayBytes(0, 0), 0, t);
             }
             return finalDataset;
-        }
-
-        /**
-         * first implementation of get surfaces mask
-         *
-         * @param surface the surface to create a mask from
-         * @return an ImagePlus with the surface mask, as 8-bit
-         * @throws Error an Imaris Error
-         * @deprecated please use {@link Surfaces#getMaskImage(ISurfacesPrx)}
-         */
-        public static ImagePlus getSurfacesMask(ISurfacesPrx surface) throws Error {
-
-            // Get raw ImagePlus
-            ImagePlus impSurface = Dataset.getImagePlus(getMaskDataset(surface));
-
-            // Multiply by 255 to allow to use ImageJ binary functions
-            int nProcessor = impSurface.getStack().getSize();
-            IntStream.range(0, nProcessor).parallel().forEach(index -> {
-                impSurface.getStack().getProcessor(index + 1).multiply(255);
-            });
-
-            // Set LUT and display range
-            impSurface.setLut(LUT.createLutFromColor(Utils.getColorFromInt(surface.GetColorRGBA())));
-            impSurface.setDisplayRange(0, 255);
-            impSurface.setTitle(surface.GetName());
-
-            return impSurface;
-        }
-
-        /**
-         * create a new surfaces object from this imagePlus
-         *
-         * @param imp the image to get a surface from. Must be 8-bit and binary
-         * @return a surfaces object that should render in Imaris (though pixellated)
-         * @throws Error an Imaris Error if there was a problem
-         */
-        public static ISurfacesPrx makeFromMask(ImagePlus imp) throws Error {
-            ImarisCalibration cal = new ImarisCalibration(Utils.getImarisApp().GetDataSet());
-
-            // Ensure image is binary
-            if (!imp.getProcessor().isBinary()) {
-                log.severe("Provided image is not binary");
-                throw new Error("Image Type Error", "Image " + imp.getTitle() + " is not binary", "");
-            }
-            // Divide by 255 to allow to use ImageJ binary functions
-            int nProcessor = imp.getStack().getSize();
-            IntStream.range(0, nProcessor).parallel().forEach(index -> {
-                imp.getStack().getProcessor(index + 1).multiply(1.0 / 255.0);
-            });
-
-            // build empty surface object
-            ISurfacesPrx surface = Utils.getImarisApp().GetFactory().CreateSurfaces();
-
-            // Go through the timepoints and generate a surface for each timepoint
-            for (int t = 0; t < cal.tSize; t++) {
-                IDataSetPrx data = Utils.getImarisApp().GetFactory().CreateDataSet();
-                Dataset.shapeFromCalibration(data, cal, 8);
-
-
-                // temporary ImagePlus required to work!
-                ImagePlus tImp = new Duplicator().run(imp, 1, 1, 1, cal.zSize, t + 1, t + 1);
-                //t_imp.show();
-                Dataset.setFromImagePlus(data, tImp);
-                surface.AddSurface(data, t);
-            }
-            EasyXT.Scene.setName(surface, imp.getTitle());
-            return surface;
         }
 
         /**
@@ -1539,11 +1535,75 @@ public class EasyXT {
         }
 
         /**
-         * Get all spots objects in the main scene as a list (not within a group)
-         *
-         * @return the properly cast spots as a list
-         * @throws Error an Imaris Error Object
+         * Create Spots object based on a list of coordinates, radii and timepoints
+         * @param coordinates the coordinates, in calibrated units in X Y Z
+         * @param radiiXYZ the radii for each spot in X Y Z
+         * @param timepoints the 0-based timepoints for each spot
+         * @return
+         * @throws Error
          */
+        public static ISpotsPrx create(List<Point3D> coordinates, List<Point3D> radiiXYZ, List<Integer> timepoints) throws Error {
+            if (coordinates.size() != radiiXYZ.size() || coordinates.size() != timepoints.size() ) {
+                throw new Error("Inconsistent Sizes", "Coordinates, Radii and timepoints lists must be the same size", "");
+            }
+
+            // convert to match Imaris Library constructor
+            int n = coordinates.size();
+            int[] t = new int[n];
+
+            // Imaris Spots constructor only takes a single value radius for xyz, so we need to extract it for the initialization
+            float[] rad = new float[n];
+            float[][] coords = new float[n][];
+            float[][] rads = new float[n][];
+
+            for( int i=0; i<coordinates.size(); i++) {
+               Point3D p = coordinates.get(i);
+               Point3D r = radiiXYZ.get(i);
+               coords[i] = new float[] {p.getPoint3f().getX(), p.getPoint3f().getY(), p.getPoint3f().getZ()};
+               t[i] = timepoints.get(i).intValue();
+               rad[i] = radiiXYZ.get(i).getPoint3f().getX();
+               rads[i] = new float[] {r.getPoint3f().getX(), r.getPoint3f().getY(), r.getPoint3f().getZ()};
+            }
+
+            ISpotsPrx spots = Utils.getImarisApp().GetFactory().CreateSpots();
+            spots.Set(coords, t, rad);
+
+            // Radii can only be set in XYZ afterwards
+            spots.SetRadiiXYZ(rads);
+            return spots;
+        }
+
+        /**
+         * Allows to create a spots object from the coordinate list at the given timepoint
+         * Spots objects in Imaris cannot have more coordinates added afterwards
+         * So spots for all timepoints should be made in advance and use {@link #create(List, List, List)} instead
+         * @param coordinates
+         * @param radiusXYZ
+         * @param timepoint
+         * @return
+         * @throws Error
+         */
+        public static ISpotsPrx create(List<Point3D> coordinates, Point3D radiusXYZ, Integer timepoint) throws Error {
+
+            // Duplicate the radii and timepoint as many times as there are coordinates
+            int n = coordinates.size();
+
+            List<Point3D> radii = new ArrayList<>(n);
+            List<Integer> timepoints = new ArrayList<>(n);
+
+            for (int i = 0; i < n; i++) {
+                radii.add(radiusXYZ);
+                timepoints.add(timepoint);
+            }
+            return Spots.create(coordinates, radii, timepoints);
+        }
+
+            /**
+             * Get all spots objects in the main scene as a list (not within a group)
+             *
+             * @return the properly cast spots as a list
+             * @throws Error an Imaris Error Object
+             */
         public static List<ISpotsPrx> findAll() throws Error {
             return Scene.findAllSpots();
         }

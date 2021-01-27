@@ -62,9 +62,9 @@ public class ImarisCalibration extends Calibration {
         this.cSize = dataset.GetSizeC();
         this.tSize = dataset.GetSizeT();
 
-        this.pixelWidth  = (this.xEnd - this.xOrigin) / this.xSize;
-        this.pixelHeight = (this.yEnd - this.yOrigin) / this.ySize;
-        this.pixelDepth  = (this.zEnd - this.zOrigin) / this.zSize;
+        this.pixelWidth  = (this.xEnd - this.xOrigin) / (this.xSize-1) ;
+        this.pixelHeight = (this.yEnd - this.yOrigin) / (this.ySize-1);
+        this.pixelDepth  = (this.zEnd - this.zOrigin) / (this.zSize-1);
 
         this.setUnit( dataset.GetUnit() );
         this.setTimeUnit( "s" );
@@ -93,9 +93,9 @@ public class ImarisCalibration extends Calibration {
         new_calibration.ySize *= downsample;
         new_calibration.zSize *= downsample;
 
-        new_calibration.pixelWidth /= downsample;
+        new_calibration.pixelWidth  /= downsample;
         new_calibration.pixelHeight /= downsample;
-        new_calibration.pixelDepth /= downsample;
+        new_calibration.pixelDepth  /= downsample;
 
         return new_calibration;
     }

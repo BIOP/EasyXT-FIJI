@@ -127,6 +127,7 @@ public class EasyXT {
         ImageJ ij = new ImageJ();
         ij.ui().showUI();
     }
+
     /**
      * This subclass contains methods to open images in Imaris
      * There are also methods to find all the demo Images from Imaris
@@ -779,7 +780,7 @@ public class EasyXT {
 
             dataset.SetExtendMinX((float) cal.xOrigin);
             dataset.SetExtendMinY((float) cal.yOrigin);
-            dataset.SetExtendMinZ((float) cal.yOrigin);
+            dataset.SetExtendMinZ((float) cal.zOrigin);
 
             dataset.SetExtendMaxX((float) (cal.xOrigin + (imp.getWidth()) * cal.pixelWidth));
             dataset.SetExtendMaxY((float) (cal.yOrigin + (imp.getHeight()) * cal.pixelHeight));
@@ -1169,35 +1170,59 @@ public class EasyXT {
         }
 
         /**
-         * create a new surfaces object from this imagePlus
+         * create a new surfaces object from this ImagePlus
          *
-         * @param imp the image to get a surface from. Must be 8-bit and binary
+         * @param imp the image to get a surface from. Must be 8-bit and binary. It should contain a property called "Time Point"
+         *            that contains the time index where this surface is to be inserted
          * @return a surfaces object that should render in Imaris (though pixellated)
          * @throws Error an Imaris Error if there was a problem
          */
         public static ISurfacesPrx create(ImagePlus imp) throws Error {
+            // Check if it has a Time Index Property
+            Object tInd = imp.getProperty("Time Index");
+            if (tInd != null) {
+                return create(imp, (int) tInd);
+            }
+            log.warning("EasyXT cannot find a timepoint associated with this surface mask. Defaulting to Timepoint 0");
+            log.warning("Use Surfaces.create(ImagePlus imp, int timepoint) to specify the desired timepoint to instert this surface");
+
+            return create(imp, 0);
+        }
+
+        /**
+         * create a new surfaces object from this ImagePlus
+         *
+         * @param imp       the image to get a surface from. Must be 8-bit and binary
+         * @param timepoint an index to offset the start of the surface creation.
+         *                  for single timepoint Images, this is effectively the timepoint at which to place the surface
+         * @return a surfaces object that should render in Imaris (though pixellated)
+         * @throws Error an Imaris Error if there was a problem
+         */
+        public static ISurfacesPrx create(ImagePlus imp, int timepoint) throws Error {
             // Ensure image is binary
             if (!imp.getProcessor().isBinary()) {
                 log.severe("Provided image is not binary");
                 throw new Error("Image Type Error", "Image " + imp.getTitle() + " is not binary", "");
             }
             // Divide by 255
-            int nProcessor = imp.getStack().getSize();
+            // Duplicate so as not to change it
+            ImagePlus tempImage = imp.duplicate();
+            int nProcessor = tempImage.getStack().getSize();
             IntStream.range(0, nProcessor).parallel().forEach(index -> {
-                imp.getStack().getProcessor(index + 1).multiply(1.0 / 255.0);
+                tempImage.getStack().getProcessor(index + 1).multiply(1.0 / 255.0);
             });
 
             // build empty surface object
             ISurfacesPrx surface = Utils.getImarisApp().GetFactory().CreateSurfaces();
 
             // Go through the timepoints and generate a surface for each timepoint
-            for (int t = 0; t < imp.getNFrames(); t++) {
+            for (int t = 0; t < tempImage.getNFrames(); t++) {
                 // Temporary ImagePlus required to work!
-                ImagePlus tImp = new Duplicator().run(imp, 1, 1, 1, imp.getNSlices(), t + 1, t + 1);
+                ImagePlus tImp = new Duplicator().run(tempImage, 1, 1, 1, imp.getNSlices(), t + 1, t + 1);
                 IDataSetPrx data = Dataset.create(tImp);
-                surface.AddSurface(data, t);
+                surface.AddSurface(data, t + timepoint);
             }
-            EasyXT.Scene.setName(surface, imp.getTitle());
+            EasyXT.Scene.setName(surface, tempImage.getTitle());
 
             return surface;
         }
@@ -1293,6 +1318,76 @@ public class EasyXT {
         }
 
         /**
+         * Allows to capture a single surface as an ImageJ binary image, within only the extents of the surface
+         * This is more computationally cheap, and can be added in place later with {@link Surfaces#create(ImagePlus)}
+         *
+         * @param surface the surfaces we wish to extract a single surface from
+         * @param id      the id of the surface to extract
+         * @return an ImagePlus mask
+         * @throws Error
+         */
+        public static ImagePlus getSurfaceIdAsMask(ISurfacesPrx surface, long id) throws Error {
+
+            List<Long> ids = Arrays.stream(surface.GetIds()).boxed().collect(Collectors.toList());
+            int idx = ids.indexOf(new Long(id));
+
+            cSurfaceLayout layout = surface.GetSurfaceDataLayout(idx);
+
+            // A lot of operations we want to do might enlarge the surface, so we give it a bit more room than the extents proposed by Imaris
+            layout = Surfaces.padLayout(layout, 5, 5, 5);
+
+            // Extract the dataset
+            IDataSetPrx dataset = surface.GetSingleMask(idx, layout.mExtendMinX, layout.mExtendMinY, layout.mExtendMinZ,
+                    layout.mExtendMaxX, layout.mExtendMaxY, layout.mExtendMaxZ,
+                    layout.mSizeX, layout.mSizeY, layout.mSizeZ);
+
+            // Make an ImagePlus from it
+            ImagePlus surfaceImp = Dataset.getImagePlus(dataset);
+
+            // Multiply by 255
+            int nProcessor = surfaceImp.getStack().getSize();
+            IntStream.range(0, nProcessor).parallel().forEach(index -> {
+                surfaceImp.getStack().getProcessor(index + 1).multiply(255.0);
+            });
+
+            // Record the timepoint into the Image Properties
+            surfaceImp.setProperty("Time Index", surface.GetTimeIndex(idx));
+            return surfaceImp;
+        }
+
+        /**
+         * Internal method to enlarge a given layout by padding it with the pixels in X Y and Z
+         *
+         * @param layout layout to expand
+         * @param extraX extra left-right padding for the X Axis
+         * @param extraY extra left-right padding for the Y Axis
+         * @param extraZ extra left-right padding for the Z Axis
+         * @return the same layout, padded
+         */
+        private static cSurfaceLayout padLayout(cSurfaceLayout layout, int extraX, int extraY, int extraZ) {
+            // Get voxel sizes
+            double vX = (layout.mExtendMaxX - layout.mExtendMinX) / layout.mSizeX;
+            double vY = (layout.mExtendMaxY - layout.mExtendMinY) / layout.mSizeY;
+            double vZ = (layout.mExtendMaxZ - layout.mExtendMinZ) / layout.mSizeZ;
+
+            // Change
+            layout.mExtendMinX -= vX * extraX;
+            layout.mExtendMinY -= vY * extraY;
+            layout.mExtendMinZ -= vZ * extraZ;
+
+            layout.mExtendMaxX += vX * extraX;
+            layout.mExtendMaxY += vY * extraY;
+            layout.mExtendMaxZ += vZ * extraZ;
+
+            layout.mSizeX += 2 * extraX;
+            layout.mSizeY += 2 * extraY;
+            layout.mSizeZ += 2 * extraZ;
+
+            return layout;
+
+        }
+
+        /**
          * This internal method appends a single surface defined by the
          * index (0-based, not the ID) into the provided ImagePlus. The ImagePlus is modified in place
          *
@@ -1304,7 +1399,6 @@ public class EasyXT {
         private static void addSurfaceIndexToLabelImage(ISurfacesPrx surface, int index, ImagePlus image) throws Error {
             // get the extents to find where to put the data
             Calibration fCal = image.getCalibration();
-
             // There is no guarantee that the surface will have the same calibration, so we need to coerce it to a multiple of the calibration of the ImagePlus
             // This means checking that the origin is a multiple of the ImagePlus Origin plus x times the pixel size
             cSurfaceLayout layout = adjustBounds(surface.GetSurfaceDataLayout(index), fCal);
@@ -1312,8 +1406,6 @@ public class EasyXT {
             // GetTimepoint
             int t = surface.GetTimeIndex(index);
             long id = surface.GetIds()[index];
-
-
             IDataSetPrx currentSurfaceDataset = surface.GetSingleMask(index,
                     layout.mExtendMinX, layout.mExtendMinY, layout.mExtendMinZ,
                     layout.mExtendMaxX, layout.mExtendMaxY, layout.mExtendMaxZ,
@@ -1346,6 +1438,8 @@ public class EasyXT {
                 image.getStack().setProcessor(fip, z + startZ);
             }
         }
+
+        // TODO add method to recover timepoint from an ImagePlus
 
         /**
          * This is a private method that helps readjust the size of a surface image to the original image calibration

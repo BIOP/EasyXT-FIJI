@@ -4,3 +4,4 @@ target
 *.iml
 .ims
 .bak
+pom.xml.releaseBackup

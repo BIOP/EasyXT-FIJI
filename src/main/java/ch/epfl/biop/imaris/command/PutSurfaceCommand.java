@@ -9,7 +9,7 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 @Plugin(type = Command.class, menuPath = "Plugins>BIOP>EasyXT>Surface>Put Surface to Imaris")
-public class PutSurfaceCommand implements Command{
+public class PutSurfaceCommand implements Command {
 
     @Parameter
     ImagePlus surface_imp;
@@ -18,11 +18,8 @@ public class PutSurfaceCommand implements Command{
     public void run() {
         // Using the Image Name as a key to access the surface
         try {
-            ISurfacesPrx surfprx = EasyXT.getSurfaces( surface_imp.getTitle() );
-            //IDataSetPrx dataset = EasyXT.getSurfaceDataset(surfprx);
-            //surfprx.RemoveAllSurfaces();
-            EasyXT.setSurfacesMask(surfprx, surface_imp);
-            //surfprx.AddSurface(dataset,0);
+            ISurfacesPrx surface = EasyXT.Surfaces.create(surface_imp);
+            EasyXT.Scene.addItem(surface);
         } catch (Error error) {
             error.printStackTrace();
         }

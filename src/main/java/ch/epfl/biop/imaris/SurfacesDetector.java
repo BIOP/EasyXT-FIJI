@@ -1,8 +1,8 @@
-/**
- * Copyright (c) 2020 Ecole Polytechnique Fédérale de Lausanne. All rights reserved.
+/*
+ * Copyright (c) 2021 Ecole Polytechnique Fédérale de Lausanne. All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * <p>
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this list of conditions
  * and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions
@@ -27,31 +27,26 @@ import Imaris.ISurfacesPrx;
 
 /**
  * Helper functions for surface detection in Imaris
- *
  * With the use of a builder pattern, this class combines the following Imaris functions :
  * - DetectSurfaces
  * - DetectSurfaceRegionGrowing TODO: implement and explain how the builder switch or not to this function
  * - DetectSurfacesRegionGrowingWithUpperThreshold TODO: implement and explain how the builder switch or not to this function
- *
  * The Builder is tuned to allow for an invisible switch between these functions depending on the builder methods calls
  * If an upper threshold is set {
- *     calling DetectSurfacesRegionGrowingWithUpperThreshold
+ * calling DetectSurfacesRegionGrowingWithUpperThreshold
  * } else if any of the seed detection parameters is set {
- *     calling DetectSurfaceRegionGrowing
+ * calling DetectSurfaceRegionGrowing
  * } else {
- *     calling DetectSurfaces
+ * calling DetectSurfaces
  * }
- *
  * @author Nicolas Chiaruttini
  * @author Olivier Burri
- *
- * BIOP, EPFL,  Jan 2020
- *
+ * @version 1.0
+ * BIOP, EPFL, Jan 2020
  * Useful links:
  * file:///C:/Program%20Files/Bitplane/Imaris%20x64%209.5.1/html/xtinterface/structImaris_1_1IImageProcessing.html
  * file:///C:/Program%20Files/Bitplane/Imaris%20x64%209.5.1/html/xtinterface/structImaris_1_1IImageProcessing.html#a41275043bc718252958bce85f4d4561a
  */
-
 public class SurfacesDetector {
 
     // Fields from Imaris API - DetectSurfaces
@@ -127,7 +122,7 @@ public class SurfacesDetector {
             // Need to deal with a Lower Threshold Enabled TODO
             if (aSeedsEstimateDiameter == null) {
 
-                surfaces = EasyXT.getImaris().GetImageProcessing().DetectSurfacesWithUpperThreshold(aDataSet,
+                surfaces = EasyXT.Utils.getImarisApp().GetImageProcessing().DetectSurfacesWithUpperThreshold(aDataSet,
                         aRegionsOfInterest,
                         aChannelIndex,
                         aSmoothFilterWidth,
@@ -141,7 +136,7 @@ public class SurfacesDetector {
                         aSurfaceFiltersString);
             } else {
 
-                surfaces = EasyXT.getImaris().GetImageProcessing().DetectSurfacesRegionGrowingWithUpperThreshold(aDataSet,
+                surfaces = EasyXT.Utils.getImarisApp().GetImageProcessing().DetectSurfacesRegionGrowingWithUpperThreshold(aDataSet,
                         aRegionsOfInterest,
                         aChannelIndex,
                         aSmoothFilterWidth,
@@ -173,7 +168,7 @@ public class SurfacesDetector {
                 //		string  	aSurfaceFiltersString
                 //	)
 
-                surfaces = EasyXT.getImaris().GetImageProcessing().DetectSurfacesRegionGrowing(aDataSet,
+                surfaces = EasyXT.Utils.getImarisApp().GetImageProcessing().DetectSurfacesRegionGrowing(aDataSet,
                         aRegionsOfInterest,
                         aChannelIndex,
                         aSmoothFilterWidth,
@@ -198,7 +193,7 @@ public class SurfacesDetector {
                 //		string  	aSurfaceFiltersString
                 //	)
 
-                surfaces = EasyXT.getImaris().GetImageProcessing().DetectSurfaces(aDataSet,
+                surfaces = EasyXT.Utils.getImarisApp().GetImageProcessing().DetectSurfaces(aDataSet,
                         aRegionsOfInterest,
                         aChannelIndex,
                         aSmoothFilterWidth,
@@ -253,7 +248,7 @@ public class SurfacesDetector {
 
         private SurfacesDetectorBuilder(int channelIndex) throws Imaris.Error {
             // default values
-            aDataSet = EasyXT.getImaris().GetDataSet();
+            aDataSet = EasyXT.Utils.getImarisApp().GetDataSet();
             this.aChannelIndex = channelIndex;
         }
 
@@ -308,10 +303,9 @@ public class SurfacesDetector {
         }
 
         /**
-         *
          * @param aIntensityLowerThresholdManual , corresponds to "Manual Threshold Value" in the "Creation Parameters"
          *                                       (in the "Creation" tab of a completed surface)
-         * @return
+         * @return the builder for detecting surfaces
          */
 
         public SurfacesDetectorBuilder setLowerThreshold(double aIntensityLowerThresholdManual) {

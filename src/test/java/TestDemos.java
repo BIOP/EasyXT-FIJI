@@ -1,4 +1,4 @@
-import Imaris.Error;
+import ch.epfl.biop.imaris.EasyXT;
 import ch.epfl.biop.imaris.demo.*;
 import org.junit.Test;
 
@@ -6,50 +6,51 @@ import org.junit.Test;
  * Execute each demo one at a time - no error should be thrown
  */
 public class TestDemos {
+private static String mode = "Test Mode";
 
     @Test
     public void AddChildObjects() throws Exception {
-        AddChildObjects.main("Test Mode");
+        AddChildObjects.main(mode);
     }
 
     @Test
     public void AddStatsDemo() throws Exception {
-        AddStatsDemo.main("Test Mode");
+        AddStatsDemo.main(mode);
     }
 
     @Test
     public void AllGetters() throws Exception {
-        AllGetters.main("Test Mode");
+        AllGettersDemo.main(mode);
     }
 
     @Test
     public void FreshStartWithIJAndBIOPImsSample() throws Exception {
-        FreshStartWithIJAndBIOPImsSample.main("Test Mode");
+        FreshStartWithIJAndBIOPImsSample.main(mode);
     }
 
     @Test
     public void GetStatisticsDemo() throws Exception {
-        GetStatisticsDemo.main("Test Mode");
+        GetStatisticsDemo.main(mode);
     }
 
     @Test
-    public void IJSimpleLaunch() throws Exception {
-        IJSimpleLaunch.main("Test Mode");
+    public void LaunchIJFromEasyXT() throws Exception {
+        EasyXT.main(mode);
     }
 
     @Test
     public void MakeAndGetSpotsDemo() throws Exception {
-        MakeAndGetSpotsDemo.main("Test Mode");
+        MakeAndGetSpotsDemo.main(mode);
     }
 
     @Test
     public void MakeAndGetSurfaceDemo() throws Exception {
-        MakeAndGetSurfaceDemo.main("Test Mode");
+        MakeAndGetSurfaceDemo.main(mode);
     }
 
     @Test
-    public void SendNewSurfaceDemo() throws Exception {
-        SendNewSurfaceDemo.main("Test Mode");
+    public void MakeSurfaceFromMaskDemo() throws Exception {
+        MakeSurfaceFromMaskDemo.main(mode);
     }
 
 }

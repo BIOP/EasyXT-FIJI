@@ -3,7 +3,6 @@ package ch.epfl.biop.imaris.command;
 import Imaris.Error;
 import Imaris.ISurfacesPrx;
 import ch.epfl.biop.imaris.EasyXT;
-import ch.epfl.biop.imaris.SurfacesDetector;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
@@ -30,16 +29,16 @@ public class MakeSurfaceCommand implements Command {
     @Override
     public void run() {
         try {
-            ISurfacesPrx surf = SurfacesDetector.Channel(channelIndex)
+            ISurfacesPrx surf = EasyXT.Surfaces.create(channelIndex)
                     .setSmoothingWidth(smoothingWidth)
                     .setLowerThreshold(lowerThreshold)
                     .setName(surfaceName)
-                    .setColor(new Integer[]{color.getRed(),color.getGreen(),color.getBlue()})
+                    .setColor(new Integer[]{color.getRed(), color.getGreen(), color.getBlue()})
                     .build()
                     .detect();
 
             // Adds the surface to the scene
-            EasyXT.getImaris().GetSurpassScene().AddChild(surf,0);
+            EasyXT.Scene.addItem(surf);
             surf.SetVisible(false);
             surf.SetVisible(true);
 

@@ -1,8 +1,8 @@
-/**
- * Copyright (c) 2020 Ecole Polytechnique Fédérale de Lausanne. All rights reserved.
+/*
+ * Copyright (c) 2021 Ecole Polytechnique Fédérale de Lausanne. All rights reserved.
  * Redistribution and use in source and binary forms, with or without modification,
  * are permitted provided that the following conditions are met:
- * <p>
+ *
  * 1. Redistributions of source code must retain the above copyright notice, this list of conditions
  * and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions
@@ -29,30 +29,23 @@ import java.util.function.Consumer;
 
 /**
  * Helper functions for spots detection in Imaris
- * <p>
  * With the use of a builder pattern, this class combines the following Imaris functions :
  * - DetectSpots2()
  * - DetectSpotsRegionGrowing() TODO: implement and explain how the builder switch or not to this function
- * <p>
- * DetectSpotsWithRegions() not supported -> replaced by DetectSpotsRegionGrowing() T
- * DetectSpots() obsolete -> replaced by DetectSpots2()
- * <p>
+ * DetectSpotsWithRegions() not supported - replaced by DetectSpotsRegionGrowing() T
+ * DetectSpots() obsolete - replaced by DetectSpots2()
  * The Builder is tuned to allow for an invisible switch between these functions depending on the builder methods calls
- * <p>
- * TODO : look at Elliptical spot detection
- * <p>
+ * TODO: look at Elliptical spot detection
  * Authors
- * Nicolas Chiaruttini, nicolas.chiaruttini@epfl.ch
- * Olivier Burri, olivier.burri@epfl.ch
- * Romain Guiet, romain.guiet@epfl.ch
- * <p>
- * BIOP, EPFL,  Jan 2021
- * <p>
+ * @author Nicolas Chiaruttini
+ * @author Olivier Burri
+ * @author Romain Guiet
+ * @version 1.0
+ * BIOP, EPFL, Jan 2021
  * Useful links:
  * file:///C:/Program%20Files/Bitplane/Imaris%20x64%209.5.1/html/xtinterface/structImaris_1_1IImageProcessing.html
  * file:///C:/Program%20Files/Bitplane/Imaris%20x64%209.5.1/html/xtinterface/structImaris_1_1IImageProcessing.html#ae10348d92f0d2df6848ed44253c69391
  */
-
 public class SpotsDetector {
     /**
      * Standard logger
@@ -97,6 +90,11 @@ public class SpotsDetector {
     String name;
     Integer[] color;
 
+    // Removes a bit of the verbosity
+    public static SpotsDetectorBuilder Channel(int indexChannel) throws Error {
+        return SpotsDetectorBuilder.aSpotsDetector(indexChannel);
+    }
+
     public ISpotsPrx detect() throws Error {
 
         ISpotsPrx spots;
@@ -134,7 +132,7 @@ public class SpotsDetector {
             //	)
 
             if (aEstimateDiameterXYZ != null) { // look for ellipses
-                spots = EasyXT.getImaris().GetImageProcessing().DetectEllipticSpotsRegionGrowing(aDataSet,
+                spots = EasyXT.Utils.getImarisApp().GetImageProcessing().DetectEllipticSpotsRegionGrowing(aDataSet,
                         aRegionsOfInterest,
                         aChannelIndex,
                         aEstimateDiameterXYZ,
@@ -148,7 +146,7 @@ public class SpotsDetector {
 
             } else { // or simple spots
 
-                spots = EasyXT.getImaris().GetImageProcessing().DetectSpotsRegionGrowing(aDataSet,
+                spots = EasyXT.Utils.getImarisApp().GetImageProcessing().DetectSpotsRegionGrowing(aDataSet,
                         aRegionsOfInterest,
                         aChannelIndex,
                         aEstimateDiameter,
@@ -173,7 +171,7 @@ public class SpotsDetector {
 
             // TODO Understand what happens with the Map<String, String> with detectspots2
             if (aEstimateDiameterXYZ != null) { // look for ellipses
-                spots = EasyXT.getImaris().GetImageProcessing().DetectEllipticSpots(aDataSet,
+                spots = EasyXT.Utils.getImarisApp().GetImageProcessing().DetectEllipticSpots(aDataSet,
                         aRegionsOfInterest,
                         aChannelIndex,
                         aEstimateDiameterXYZ,
@@ -181,7 +179,7 @@ public class SpotsDetector {
                         aSpotFiltersString);
 
             } else { // or simple spots
-                spots = EasyXT.getImaris().GetImageProcessing().DetectSpots2(aDataSet,
+                spots = EasyXT.Utils.getImarisApp().GetImageProcessing().DetectSpots2(aDataSet,
                         aRegionsOfInterest,
                         aChannelIndex,
                         aEstimateDiameter,
@@ -203,11 +201,6 @@ public class SpotsDetector {
         }
 
         return spots;
-    }
-
-    // Removes a bit of the verbosity
-    public static SpotsDetectorBuilder Channel(int indexChannel) throws Error {
-        return SpotsDetectorBuilder.aSpotsDetector(indexChannel);
     }
 
     public static final class SpotsDetectorBuilder {
@@ -241,7 +234,7 @@ public class SpotsDetector {
 
         private SpotsDetectorBuilder(int channelIndex) throws Error {
             // default values
-            aDataSet = EasyXT.getImaris().GetDataSet();
+            aDataSet = EasyXT.Utils.getImarisApp().GetDataSet();
             this.aChannelIndex = channelIndex;
         }
 
@@ -272,7 +265,7 @@ public class SpotsDetector {
         /**
          * @param diameter corresponds to [Source Channel] Estimated XY Diameter in the "Creation Parameters"
          *                 (in the "Creation" tab of a completed spots object)
-         * @return
+         * @return the builder to continue configuration of the spots detection
          */
         public SpotsDetectorBuilder setDiameter(double diameter) {
             this.aEstimateDiameter = new Float(diameter);
@@ -288,7 +281,7 @@ public class SpotsDetector {
          *
          * @param aEstimateDiameterZ corresponds to [Source Channel] Estimated Z Diameter in the "Creation Parameters"
          *                           (in the "Creation" tab of a completed spots object)
-         * @return
+         * @return the builder to continue configuration of the spots detection
          */
         public SpotsDetectorBuilder setAxialDiameter(double aEstimateDiameterZ) {
             if (this.aEstimateDiameter != null)
@@ -307,7 +300,7 @@ public class SpotsDetector {
          *                            (in the "Creation" tab of a completed spots object)
          * @param aEstimateDiameterZ  corresponds to [Source Channel] Estimated Z Diameter in the "Creation Parameters"
          *                            (in the "Creation" tab of a completed spots object)
-         * @return
+         * @return the builder to continue configuration of the spots detection
          */
         public SpotsDetectorBuilder setDiameterXYZ(double aEstimateDiameterXY, double aEstimateDiameterZ) {
             setDiameter(aEstimateDiameterXY);
@@ -318,7 +311,7 @@ public class SpotsDetector {
         /**
          * @param aSubtractBackground corresponds to [Source Channel] Background Substraction = true in the "Creation Parameters"
          *                            (in the "Creation" tab of a completed spots object)
-         * @return
+         * @return the builder to continue configuration of the spots detection
          */
         public SpotsDetectorBuilder isSubtractBackground(Boolean aSubtractBackground) {
             this.aSubtractBackground = aSubtractBackground;
@@ -329,7 +322,7 @@ public class SpotsDetector {
          * @param aFiltersString corresponds to [Classify Spots] with a String (eg. "Quality" above 5) in the "Creation Parameters"
          *                       (in the "Creation" tab of a completed spots object)
          *                       use  "\" as escape character  or combination of '' and ""
-         * @return
+         * @return the builder to continue configuration of the spots detection
          */
         public SpotsDetectorBuilder setFilter(String aFiltersString) {
             this.aSpotFiltersString = aFiltersString;
@@ -341,7 +334,7 @@ public class SpotsDetector {
          *                                  if true = Local Contrast
          *                                  if false = TO DO
          *                                  in the "Creation" tab of a completed spots object)
-         * @return
+         * @return the builder to continue configuration of the spots detection
          */
         public SpotsDetectorBuilder isRegionsFromLocalContrast(Boolean aRegionsFromLocalContrast) {
             this.aRegionsFromLocalContrast = aRegionsFromLocalContrast;
@@ -352,7 +345,7 @@ public class SpotsDetector {
          * corresponds to [Spot Regions] Region Growing Automatic Threshold = true in the "Creation Parameters"
          * (in the "Creation" tab of a completed spots object)
          *
-         * @return
+         * @return the builder to continue configuration of the spots detection
          */
         public SpotsDetectorBuilder enableRegionsThresholdAutomatic() {
             this.aRegionsThresholdAutomatic = true;
@@ -362,7 +355,7 @@ public class SpotsDetector {
         /**
          * @param threshold corresponds to [Spot Regions] Region Growing Manual Threshold in the "Creation Parameters"
          *                  (in the "Creation" tab of a completed spots object)
-         * @return
+         * @return the builder to continue configuration of the spots detection
          */
         public SpotsDetectorBuilder setRegionsThresholdManual(double threshold) {
             this.aRegionsThresholdManual = new Float(threshold);
@@ -376,7 +369,7 @@ public class SpotsDetector {
          *
          * @param flag corresponds to [Spot Regions] Create Region Channel in the "Creation Parameters"
          *             (in the "Creation" tab of a completed spots object)
-         * @return
+         * @return the builder to continue configuration of the spots detection
          */
         public SpotsDetectorBuilder isCreateRegionsChannel(Boolean flag) {
             this.aRegionsCreateChannel = flag;
@@ -386,7 +379,7 @@ public class SpotsDetector {
         /**
          * @param flag corresponds to [Spot Regions] Region Growing Diameter = Diameter From Volume in the "Creation Parameters"
          *             (in the "Creation" tab of a completed spots object)
-         * @return
+         * @return the builder to continue configuration of the spots detection
          */
         public SpotsDetectorBuilder isRegionsSpotsDiameterFromVolume(Boolean flag) {
             this.aRegionsSpotsDiameterFromVolume = flag;

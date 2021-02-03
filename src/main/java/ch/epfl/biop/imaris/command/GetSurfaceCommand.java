@@ -10,21 +10,21 @@ import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
 
 @Plugin(type = Command.class, menuPath = "Plugins>BIOP>EasyXT>Surface>Get Surface from Imaris")
-public class GetSurfaceCommand implements Command{
+public class GetSurfaceCommand implements Command {
 
     @Parameter
     String surfaceName;
 
     @Parameter(type = ItemIO.OUTPUT)
-    ImagePlus surface;
+    ImagePlus surfaceImp;
 
     @Override
     public void run() {
         // Gets an existing surface
         try {
-            ISurfacesPrx surfprx = EasyXT.getSurfaces( surfaceName );
+            ISurfacesPrx surfprx = EasyXT.Surfaces.find(surfaceName);
             // Display surfaces
-            surface = EasyXT.getSurfacesMask( surfprx );
+            surfaceImp = EasyXT.Surfaces.getMaskImage(surfprx);
 
         } catch (Error error) {
             error.printStackTrace();

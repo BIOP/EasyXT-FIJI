@@ -1,19 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>org.scijava</groupId>
         <artifactId>pom-scijava</artifactId>
         <version>30.0.0</version>
-        <relativePath></relativePath>
+        <relativePath />
     </parent>
 
     <groupId>ch.epfl.biop.imaris</groupId>
     <artifactId>EasyXT</artifactId>
-    <version>0.2.1-SNAPSHOT</version>
+    <version>0.2.1</version>
 
     <name>BIOP EasyXT-FIJI</name>
     <description>API and commands to facilitate communication between Imaris and FIJI</description>
@@ -94,7 +92,7 @@
     <scm>
         <connection>scm:git:git://github.com/BIOP/EasyXT-FIJI</connection>
         <developerConnection>scm:git:git@github.com:BIOP/EasyXT-FIJI</developerConnection>
-        <tag>HEAD</tag>
+        <tag>EasyXT-0.2.1</tag>
         <url>https://github.com/BIOP/EasyXT-FIJI</url>
     </scm>
 

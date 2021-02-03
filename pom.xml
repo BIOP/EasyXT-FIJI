@@ -8,6 +8,7 @@
         <groupId>org.scijava</groupId>
         <artifactId>pom-scijava</artifactId>
         <version>30.0.0</version>
+        <relativePath></relativePath>
     </parent>
 
     <groupId>ch.epfl.biop.imaris</groupId>

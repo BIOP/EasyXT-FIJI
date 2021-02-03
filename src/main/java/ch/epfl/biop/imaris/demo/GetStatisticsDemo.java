@@ -1,6 +1,26 @@
+/*-
+ * #%L
+ * API and commands to facilitate communication between Imaris and FIJI
+ * %%
+ * Copyright (C) 2020 - 2021 ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland, BioImaging And Optics Platform (BIOP)
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 2 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-2.0.html>.
+ * #L%
+ */
 package ch.epfl.biop.imaris.demo;
 
-import Imaris.Error;
 import Imaris.ISurfacesPrx;
 import ch.epfl.biop.imaris.EasyXT;
 import ch.epfl.biop.imaris.StatsQuery;
@@ -19,7 +39,7 @@ import java.util.Arrays;
  * <p>
  * October 2020
  * <p>
- * EPFL - SV -PTECH - PTBIOP
+ * EPFL - SV - PTECH - PTBIOP
  */
 
 public class GetStatisticsDemo {
@@ -42,23 +62,23 @@ public class GetStatisticsDemo {
         // ISurfacesPrx surfaces = EasyXT.getSurfaces( "Surfaces 1" ); // For this to work, you need to add the surface as a child object, see {@link AddChildObjects}
 
         // Get all statistics
-        ResultsTable stats1 = EasyXT.getStatistics(surface);
+        ResultsTable stats1 = EasyXT.Stats.export(surface);
         stats1.show("All Statistics");
 
         // Get a specific statistic
-        ResultsTable stats2 = EasyXT.getStatistics(surface, "Intensity Mean");
+        ResultsTable stats2 = EasyXT.Stats.export(surface, "Intensity Mean");
         stats2.show("Mean Intensity Statistics");
 
         // Get a multiple statistics
-        ResultsTable stats3 = EasyXT.getStatistics(surface, Arrays.asList("Intensity Mean", "Intensity Sum"));
+        ResultsTable stats3 = EasyXT.Stats.export(surface, Arrays.asList("Intensity Mean", "Intensity Sum"));
         stats3.show("Intensity Results");
 
         // Get a multiple statistics for a single channel
-        ResultsTable stats4 = EasyXT.getStatistics(surface, Arrays.asList("Intensity Mean", "Intensity Sum"), 1);
+        ResultsTable stats4 = EasyXT.Stats.export(surface, Arrays.asList("Intensity Mean", "Intensity Sum"), 1);
         stats4.show("Intensity Results C1");
 
         // Get a multiple statistics for multiple channels
-        ResultsTable stats5 = EasyXT.getStatistics(surface, Arrays.asList("Intensity Mean", "Intensity Sum"), Arrays.asList(1, 2));
+        ResultsTable stats5 = EasyXT.Stats.export(surface, Arrays.asList("Intensity Mean", "Intensity Sum"), Arrays.asList(1, 2));
         stats5.show("Intensity Results 2 Channels");
 
         // Get statistics, the raw way

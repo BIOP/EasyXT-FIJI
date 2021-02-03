@@ -1,4 +1,7 @@
 target
 .idea
 .iml
-null/
+*.iml
+.ims
+.bak
+pom.xml.releaseBackup

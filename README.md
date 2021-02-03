@@ -1,6 +1,10 @@
+[![](https://travis-ci.com/BIOP/EasyXT-FIJI.svg?branch=master)](https://travis-ci.com/BIOP/EasyXT-FIJI)
+
 # EasyXT for ImageJ
 
 ![EasyXT Image](https://raw.githubusercontent.com/lacan/EasyXT/master/EasyXT-Logo.jpg)
+
+![ScreenShot](https://raw.githubusercontent.com/BIOP/EasyXT-FIJI/master/images/screenshot.png)
 
 An Imaris Xtension for ImageJ. 
 

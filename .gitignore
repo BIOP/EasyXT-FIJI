@@ -3,5 +3,5 @@ target
 .iml
 *.iml
 .ims
-.bak
+*.bak
 pom.xml.releaseBackup

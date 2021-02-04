@@ -120,6 +120,7 @@
         <imaris-lib.version>9.5.1</imaris-lib.version>
         <mcib3d-core.version>3.96.3</mcib3d-core.version>
         <imagescience.version>3.0.0</imagescience.version>
+        <releaseProfiles>deploy-to-scijava</releaseProfiles>
     </properties>
 
     <dependencies>

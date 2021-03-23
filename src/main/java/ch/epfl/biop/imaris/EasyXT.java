@@ -68,7 +68,9 @@ import java.util.stream.IntStream;
  * This is the main static class you should access when you want to interact with Imaris.
  */
 public class EasyXT {
-    private static final IApplicationPrx APP;
+
+    // APP is not final because we reserve the right to restart the connection
+    private static IApplicationPrx APP;
     private static final String M_END_POINTS = "default -p 4029";
     public static Map<tType, Integer> datatype;
     public static Logger log = Logger.getLogger(EasyXT.class.getName());
@@ -114,10 +116,25 @@ public class EasyXT {
      */
     private static void CloseIceClient() {
         if (mIceClient != null) {
+            log.info("Closing previous Imaris ICE connection...");
             mIceClient.Terminate();
             mIceClient = null;
+            log.info("Imaris ICE connection closed.");
+
         }
     }
+
+    /**
+     * Closes an existing Imaris ICE connection before reattempting to connect.
+     * This is useful when Imaris has crashed but fiji is still running.
+     */
+    public static void resetImarisConnection() {
+        CloseIceClient();
+        mIceClient = new IceClient("ImarisServer", M_END_POINTS, 10000);
+        ObjectPrx potentialApp = mIceClient.GetServer().GetObject(0);
+        APP = IApplicationPrxHelper.checkedCast(potentialApp);
+    }
+
 
     /**
      * Main method for debugging EasyXT
@@ -206,7 +223,16 @@ public class EasyXT {
          * @throws Error an Imaris Error
          */
         public static String getOpenFileName() throws Error {
-            return new File(Utils.getImarisApp().GetCurrentFileName()).getName();
+            return getOpenFile().getName();
+        }
+
+        /**
+         * Get the path of the currently open Imaris file, as a File
+         * @return the File pointing to the currently open image
+         * @throws Error an Imaris Error
+         */
+        public static File getOpenFile() throws Error {
+            return new File(Utils.getImarisApp().GetCurrentFileName());
         }
     }
 
@@ -1423,7 +1449,9 @@ public class EasyXT {
 
             // Make sure the startZ is correct
             if (startZ < 0) startZ = 0;
-            if ((startZ + temp.getNSlices()) > image.getNSlices()) startZ = 0;
+            if ((startZ + temp.getNSlices()) > image.getNSlices())  {
+                // Remove Slices startZ = 0;
+            }
 
             // Add the data, along with the desired index
             for (int z = 1; z <= temp.getNSlices(); z++) {
@@ -1477,9 +1505,9 @@ public class EasyXT {
             newLayout.mExtendMaxZ = (float) (referenceCalibration.zOrigin + zma * referenceCalibration.pixelDepth);
 
             // Finally adjust number of pixels
-            newLayout.mSizeX = (int) (Math.round((newLayout.mExtendMaxX - newLayout.mExtendMinX) / referenceCalibration.pixelWidth));
-            newLayout.mSizeY = (int) (Math.round((newLayout.mExtendMaxY - newLayout.mExtendMinY) / referenceCalibration.pixelHeight));
-            newLayout.mSizeZ = (int) (Math.round((newLayout.mExtendMaxZ - newLayout.mExtendMinZ) / referenceCalibration.pixelDepth));
+            newLayout.mSizeX = (int) (Math.ceil((newLayout.mExtendMaxX - newLayout.mExtendMinX) / referenceCalibration.pixelWidth));
+            newLayout.mSizeY = (int) (Math.ceil((newLayout.mExtendMaxY - newLayout.mExtendMinY) / referenceCalibration.pixelHeight));
+            newLayout.mSizeZ = (int) (Math.ceil((newLayout.mExtendMaxZ - newLayout.mExtendMinZ) / referenceCalibration.pixelDepth));
 
             return newLayout;
         }

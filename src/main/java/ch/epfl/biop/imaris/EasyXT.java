@@ -1464,7 +1464,8 @@ public class EasyXT {
 
                 // Fast copy interface using Blitter
                 fip.copyBits(pip, startX, startY, Blitter.COPY_ZERO_TRANSPARENT);
-                image.getStack().setProcessor(fip, z + startZ);
+
+                image.getStack().setProcessor(fip, position);
             }
         }
 

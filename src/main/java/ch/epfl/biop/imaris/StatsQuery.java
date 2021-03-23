@@ -298,7 +298,10 @@ public class StatsQuery {
             if (this.channels.size() > 0) { // We have requested specific channels
                 matchesChannel = false;
                 for (String channel : this.channels) {
-                    matchesChannel = this.stats.mFactors[channelIdx][i].matches(channel);
+                    // Special case, if the name matches but there is no channel information, provide the result
+                    // nonetheless. Eg. Requesting "Volume" should return volume, independently of channel
+                    matchesChannel = this.stats.mFactors[channelIdx][i].matches(channel) ||
+                                    (this.stats.mFactors[channelIdx][i].matches("") && matchesName);
                     if (matchesChannel) break;
                 }
             } else matchesChannel = true;

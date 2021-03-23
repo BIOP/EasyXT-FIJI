@@ -92,7 +92,6 @@
     <scm>
         <connection>scm:git:git://github.com/BIOP/EasyXT-FIJI</connection>
         <developerConnection>scm:git:git@github.com:BIOP/EasyXT-FIJI</developerConnection>
-        <tag>HEAD</tag>
         <url>https://github.com/BIOP/EasyXT-FIJI</url>
     </scm>
 

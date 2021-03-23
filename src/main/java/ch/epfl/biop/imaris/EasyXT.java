@@ -125,18 +125,6 @@ public class EasyXT {
     }
 
     /**
-     * Closes an existing Imaris ICE connection before reattempting to connect.
-     * This is useful when Imaris has crashed but fiji is still running.
-     */
-    public static void resetImarisConnection() {
-        CloseIceClient();
-        mIceClient = new IceClient("ImarisServer", M_END_POINTS, 10000);
-        ObjectPrx potentialApp = mIceClient.GetServer().GetObject(0);
-        APP = IApplicationPrxHelper.checkedCast(potentialApp);
-    }
-
-
-    /**
      * Main method for debugging EasyXT
      *
      * @param args optional parameters
@@ -1936,6 +1924,19 @@ public class EasyXT {
          */
         public static IApplicationPrx getImarisApp() {
             return APP;
+        }
+
+        /**
+         * Closes an existing Imaris ICE connection before reattempting to connect.
+         * This is useful when Imaris has crashed but fiji is still running.
+         */
+        public static void resetImarisConnection() {
+            CloseIceClient();
+            log.info("Reconnecting to Imaris ICE Server...");
+            mIceClient = new IceClient("ImarisServer", M_END_POINTS, 10000);
+            ObjectPrx potentialApp = mIceClient.GetServer().GetObject(0);
+            APP = IApplicationPrxHelper.checkedCast(potentialApp);
+            log.info("Connection Re-established");
         }
 
         /**

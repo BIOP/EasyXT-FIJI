@@ -1221,6 +1221,7 @@ public class EasyXT {
             // Divide by 255
             // Duplicate so as not to change it
             ImagePlus tempImage = imp.duplicate();
+            // Imaris surface accept ONLY 0-1 image
             int nProcessor = tempImage.getStack().getSize();
             IntStream.range(0, nProcessor).parallel().forEach(index -> {
                 tempImage.getStack().getProcessor(index + 1).multiply(1.0 / 255.0);
@@ -1237,6 +1238,64 @@ public class EasyXT {
                 surface.AddSurface(data, t + timepoint);
             }
             EasyXT.Scene.setName(surface, tempImage.getTitle());
+
+            return surface;
+        }
+
+        /**
+         * create a new surfaces object from a Label ImagePlus
+         *
+         * @param label_imp the image to get a Surfaces from.
+         *                  A label image, each label will be a subSurface of the Surfaces object.
+         * @return
+         * @throws Error an Imaris Error if there was a problem
+         */
+        public static ISurfacesPrx createFromLabels(ImagePlus label_imp) throws Error {
+            // Check if it has a Time Index Property
+            Object tInd = label_imp.getProperty("Time Index");
+            if (tInd != null) {
+                return createFromLabels( label_imp, (int) tInd);
+            }
+            log.warning("EasyXT cannot find a timepoint associated with this surface mask. Defaulting to Timepoint 0");
+            log.warning("Use Surfaces.create(ImagePlus imp, int timepoint) to specify the desired timepoint to instert this surface");
+
+            return createFromLabels( label_imp, 0);
+        };
+
+        /**
+         * @param label_imp the image to get a Surfaces from.
+         *                  A label image, each label will be a subSurface of the Surfaces object.
+         * @param timepoint an index to offset the start of the surface creation.
+         *                  for single timepoint Images, this is effectively the timepoint at which to place the surface
+         * @return
+         * @throws Error
+         */
+        public static ISurfacesPrx createFromLabels(ImagePlus label_imp, int timepoint) throws Error {
+            // get the Maximum value of the Labels
+            int imp_max = (int) new StackStatistics( label_imp ).max;
+
+            // build empty surface object
+            ISurfacesPrx surface = EasyXT.Utils.getImarisApp().GetFactory().CreateSurfaces();
+
+            for (int t = 0; t < label_imp.getNFrames(); t++) {
+                for(int idx=1 ; idx<=imp_max ; idx++){
+
+                    ImagePlus tempImage = label_imp.duplicate();
+                    //tempImage.show()
+                    IJ.setThreshold(tempImage, idx, idx);
+                    IJ.run(tempImage, "Convert to Mask", "method=Default background=Dark black");
+
+                    int nProcessor = tempImage.getStack().getSize();
+                    IntStream.range(0, nProcessor).parallel().forEach(index -> {
+                        tempImage.getStack().getProcessor(index + 1).multiply(1.0 / 255.0);
+                    });
+
+                    ImagePlus tImp = new Duplicator().run(tempImage, 1, 1, 1, tempImage.getNSlices(), t + 1, t + 1);
+                    IDataSetPrx data = EasyXT.Dataset.create(tImp);
+                    surface.AddSurface(data, t+ timepoint);
+                    tempImage.close();
+                }
+            }
 
             return surface;
         }

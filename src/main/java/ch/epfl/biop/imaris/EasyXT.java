@@ -1199,7 +1199,7 @@ public class EasyXT {
                 return create(imp, (int) tInd);
             }
             log.warning("EasyXT cannot find a timepoint associated with this surface mask. Defaulting to Timepoint 0");
-            log.warning("Use Surfaces.create(ImagePlus imp, int timepoint) to specify the desired timepoint to instert this surface");
+            log.warning("Use Surfaces.create(ImagePlus imp, int timepoint) to specify the desired timepoint to insert this surface");
 
             return create(imp, 0);
         }
@@ -1258,7 +1258,7 @@ public class EasyXT {
                 return createFromLabels(impLabel, (int) tInd);
             }
             log.warning("EasyXT cannot find a timepoint associated with this surface mask. Defaulting to Timepoint 0");
-            log.warning("Use Surfaces.create(ImagePlus imp, int timepoint) to specify the desired timepoint to instert this surface");
+            log.warning("Use Surfaces.create(ImagePlus imp, int timepoint) to specify the desired timepoint to insert this surface");
 
             return createFromLabels(impLabel, 0);
         }

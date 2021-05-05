@@ -1274,13 +1274,21 @@ public class EasyXT {
          * @throws Error an Imaris Error if there was a problem
          */
         public static ISurfacesPrx createFromLabels(ImagePlus impLabel, int timepoint) throws Error {
-            // get the Maximum value of the Labels
-            int impMax = (int) new StackStatistics(impLabel).max;
+
 
             // build empty surface object
             ISurfacesPrx surface = EasyXT.Utils.getImarisApp().GetFactory().CreateSurfaces();
 
+            //TODO fix issues with time-lapse Label
+            // not all labels per time point
             for (int t = 0; t < impLabel.getNFrames(); t++) {
+                // get the current t stack
+                ImagePlus tImpLabel = new Duplicator().run(impLabel, 1, 1, 1, impLabel.getNSlices(), t + 1, t + 1);
+                // get the minimum and Maximum value of the current t, Labels
+                //int impMin = (int) new StackStatistics(tImpLabel).min; // will always return 0 !
+                int impMax = (int) new StackStatistics(tImpLabel).max;
+
+                // TODO optimize idx start value, see below
                 for (int idx = 1; idx <= impMax; idx++) {
 
                     ImagePlus tempImage = impLabel.duplicate();
@@ -1293,11 +1301,20 @@ public class EasyXT {
                         tempImage.getStack().getProcessor(index + 1).multiply(1.0 / 255.0);
                     });
 
-                    ImagePlus tImp = new Duplicator().run(tempImage, 1, 1, 1, tempImage.getNSlices(), t + 1, t + 1);
-                    IDataSetPrx data = EasyXT.Dataset.create(tImp);
-                    surface.AddSurface(data, t + timepoint);
+                    // here we check if there are pixels at 1 , eg pixels have been thresholded
+                    // to avoid trying to create an Empty Surface that is causing an Imaris error
+                    // TODO find a better way to do it, possibly by optimizing the idx start
+                    //  maybe using the histogram ? issue with 16-bit images  (histogram has only 256 bins)?
+                    //  open to suggestions...
+                    int tImpMax = (int) new StackStatistics(tempImage).max;
+                    if (tImpMax == 1 ) {
+                        ImagePlus tImp = new Duplicator().run(tempImage, 1, 1, 1, tempImage.getNSlices(), t + 1, t + 1);
+                        IDataSetPrx data = EasyXT.Dataset.create(tImp);
+                        surface.AddSurface(data, t + timepoint);
+                    }
                     tempImage.close();
                 }
+                tImpLabel.close();
             }
 
             return surface;

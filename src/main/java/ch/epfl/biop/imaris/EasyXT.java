@@ -1208,12 +1208,12 @@ public class EasyXT {
          * create a new surfaces object from this ImagePlus
          *
          * @param imp       the image to get a surface from. Must be 8-bit and binary
-         * @param timepoint an index to offset the start of the surface creation.
+         * @param timepointOffset an index to offset the start of the surface creation.
          *                  for single timepoint Images, this is effectively the timepoint at which to place the surface
          * @return a surfaces object that should render in Imaris (though pixellated)
          * @throws Error an Imaris Error if there was a problem
          */
-        public static ISurfacesPrx create(ImagePlus imp, int timepoint) throws Error {
+        public static ISurfacesPrx create(ImagePlus imp, int timepointOffset) throws Error {
             // Ensure image is binary
             if (!imp.getProcessor().isBinary()) {
                 log.severe("Provided image is not binary");
@@ -1236,7 +1236,7 @@ public class EasyXT {
                 // Temporary ImagePlus required to work!
                 ImagePlus tImp = new Duplicator().run(tempImage, 1, 1, 1, imp.getNSlices(), t + 1, t + 1);
                 IDataSetPrx data = Dataset.create(tImp);
-                surface.AddSurface(data, t + timepoint);
+                surface.AddSurface(data, t + timepointOffset);
             }
             EasyXT.Scene.setName(surface, tempImage.getTitle());
 
@@ -1268,12 +1268,12 @@ public class EasyXT {
         /**
          * @param impLabel  the image to get a Surfaces from.
          *                  A label image, each label will be a surface of the Surfaces object.
-         * @param timepoint an index to offset the start of the surface creation.
+         * @param timepointOffset an index to offset the start of the surface creation.
          *                  for single timepoint Images, this is effectively the timepoint at which to place the surface
          * @return the ISurfacesPrx with individual surface for each label value
          * @throws Error an Imaris Error if there was a problem
          */
-        public static ISurfacesPrx createFromLabels(ImagePlus impLabel, int timepoint) throws Error {
+        public static ISurfacesPrx createFromLabels(ImagePlus impLabel, int timepointOffset) throws Error {
 
 
             // build empty surface object
@@ -1310,7 +1310,7 @@ public class EasyXT {
                     if (tImpMax == 1 ) {
                         ImagePlus tImp = new Duplicator().run(tempImage, 1, 1, 1, tempImage.getNSlices(), t + 1, t + 1);
                         IDataSetPrx data = EasyXT.Dataset.create(tImp);
-                        surface.AddSurface(data, t + timepoint);
+                        surface.AddSurface(data, t + timepointOffset);
                     }
                     tempImage.close();
                 }

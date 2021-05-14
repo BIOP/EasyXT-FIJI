@@ -8,12 +8,12 @@
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-2.0.html>.
@@ -215,6 +215,7 @@ public class EasyXT {
 
         /**
          * Get the path of the currently open Imaris file, as a File
+         *
          * @return the File pointing to the currently open image
          * @throws Error an Imaris Error
          */
@@ -1198,7 +1199,7 @@ public class EasyXT {
                 return create(imp, (int) tInd);
             }
             log.warning("EasyXT cannot find a timepoint associated with this surface mask. Defaulting to Timepoint 0");
-            log.warning("Use Surfaces.create(ImagePlus imp, int timepoint) to specify the desired timepoint to instert this surface");
+            log.warning("Use Surfaces.create(ImagePlus imp, int timepoint) to specify the desired timepoint to insert this surface");
 
             return create(imp, 0);
         }
@@ -1221,6 +1222,7 @@ public class EasyXT {
             // Divide by 255
             // Duplicate so as not to change it
             ImagePlus tempImage = imp.duplicate();
+            // Imaris surface accept ONLY 0-1 image
             int nProcessor = tempImage.getStack().getSize();
             IntStream.range(0, nProcessor).parallel().forEach(index -> {
                 tempImage.getStack().getProcessor(index + 1).multiply(1.0 / 255.0);
@@ -1237,6 +1239,83 @@ public class EasyXT {
                 surface.AddSurface(data, t + timepoint);
             }
             EasyXT.Scene.setName(surface, tempImage.getTitle());
+
+            return surface;
+        }
+
+        /**
+         * create a new surfaces object from a Label ImagePlus
+         *
+         * @param impLabel the image to get a Surfaces from.
+         *                 A label image, each label will be a surface of the Surfaces object.
+         * @return the ISurfacesPrx with individual surface for each label value
+         * @throws Error an Imaris Error if there was a problem
+         */
+        public static ISurfacesPrx createFromLabels(ImagePlus impLabel) throws Error {
+            // Check if it has a Time Index Property
+            Object tInd = impLabel.getProperty("Time Index");
+            if (tInd != null) {
+                return createFromLabels(impLabel, (int) tInd);
+            }
+            log.warning("EasyXT cannot find a timepoint associated with this surface mask. Defaulting to Timepoint 0");
+            log.warning("Use Surfaces.create(ImagePlus imp, int timepoint) to specify the desired timepoint to insert this surface");
+
+            return createFromLabels(impLabel, 0);
+        }
+
+        ;
+
+        /**
+         * @param impLabel  the image to get a Surfaces from.
+         *                  A label image, each label will be a surface of the Surfaces object.
+         * @param timepoint an index to offset the start of the surface creation.
+         *                  for single timepoint Images, this is effectively the timepoint at which to place the surface
+         * @return the ISurfacesPrx with individual surface for each label value
+         * @throws Error an Imaris Error if there was a problem
+         */
+        public static ISurfacesPrx createFromLabels(ImagePlus impLabel, int timepoint) throws Error {
+
+
+            // build empty surface object
+            ISurfacesPrx surface = EasyXT.Utils.getImarisApp().GetFactory().CreateSurfaces();
+
+            //TODO fix issues with time-lapse Label
+            // not all labels per time point
+            for (int t = 0; t < impLabel.getNFrames(); t++) {
+                // get the current t stack
+                ImagePlus tImpLabel = new Duplicator().run(impLabel, 1, 1, 1, impLabel.getNSlices(), t + 1, t + 1);
+                // get the minimum and Maximum value of the current t, Labels
+                //int impMin = (int) new StackStatistics(tImpLabel).min; // will always return 0 !
+                int impMax = (int) new StackStatistics(tImpLabel).max;
+
+                // TODO optimize idx start value, see below
+                for (int idx = 1; idx <= impMax; idx++) {
+
+                    ImagePlus tempImage = impLabel.duplicate();
+                    //tempImage.show()
+                    IJ.setThreshold(tempImage, idx, idx);
+                    IJ.run(tempImage, "Convert to Mask", "method=Default background=Dark black");
+
+                    int nProcessor = tempImage.getStack().getSize();
+                    IntStream.range(0, nProcessor).parallel().forEach(index -> {
+                        tempImage.getStack().getProcessor(index + 1).multiply(1.0 / 255.0);
+                    });
+
+                    // here we check if there are pixels at 1 , eg pixels have been thresholded
+                    // to avoid trying to create an Empty Surface that is causing an Imaris error
+                    // TODO find a better way to do it, possibly by optimizing the idx start
+                    //  maybe using the histogram ? issue with 16-bit images  (histogram has only 256 bins)?
+                    //  open to suggestions...
+                    int tImpMax = (int) new StackStatistics(tempImage).max;
+                    if (tImpMax == 1 ) {
+                        ImagePlus tImp = new Duplicator().run(tempImage, 1, 1, 1, tempImage.getNSlices(), t + 1, t + 1);
+                        IDataSetPrx data = EasyXT.Dataset.create(tImp);
+                        surface.AddSurface(data, t + timepoint);
+                    }
+                    tempImage.close();
+                }
+                tImpLabel.close();
+            }
 
             return surface;
         }
@@ -1436,7 +1515,7 @@ public class EasyXT {
 
             // Make sure the startZ is correct
             if (startZ < 0) startZ = 0;
-            if ((startZ + temp.getNSlices()) > image.getNSlices())  {
+            if ((startZ + temp.getNSlices()) > image.getNSlices()) {
                 // Remove Slices startZ = 0;
             }
 

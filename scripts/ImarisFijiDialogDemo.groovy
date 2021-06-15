@@ -1,7 +1,7 @@
 import ch.epfl.biop.imaris.*
 import ij.*
 import ij.plugin.Duplicator
-import ij.measure.ResultsTable
+import ij.measure.ResultsTable
 
 IJ.run("Close All", "");
 
@@ -10,7 +10,7 @@ image_path = EasyXT.Samples.getImarisDemoFile("CellDemoMembrane3D.ims")
 EasyXT.Files.openImage(image_path)
 
 // get the corresponding ImagePlus
-imp = EasyXT.Dataset.getImagePlus( EasyXT.Dataset.getCurrent() )
+imp = EasyXT.Dataset.getImagePlus(EasyXT.Dataset.getCurrent())
 imp.show()
 
 
@@ -34,16 +34,16 @@ EasyXT.Scene.addItem(mb_surf)
 // rt = EasyXT.Stats.export(mb_surf) 
 //
 // but it also possible to define measurements
-measures = Arrays.asList( "Volume", "Intensity Mean")
+measures = Arrays.asList("Volume", "Intensity Mean")
 
 // here we would like to append Results if a table exist
 rt = ResultsTable.getResultsTable("Results")
-if ( rt == null){// no existing table, so we export using EasyXT
-	rt = EasyXT.Stats.export(mb_surf, measures)
-}else{// a table exist, so we append
-	rt = new StatsQuery(mb_surf)
-						   .selectStatistics( measures )
-						   .appendTo(rt)
-						   .get()
+if (rt == null) {// no existing table, so we export using EasyXT
+    rt = EasyXT.Stats.export(mb_surf, measures)
+} else {// a table exist, so we append
+    rt = new StatsQuery(mb_surf)
+            .selectStatistics(measures)
+            .appendTo(rt)
+            .get()
 }
 rt.show()

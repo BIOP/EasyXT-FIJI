@@ -1311,6 +1311,8 @@ public class EasyXT {
                         ImagePlus tImp = new Duplicator().run(tempImage, 1, 1, 1, tempImage.getNSlices(), t + 1, t + 1);
                         IDataSetPrx data = EasyXT.Dataset.create(tImp);
                         surface.AddSurface(data, t + timepointOffset);
+                        // TODO: Warning: Because there is no way to set the Surfaces's IDs, there will certainly be a
+                        // TODO: discrepancy between the id of an original surface and a modified surface returned using this method...
                     }
                     tempImage.close();
                 }
@@ -1403,10 +1405,15 @@ public class EasyXT {
                 addSurfaceIndexToLabelImage(surface, i, labelImage);
             }
 
-            // the labelImage is 32 bit (because this makes it easier to user internally,
+            // the labelImage is 32 bit (because this makes it easier to use internally,
             // we can convert it here to the right bit depth to save memory
+            boolean doScaling = ImageConverter.getDoScaling();
+            ImageConverter.setDoScaling(false);
+
             if (maxSurfaceID < 256) new ImageConverter(labelImage).convertToGray8();
             if (maxSurfaceID < 65536) new ImageConverter(labelImage).convertToGray16();
+            ImageConverter.setDoScaling(doScaling);
+
             return labelImage;
         }
 
@@ -1526,7 +1533,8 @@ public class EasyXT {
                 ImageProcessor pip = temp.getStack().getProcessor(z).convertToFloat();
 
                 // The mask is within 0-1 so we just need to multiply by the ID
-                pip.multiply(id);
+                // NOTE: We increment the ID by 1 because the surface ID can start at 0
+                pip.multiply(id+1);
 
                 // Fast copy interface using Blitter
                 fip.copyBits(pip, startX, startY, Blitter.COPY_ZERO_TRANSPARENT);

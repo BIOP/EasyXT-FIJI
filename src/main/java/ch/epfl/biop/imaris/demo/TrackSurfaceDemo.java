@@ -58,7 +58,7 @@ public class TrackSurfaceDemo {
 
             // Adds the surface to the scene
             EasyXT.Scene.addItem(surface);
-
+/*
             ISurfacesPrx surfaceTracked = (ISurfacesPrx) ItemTracker.Item(surface).
                     setMethod("AutoregressiveMotion")
                     .setMaxDistance((float) 5.0) // without a Max Distance, there is great chance you can't track object in time
@@ -66,12 +66,15 @@ public class TrackSurfaceDemo {
                     //.setFilter("\"Track Duration\" above 50 s") // Filter is optional
                     .build().track();
 
-            /*
+
             ISurfacesPrx surfaceTracked = (ISurfacesPrx) ItemTracker.Item(surface)
                     .useConnectedComponents()
                     //.setFilter("\"Track Duration\" above 50 s") // Filter is optional
                     .build().track();
             */
+
+            ISurfacesPrx surfaceTracked = (ISurfacesPrx) EasyXT.Tracks.create(surface).useConnectedComponents().build().track();
+
             if (surfaceTracked!=null) EasyXT.Scene.addItem(surfaceTracked);
             else System.out.println("ERROR: can't create track");
 

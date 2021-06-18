@@ -1966,6 +1966,19 @@ public class EasyXT {
         }
     }
 
+
+    /**
+     *T his class contains methods directly related to Surface and Spots tracking.
+     */
+    public static class Tracks {
+
+        public static ItemTracker.ItemTrackerBuilder create(ObjectPrx aItem) throws Error {
+            return ItemTracker.Item(aItem);
+        }
+
+    }
+
+
     /**
      * This internal class contains methods that normally do not need to be used and are mostly internal
      */

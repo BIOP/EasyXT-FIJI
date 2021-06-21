@@ -531,7 +531,7 @@ public class EasyXT {
          * @throws Error an Imaris Error Object
          */
         public static List<IDataContainerPrx> findAllGroups() throws Error {
-            ItemQuery query = new ItemQuery.ItemQueryBuilder().setType("DataContainer").build();
+            ItemQuery query = new ItemQuery.ItemQueryBuilder().setType("Group").build();
             List<IDataItemPrx> items = query.find();
 
             // Explicitly cast
@@ -610,9 +610,8 @@ public class EasyXT {
             removeItems(groups);
             //for ( ISpotsPrx sp: spots ) { EasyXT.removeFromScene( sp ); }
             //for ( ISurfacesPrx srf: surfaces ) { EasyXT.removeFromScene( srf ); }
-            //for ( IDataContainerPrx grp: groups ) { EasyXT.removeFromScene( grp ); }
-
-            selectItem(Scene.getScene());
+            //for ( IDataContainerPrx grp: groups ) { EasyXT.removeFromScene( grp );
+            if( Scene.getScene() != null) selectItem(Scene.getScene());
         }
 
         /**

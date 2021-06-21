@@ -148,7 +148,10 @@ public class ItemQuery {
      * @throws Error an Imaris Error
      */
     public List<IDataItemPrx> find() throws Error {
-        return find(this.itemParent);
+        if (this.itemParent != null)
+            return find(this.itemParent);
+        else
+            return new ArrayList<IDataItemPrx>();
     }
 
     /**

@@ -24,6 +24,8 @@ import ch.epfl.biop.imaris.demo.*;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.io.File;
+
 /**
  * Execute each demo one at a time - no error should be thrown
  */
@@ -39,7 +41,8 @@ public class TestDemos {
     }
 
     static public boolean envOkForTest() {
-        return getOperatingSystem().equals(OS_OK_FOR_TEST);
+        if (!getOperatingSystem().equals(OS_OK_FOR_TEST)) return false;
+        return new File("C:/Program Files/Bitplane").exists();
     }
 
     @Test

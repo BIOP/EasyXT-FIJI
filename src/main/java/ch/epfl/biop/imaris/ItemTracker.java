@@ -41,8 +41,8 @@ public class ItemTracker {
 
         IFactoryPrx factory = EasyXT.Utils.getImarisApp().GetFactory();
         ObjectPrx aItemTracked = null;
-        
-        if (aMethod !=null) {
+
+        if (aMethod != null) {
             if (factory.IsSpots(aItem)) {
                 ISpotsPrx spots_totrack = (ISpotsPrx) EasyXT.Utils.castToType(aItem);
 
@@ -82,7 +82,7 @@ public class ItemTracker {
 
                 aItemTracked = surfaces_tracked;
             }
-        }else{
+        } else {
             log.accept("Please define a Tracking Method, using setMethod(...), or useConnectedComponents , use...");
         }
 
@@ -90,10 +90,9 @@ public class ItemTracker {
     }
 
 
-
     public static final class ItemTrackerBuilder {
         ObjectPrx aItem;
-        String aMethod ;//= "AutoregressiveMotion";
+        String aMethod;//= "AutoregressiveMotion";
         String aTrackFiltersString; // for all
         float aMaximalDistance; // required for AutoregressiveMotion(Expert), Brownian , Lineage
         int aGapSize; // required for AutoregressiveMotion(Expert), Brownian , Lineage
@@ -103,8 +102,8 @@ public class ItemTracker {
             this.aItem = aItem;
         }
 
-        public static ItemTrackerBuilder setItem(ObjectPrx aItem) throws Error{
-            return new ItemTrackerBuilder( aItem);
+        public static ItemTrackerBuilder setItem(ObjectPrx aItem) throws Error {
+            return new ItemTrackerBuilder(aItem);
         }
 
         public ItemTrackerBuilder setMethod(String method) {
@@ -170,9 +169,9 @@ public class ItemTracker {
             itemTracker.aItem = (ObjectPrx) this.aItem;
             itemTracker.aMethod = this.aMethod;
             itemTracker.aTrackFiltersString = this.aTrackFiltersString;
-            itemTracker.aGapSize= this.aGapSize;
-            itemTracker.aMaximalDistance=this.aMaximalDistance;
-            itemTracker.aIntensityWeight=this.aIntensityWeight;
+            itemTracker.aGapSize = this.aGapSize;
+            itemTracker.aMaximalDistance = this.aMaximalDistance;
+            itemTracker.aIntensityWeight = this.aIntensityWeight;
 
             return itemTracker;
         }

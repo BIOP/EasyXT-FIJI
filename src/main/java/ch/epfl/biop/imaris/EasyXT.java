@@ -678,6 +678,7 @@ public class EasyXT {
          * The the calibration information from the current dataset. This includes extents, pixel size, channel names
          *
          * @return an ImarisCalibration
+         * @throws Error an Imaris Error Object
          */
         public static ImarisCalibration getCalibration() throws Error {
             return getCalibration(Dataset.getCurrent());
@@ -688,6 +689,7 @@ public class EasyXT {
          *
          * @param dataset the dataset to extract calibration information from
          * @return an ImarisCalibration
+         * @throws Error an Imaris Error Object
          */
         public static ImarisCalibration getCalibration(IDataSetPrx dataset) throws Error {
             return new ImarisCalibration(dataset);
@@ -717,6 +719,7 @@ public class EasyXT {
          * Creates a new dataset with the right shape and calibration information
          *
          * @param calibration a calibration object with the bounds and dimensions of the desired dataset
+         * @param bitDepth bit depth, which can be 8, 16, 32
          * @return the new shaped dataset
          * @throws Error an Imaris Error
          */
@@ -730,7 +733,9 @@ public class EasyXT {
          *
          * @param dataset     the dataset to modify
          * @param calibration the calibration to base it off
-         * @throws Error
+         * @param bitDepth bit depth, which can be 8, 16, 32
+         * @throws Error an Imaris Error
+         * @return a new Imaris Dataset with the specified calibration and bit depth
          */
         public static IDataSetPrx matchDimensionsFromCalibration(IDataSetPrx dataset, ImarisCalibration calibration, int bitDepth) throws Error {
 
@@ -778,7 +783,8 @@ public class EasyXT {
          *
          * @param dataset the dataset to modify
          * @param imp     the imagePlus to use as reference
-         * @throws Error
+         * @throws Error an Imaris Error
+         * @return the new shaped dataset
          */
         public static IDataSetPrx matchDimensionsFromImagePlus(IDataSetPrx dataset, ImagePlus imp) throws Error {
 
@@ -817,7 +823,7 @@ public class EasyXT {
 
         /**
          * Set data from an ImagePlus image into a dataset
-         *
+         * @param imp the original image plus
          * @param dataset the dataset to insert the imagePlus into
          * @throws Error an Imaris Error Object
          */
@@ -895,7 +901,7 @@ public class EasyXT {
         /**
          * allows to change bit depth of the dataset
          * (Adapted from existing function in EasyXT-Matlab)*
-         *
+         * @param dataset the dataset to change
          * @param bitDepth the bit depth (8,16 or 32) to set the dataset to
          * @throws Error and Imaris Error
          */
@@ -920,7 +926,8 @@ public class EasyXT {
         /**
          * allows to change bit depth of the current dataset
          *
-         * @param bitDepth
+         * @param bitDepth 8, 16, or 32
+         * @throws Error an Imaris Error
          */
         public static void setBitDepth(int bitDepth) throws Error {
             IDataSetPrx dataset = Dataset.getCurrent();
@@ -930,9 +937,9 @@ public class EasyXT {
         /**
          * Returns an ImagePlus image of a dataset TODO : add a way to select only a subpart of it
          *
-         * @param dataset
-         * @return
-         * @throws Error
+         * @param dataset an imaris dataset
+         * @return an ImagePlus of a dataset
+         * @throws Error an Imaris Error
          */
         public static ImagePlus getImagePlus(IDataSetPrx dataset) throws Error {
 
@@ -1008,9 +1015,9 @@ public class EasyXT {
         /**
          * Possibility to add an extra dataset to the Imaris File
          *
-         * @param dataset
-         * @param position
-         * @throws Error
+         * @param dataset the new dataset
+         * @param position position in the imaris app
+         * @throws Error an Imaris Error
          */
         public static void addDataset(IDataSetPrx dataset, int position) throws Error {
             Utils.getImarisApp().SetImage(position, dataset);
@@ -1021,9 +1028,9 @@ public class EasyXT {
         /**
          * Possibility to get datasets other than the current dataset from the Imaris File
          *
-         * @param position
+         * @param position of the dataset in the imaris app
          * @return the dataset at that position
-         * @throws Error
+         * @throws Error an Imaris Error
          */
         public static IDataSetPrx getDataset(int position) throws Error {
             return Utils.getImarisApp().GetImage(position);
@@ -1423,7 +1430,7 @@ public class EasyXT {
          * @param surface the surfaces we wish to extract a single surface from
          * @param id      the id of the surface to extract
          * @return an ImagePlus mask
-         * @throws Error
+         * @throws Error an Imaris Error
          */
         public static ImagePlus getSurfaceIdAsMask(ISurfacesPrx surface, long id) throws Error {
 
@@ -1651,11 +1658,11 @@ public class EasyXT {
          * Spots objects in Imaris cannot have more coordinates added afterwards
          * So spots for all timepoints should be made in advance and use {@link #create(List, List, List)} instead
          *
-         * @param coordinates
-         * @param radiusXYZ
-         * @param timepoint
-         * @return
-         * @throws Error
+         * @param coordinates coordinates list
+         * @param radiusXYZ radiuses in xyz for the spots, identical for all spots
+         * @param timepoint given timepoint
+         * @return an imaris spot object
+         * @throws Error an Imaris Error
          */
         public static ISpotsPrx create(List<Point3D> coordinates, Point3D radiusXYZ, Integer timepoint) throws Error {
 
@@ -1678,8 +1685,8 @@ public class EasyXT {
          * @param coordinates the coordinates, in calibrated units in X Y Z
          * @param radiiXYZ    the radii for each spot in X Y Z
          * @param timepoints  the 0-based timepoints for each spot
-         * @return
-         * @throws Error
+         * @return created spots
+         * @throws Error an Imaris Error
          */
         public static ISpotsPrx create(List<Point3D> coordinates, List<Point3D> radiiXYZ, List<Integer> timepoints) throws Error {
             if (coordinates.size() != radiiXYZ.size() || coordinates.size() != timepoints.size()) {

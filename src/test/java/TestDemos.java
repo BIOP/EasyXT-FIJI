@@ -31,48 +31,53 @@ import org.junit.Test;
 public class TestDemos {
 private static String mode = "Test Mode";
 
-    @Test@Ignore
+    @Test
     public void AddChildObjects() throws Exception {
         AddChildObjects.main(mode);
     }
 
-    @Test@Ignore
+    @Test
     public void AddStatsDemo() throws Exception {
         AddStatsDemo.main(mode);
     }
 
-    @Test@Ignore
+    @Test
     public void AllGetters() throws Exception {
         AllGettersDemo.main(mode);
     }
 
-    @Test@Ignore
+    @Test
     public void FreshStartWithIJAndBIOPImsSample() throws Exception {
         FreshStartWithIJAndBIOPImsSample.main(mode);
     }
 
-    @Test@Ignore
+    @Test
     public void GetStatisticsDemo() throws Exception {
         GetStatisticsDemo.main(mode);
     }
 
-    @Test@Ignore
+    @Test
     public void LaunchIJFromEasyXT() throws Exception {
         EasyXT.main(mode);
     }
 
-    @Test@Ignore
+    @Test
     public void MakeAndGetSpotsDemo() throws Exception {
         MakeAndGetSpotsDemo.main(mode);
     }
 
-    @Test@Ignore
+    @Test
     public void MakeAndGetSurfaceDemo() throws Exception {
         MakeAndGetSurfaceDemo.main(mode);
     }
 
-    @Test@Ignore
+    @Test
     public void MakeSurfaceFromMaskDemo() throws Exception {
+        MakeSurfaceFromMaskDemo.main(mode);
+    }
+
+    @Test
+    public void TrackSurfaceDemo() throws Exception {
         MakeSurfaceFromMaskDemo.main(mode);
     }
 

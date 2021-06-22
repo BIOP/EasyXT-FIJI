@@ -116,7 +116,7 @@
         <license.licenseName>gpl_v2</license.licenseName>
         <license.copyrightOwners>ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland, BioImaging And Optics Platform (BIOP)</license.copyrightOwners>
         <scijava.app.directory>C:/Fiji.app/</scijava.app.directory>
-        <imaris-lib.version>9.5.1</imaris-lib.version>
+        <imaris-lib.version>9.7.2</imaris-lib.version>
         <mcib3d-core.version>3.96.3</mcib3d-core.version>
         <imagescience.version>3.0.0</imagescience.version>
         <releaseProfiles>deploy-to-scijava</releaseProfiles>

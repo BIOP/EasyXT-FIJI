@@ -29,55 +29,76 @@ import org.junit.Test;
  */
 
 public class TestDemos {
-private static String mode = "Test Mode";
+    private static String mode = "Test Mode";
+
+    final public static String OS_OK_FOR_TEST = "Windows 10";
+
+    public static String getOperatingSystem() {
+        String os = System.getProperty("os.name");
+        return os;
+    }
+
+    static public boolean envOkForTest() {
+        return getOperatingSystem().equals(OS_OK_FOR_TEST);
+    }
 
     @Test
     public void AddChildObjects() throws Exception {
+        if (envOkForTest())
         AddChildObjects.main(mode);
     }
 
     @Test
     public void AddStatsDemo() throws Exception {
+        if (envOkForTest())
         AddStatsDemo.main(mode);
     }
 
     @Test
     public void AllGetters() throws Exception {
+        if (envOkForTest())
         AllGettersDemo.main(mode);
     }
 
     @Test
     public void FreshStartWithIJAndBIOPImsSample() throws Exception {
+        if (envOkForTest())
         FreshStartWithIJAndBIOPImsSample.main(mode);
     }
 
     @Test
     public void GetStatisticsDemo() throws Exception {
+        if (envOkForTest())
         GetStatisticsDemo.main(mode);
     }
 
     @Test
     public void LaunchIJFromEasyXT() throws Exception {
+        if (envOkForTest())
         EasyXT.main(mode);
     }
 
     @Test
     public void MakeAndGetSpotsDemo() throws Exception {
+        if (envOkForTest())
         MakeAndGetSpotsDemo.main(mode);
     }
 
     @Test
     public void MakeAndGetSurfaceDemo() throws Exception {
+        if (envOkForTest())
         MakeAndGetSurfaceDemo.main(mode);
     }
 
     @Test
     public void MakeSurfaceFromMaskDemo() throws Exception {
+        if (envOkForTest())
         MakeSurfaceFromMaskDemo.main(mode);
     }
 
     @Test
     public void TrackSurfaceDemo() throws Exception {
+        if (envOkForTest())
         MakeSurfaceFromMaskDemo.main(mode);
     }
 

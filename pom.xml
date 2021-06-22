@@ -11,7 +11,7 @@
 
     <groupId>ch.epfl.biop.imaris</groupId>
     <artifactId>EasyXT</artifactId>
-    <version>0.2.9-SNAPSHOT</version>
+    <version>0.2.10-SNAPSHOT</version>
 
     <name>BIOP EasyXT-FIJI</name>
     <description>API and commands to facilitate communication between Imaris and FIJI</description>
@@ -93,7 +93,8 @@
         <connection>scm:git:git://github.com/BIOP/EasyXT-FIJI</connection>
         <developerConnection>scm:git:git@github.com:BIOP/EasyXT-FIJI</developerConnection>
         <url>https://github.com/BIOP/EasyXT-FIJI</url>
-    </scm>
+      <tag>HEAD</tag>
+  </scm>
 
     <issueManagement>
         <system>GitHub Issues</system>

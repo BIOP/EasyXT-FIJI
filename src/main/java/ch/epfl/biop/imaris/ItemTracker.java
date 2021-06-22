@@ -41,9 +41,7 @@ public class ItemTracker {
 
         IFactoryPrx factory = EasyXT.Utils.getImarisApp().GetFactory();
         ObjectPrx aItemTracked = null;
-
-        System.out.println(aMethod);
-
+        
         if (aMethod !=null) {
             if (factory.IsSpots(aItem)) {
                 ISpotsPrx spots_totrack = (ISpotsPrx) EasyXT.Utils.castToType(aItem);
@@ -65,7 +63,6 @@ public class ItemTracker {
                 aItemTracked = spots_tracked;
 
             } else if (factory.IsSurfaces(aItem)) {
-                System.out.println("it's a surface");
 
                 ISurfacesPrx surfaces_totrack = (ISurfacesPrx) EasyXT.Utils.castToType(aItem);
 
@@ -86,7 +83,7 @@ public class ItemTracker {
                 aItemTracked = surfaces_tracked;
             }
         }else{
-            System.out.println("Please define a Tracking Method, using setMethod(...), or useConnectedComponents , use...");
+            log.accept("Please define a Tracking Method, using setMethod(...), or useConnectedComponents , use...");
         }
 
         return aItemTracked;

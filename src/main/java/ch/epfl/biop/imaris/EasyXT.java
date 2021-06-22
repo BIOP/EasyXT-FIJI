@@ -1967,7 +1967,7 @@ public class EasyXT {
 
 
     /**
-     *T his class contains methods directly related to Surface and Spots tracking.
+     *This class contains methods directly related to Surface and Spots tracking.
      */
     public static class Tracks {
 

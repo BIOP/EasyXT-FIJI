@@ -24,55 +24,84 @@ import ch.epfl.biop.imaris.demo.*;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.io.File;
+
 /**
  * Execute each demo one at a time - no error should be thrown
  */
 
 public class TestDemos {
-private static String mode = "Test Mode";
+    private static String mode = "Test Mode";
 
-    @Test@Ignore
+    final public static String OS_OK_FOR_TEST = "Windows 10";
+
+    public static String getOperatingSystem() {
+        String os = System.getProperty("os.name");
+        return os;
+    }
+
+    static public boolean envOkForTest() {
+        if (!getOperatingSystem().equals(OS_OK_FOR_TEST)) return false;
+        return new File("C:/Program Files/Bitplane").exists();
+    }
+
+    @Test
     public void AddChildObjects() throws Exception {
+        if (envOkForTest())
         AddChildObjects.main(mode);
     }
 
-    @Test@Ignore
+    @Test
     public void AddStatsDemo() throws Exception {
+        if (envOkForTest())
         AddStatsDemo.main(mode);
     }
 
-    @Test@Ignore
+    @Test
     public void AllGetters() throws Exception {
+        if (envOkForTest())
         AllGettersDemo.main(mode);
     }
 
-    @Test@Ignore
+    @Test
     public void FreshStartWithIJAndBIOPImsSample() throws Exception {
+        if (envOkForTest())
         FreshStartWithIJAndBIOPImsSample.main(mode);
     }
 
-    @Test@Ignore
+    @Test
     public void GetStatisticsDemo() throws Exception {
+        if (envOkForTest())
         GetStatisticsDemo.main(mode);
     }
 
-    @Test@Ignore
+    @Test
     public void LaunchIJFromEasyXT() throws Exception {
+        if (envOkForTest())
         EasyXT.main(mode);
     }
 
-    @Test@Ignore
+    @Test
     public void MakeAndGetSpotsDemo() throws Exception {
+        if (envOkForTest())
         MakeAndGetSpotsDemo.main(mode);
     }
 
-    @Test@Ignore
+    @Test
     public void MakeAndGetSurfaceDemo() throws Exception {
+        if (envOkForTest())
         MakeAndGetSurfaceDemo.main(mode);
     }
 
-    @Test@Ignore
+    @Test
     public void MakeSurfaceFromMaskDemo() throws Exception {
+        if (envOkForTest())
+        MakeSurfaceFromMaskDemo.main(mode);
+    }
+
+    @Test
+    public void TrackSurfaceDemo() throws Exception {
+        if (envOkForTest())
         MakeSurfaceFromMaskDemo.main(mode);
     }
 

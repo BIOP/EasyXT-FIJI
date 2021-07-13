@@ -748,7 +748,7 @@ public class EasyXT {
 
             dataset.SetExtendMinX((float) calibration.xOrigin);
             dataset.SetExtendMinY((float) calibration.yOrigin);
-            dataset.SetExtendMinZ((float) calibration.yOrigin);
+            dataset.SetExtendMinZ((float) calibration.zOrigin);
 
             dataset.SetExtendMaxX((float) calibration.xEnd);
             dataset.SetExtendMaxY((float) calibration.yEnd);
@@ -999,6 +999,7 @@ public class EasyXT {
                 }
 
                 ((CompositeImage) imp).setLuts(luts);
+
             } else if (nc == 1) {
                 imp.setLut(LUT.createLutFromColor(Utils.getColorFromInt(cal.cColorsRGBA[0])));
             }

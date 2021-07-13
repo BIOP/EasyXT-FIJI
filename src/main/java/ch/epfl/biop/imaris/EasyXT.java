@@ -748,7 +748,7 @@ public class EasyXT {
 
             dataset.SetExtendMinX((float) calibration.xOrigin);
             dataset.SetExtendMinY((float) calibration.yOrigin);
-            dataset.SetExtendMinZ((float) calibration.yOrigin);
+            dataset.SetExtendMinZ((float) calibration.zOrigin);
 
             dataset.SetExtendMaxX((float) calibration.xEnd);
             dataset.SetExtendMaxY((float) calibration.yEnd);
@@ -999,6 +999,7 @@ public class EasyXT {
                 }
 
                 ((CompositeImage) imp).setLuts(luts);
+
             } else if (nc == 1) {
                 imp.setLut(LUT.createLutFromColor(Utils.getColorFromInt(cal.cColorsRGBA[0])));
             }
@@ -1281,7 +1282,6 @@ public class EasyXT {
          */
         public static ISurfacesPrx createFromLabels(ImagePlus impLabel, int timepointOffset) throws Error {
 
-
             // build empty surface object
             ISurfacesPrx surface = EasyXT.Utils.getImarisApp().GetFactory().CreateSurfaces();
 
@@ -1297,8 +1297,7 @@ public class EasyXT {
                 // TODO optimize idx start value, see below
                 for (int idx = 1; idx <= impMax; idx++) {
 
-                    ImagePlus tempImage = impLabel.duplicate();
-                    //tempImage.show()
+                    ImagePlus tempImage = tImpLabel.duplicate();
                     IJ.setThreshold(tempImage, idx, idx);
                     IJ.run(tempImage, "Convert to Mask", "method=Default background=Dark black");
 
@@ -1314,8 +1313,7 @@ public class EasyXT {
                     //  open to suggestions...
                     int tImpMax = (int) new StackStatistics(tempImage).max;
                     if (tImpMax == 1 ) {
-                        ImagePlus tImp = new Duplicator().run(tempImage, 1, 1, 1, tempImage.getNSlices(), t + 1, t + 1);
-                        IDataSetPrx data = EasyXT.Dataset.create(tImp);
+                        IDataSetPrx data = EasyXT.Dataset.create(tempImage);
                         surface.AddSurface(data, t + timepointOffset);
                         // TODO: Warning: Because there is no way to set the Surfaces's IDs, there will certainly be a
                         // TODO: discrepancy between the id of an original surface and a modified surface returned using this method...

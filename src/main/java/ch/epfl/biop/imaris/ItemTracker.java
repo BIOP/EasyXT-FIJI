@@ -102,6 +102,13 @@ public class ItemTracker {
                     surfaces_tracked = EasyXT.Utils.getImarisApp().GetImageProcessing().TrackSurfacesAutoregressiveMotionExpert(surfaces_totrack, aMaximalDistance, aGapSize, aIntensityWeight, aTrackFiltersString);
                 }
 
+                // TODO : FIND A BETTER WAY TO SOLVE THE ISSUE, with custom surface & tracking
+                // opened issue https://github.com/BIOP/EasyXT-FIJI/issues/35
+                if  ( (surfaces_tracked != null) && (surfaces_tracked.GetNumberOfSurfaces() > 0)){
+                    surfaces_tracked.AddSurface(surfaces_tracked.GetSurfaceData(0), 0);
+                    surfaces_tracked.RemoveSurface(surfaces_tracked.GetNumberOfSurfaces() - 1);
+                }
+
                 aItemTracked = surfaces_tracked;
             }
         } else {

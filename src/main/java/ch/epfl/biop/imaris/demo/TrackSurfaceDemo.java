@@ -73,7 +73,7 @@ public class TrackSurfaceDemo {
                     .build().track();
             */
 
-            ISurfacesPrx surfaceTracked = (ISurfacesPrx) EasyXT.Tracks.create(surface).useConnectedComponents().build().track();
+            ISurfacesPrx surfaceTracked = (ISurfacesPrx) EasyXT.Tracks.create(surface).useBrownianMotion().setGapSize(3).setMaxDistance(10).build().track();
 
             if (surfaceTracked!=null) EasyXT.Scene.addItem(surfaceTracked);
             else System.out.println("ERROR: can't create track");

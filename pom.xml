@@ -102,8 +102,8 @@
     </issueManagement>
 
     <ciManagement>
-        <system>Travis CI</system>
-        <url>https://travis-ci.com/BIOP/EasyXT-FIJI</url>
+        <system>GitHub Actions</system>
+        <url>https://github.com/BIOP/EasyXT-FIJI/actions</url>
     </ciManagement>
 
     <repositories>

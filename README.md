@@ -1,4 +1,4 @@
-[![](https://travis-ci.com/BIOP/EasyXT-FIJI.svg?branch=master)](https://travis-ci.com/BIOP/EasyXT-FIJI)
+[![](https://github.com/BIOP/EasyXT-FIJI/actions/workflows/build-main.yml/badge.svg)](https://github.com/BIOP/EasyXT-FIJI/actions/workflows/build-main.yml)
 
 # EasyXT for ImageJ
 

@@ -5,7 +5,7 @@
     <parent>
         <groupId>org.scijava</groupId>
         <artifactId>pom-scijava</artifactId>
-        <version>30.0.0</version>
+        <version>31.1.0</version>
         <relativePath />
     </parent>
 
@@ -122,7 +122,7 @@
     <properties>
         <license.licenseName>gpl_v2</license.licenseName>
         <license.copyrightOwners>ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland, BioImaging And Optics Platform (BIOP)</license.copyrightOwners>
-        <scijava.app.directory>C:/Fiji.app/</scijava.app.directory>
+        <!-- <scijava.app.directory>C:/Fiji.app/</scijava.app.directory> -->
         <imaris-lib.version>9.7.2</imaris-lib.version>
         <mcib3d-core.version>3.96.3</mcib3d-core.version>
         <mcib3d-plugins.version>344b50080e</mcib3d-plugins.version>

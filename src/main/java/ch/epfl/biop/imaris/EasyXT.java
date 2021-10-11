@@ -1634,6 +1634,82 @@ public class EasyXT {
                     cal.xSize, cal.ySize, cal.zSize, timepoint);
             return data;
         }
+
+        /**
+         * Returns an Imaris surface filtered with a test minValue < value < maxValue for a defined columnName
+         *
+         * @param surface    the surface to filter
+         * @param columnName ColumnName as displayed in ImageJ Results Table you got from @EasyXT.Stats.export()
+         * @param minValue  the minimum value
+         * @param maxValue  the maximum value
+         * @return filteredSurface the filtered surface
+         * @throws Error an Imaris Error
+         */
+        public static ISurfacesPrx filter(ISurfacesPrx surface, String columnName , double minValue , double maxValue) throws Error {
+
+            ResultsTable rt = Stats.export(surface , columnName);
+
+            double[] ids = rt.getColumn("ID");
+            // current @EasyXT.Stats.export() table are string (needs >= 1.53j ? , to getColumnAsStrings() )
+            // and will also need parseDouble
+            String[]values;
+            values =  rt.getColumnAsStrings(columnName);
+
+            // Here we'll filtered the ids if they pass the test :  minValue < value < maxValue
+            // use List to add item
+            List<Integer> filteredIdsList = new ArrayList<>();
+            for ( int i = 0 ; i < ids.length ; i++) {
+                if ((Double.parseDouble(values[i]) >= minValue) && (Double.parseDouble(values[i]) <= maxValue)) {
+                    filteredIdsList.add((int) ids[i]);
+                }
+            }
+
+            // CopySurfaces requires a int[] so need to convert the List
+            int[] filteredIds = filteredIdsList.stream().mapToInt(i->i).toArray();
+            ISurfacesPrx filteredSurface = surface.CopySurfaces( filteredIds );
+
+            return filteredSurface;
+
+        }
+
+        /**
+         * Returns an Imaris surface filtered with a test minValue < value < maxValue for a defined columnName
+         *
+         * @param surface    the surface to filter
+         * @param columnName ColumnName as displayed in ImageJ Results Table you got from @EasyXT.Stats.export()
+         * @param minValue  the minimum value
+         * @return filteredSurface the filtered surface
+         * @throws Error an Imaris Error
+         */
+        public static ISurfacesPrx filter(ISurfacesPrx surface, String columnName , double minValue ) throws Error {
+            //TODO find a way to use filter(ISurfacesPrx surface, String columnName , double minValue , double maxValue)?
+            //issue being that the results are retrieved as strings so can't do a simple getMax() of the array
+
+            ResultsTable rt = Stats.export(surface , columnName);
+
+            double[] ids = rt.getColumn("ID");
+            // current @EasyXT.Stats.export() table are string (needs >= 1.53j ? , to getColumnAsStrings() )
+            // and will also need parseDouble
+            String[]values;
+            values =  rt.getColumnAsStrings(columnName);
+
+            // Here we'll filtered the ids if they pass the test :  minValue < value < maxValue
+            // use List to add item
+            List<Integer> filteredIdsList = new ArrayList<>();
+            for ( int i = 0 ; i < ids.length ; i++) {
+                if ((Double.parseDouble(values[i]) >= minValue) ) {
+                    filteredIdsList.add((int) ids[i]);
+                }
+            }
+
+            // CopySurfaces requires a int[] so need to convert the List
+            int[] filteredIds = filteredIdsList.stream().mapToInt(i->i).toArray();
+            ISurfacesPrx filteredSurface = surface.CopySurfaces( filteredIds );
+
+            return filteredSurface;
+
+        }
+
     }
 
     /**

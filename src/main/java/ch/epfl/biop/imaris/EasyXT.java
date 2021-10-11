@@ -8,12 +8,12 @@
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-2.0.html>.
@@ -611,7 +611,7 @@ public class EasyXT {
             //for ( ISpotsPrx sp: spots ) { EasyXT.removeFromScene( sp ); }
             //for ( ISurfacesPrx srf: surfaces ) { EasyXT.removeFromScene( srf ); }
             //for ( IDataContainerPrx grp: groups ) { EasyXT.removeFromScene( grp );
-            if( Scene.getScene() != null) selectItem(Scene.getScene());
+            if (Scene.getScene() != null) selectItem(Scene.getScene());
         }
 
         /**
@@ -719,7 +719,7 @@ public class EasyXT {
          * Creates a new dataset with the right shape and calibration information
          *
          * @param calibration a calibration object with the bounds and dimensions of the desired dataset
-         * @param bitDepth bit depth, which can be 8, 16, 32
+         * @param bitDepth    bit depth, which can be 8, 16, 32
          * @return the new shaped dataset
          * @throws Error an Imaris Error
          */
@@ -733,9 +733,9 @@ public class EasyXT {
          *
          * @param dataset     the dataset to modify
          * @param calibration the calibration to base it off
-         * @param bitDepth bit depth, which can be 8, 16, 32
-         * @throws Error an Imaris Error
+         * @param bitDepth    bit depth, which can be 8, 16, 32
          * @return a new Imaris Dataset with the specified calibration and bit depth
+         * @throws Error an Imaris Error
          */
         public static IDataSetPrx matchDimensionsFromCalibration(IDataSetPrx dataset, ImarisCalibration calibration, int bitDepth) throws Error {
 
@@ -783,8 +783,8 @@ public class EasyXT {
          *
          * @param dataset the dataset to modify
          * @param imp     the imagePlus to use as reference
-         * @throws Error an Imaris Error
          * @return the new shaped dataset
+         * @throws Error an Imaris Error
          */
         public static IDataSetPrx matchDimensionsFromImagePlus(IDataSetPrx dataset, ImagePlus imp) throws Error {
 
@@ -823,7 +823,8 @@ public class EasyXT {
 
         /**
          * Set data from an ImagePlus image into a dataset
-         * @param imp the original image plus
+         *
+         * @param imp     the original image plus
          * @param dataset the dataset to insert the imagePlus into
          * @throws Error an Imaris Error Object
          */
@@ -901,7 +902,8 @@ public class EasyXT {
         /**
          * allows to change bit depth of the dataset
          * (Adapted from existing function in EasyXT-Matlab)*
-         * @param dataset the dataset to change
+         *
+         * @param dataset  the dataset to change
          * @param bitDepth the bit depth (8,16 or 32) to set the dataset to
          * @throws Error and Imaris Error
          */
@@ -1016,7 +1018,7 @@ public class EasyXT {
         /**
          * Possibility to add an extra dataset to the Imaris File
          *
-         * @param dataset the new dataset
+         * @param dataset  the new dataset
          * @param position position in the imaris app
          * @throws Error an Imaris Error
          */
@@ -1214,9 +1216,9 @@ public class EasyXT {
         /**
          * create a new surfaces object from this ImagePlus
          *
-         * @param imp       the image to get a surface from. Must be 8-bit and binary
+         * @param imp             the image to get a surface from. Must be 8-bit and binary
          * @param timepointOffset an index to offset the start of the surface creation.
-         *                  for single timepoint Images, this is effectively the timepoint at which to place the surface
+         *                        for single timepoint Images, this is effectively the timepoint at which to place the surface
          * @return a surfaces object that should render in Imaris (though pixellated)
          * @throws Error an Imaris Error if there was a problem
          */
@@ -1273,10 +1275,10 @@ public class EasyXT {
         ;
 
         /**
-         * @param impLabel  the image to get a Surfaces from.
-         *                  A label image, each label will be a surface of the Surfaces object.
+         * @param impLabel        the image to get a Surfaces from.
+         *                        A label image, each label will be a surface of the Surfaces object.
          * @param timepointOffset an index to offset the start of the surface creation.
-         *                  for single timepoint Images, this is effectively the timepoint at which to place the surface
+         *                        for single timepoint Images, this is effectively the timepoint at which to place the surface
          * @return the ISurfacesPrx with individual surface for each label value
          * @throws Error an Imaris Error if there was a problem
          */
@@ -1312,7 +1314,7 @@ public class EasyXT {
                     //  maybe using the histogram ? issue with 16-bit images  (histogram has only 256 bins)?
                     //  open to suggestions...
                     int tImpMax = (int) new StackStatistics(tempImage).max;
-                    if (tImpMax == 1 ) {
+                    if (tImpMax == 1) {
                         IDataSetPrx data = EasyXT.Dataset.create(tempImage);
                         surface.AddSurface(data, t + timepointOffset);
                         // TODO: Warning: Because there is no way to set the Surfaces's IDs, there will certainly be a
@@ -1538,7 +1540,7 @@ public class EasyXT {
 
                 // The mask is within 0-1 so we just need to multiply by the ID
                 // NOTE: We increment the ID by 1 because the surface ID can start at 0
-                pip.multiply(id+1);
+                pip.multiply(id + 1);
 
                 // Fast copy interface using Blitter
                 fip.copyBits(pip, startX, startY, Blitter.COPY_ZERO_TRANSPARENT);
@@ -1640,33 +1642,33 @@ public class EasyXT {
          *
          * @param surface    the surface to filter
          * @param columnName ColumnName as displayed in ImageJ Results Table you got from @EasyXT.Stats.export()
-         * @param minValue  the minimum value
-         * @param maxValue  the maximum value
+         * @param minValue   the minimum value
+         * @param maxValue   the maximum value
          * @return filteredSurface the filtered surface
          * @throws Error an Imaris Error
          */
-        public static ISurfacesPrx filter(ISurfacesPrx surface, String columnName , double minValue , double maxValue) throws Error {
+        public static ISurfacesPrx filter(ISurfacesPrx surface, String columnName, double minValue, double maxValue) throws Error {
 
-            ResultsTable rt = Stats.export(surface , columnName);
+            ResultsTable rt = Stats.export(surface, columnName);
 
             double[] ids = rt.getColumn("ID");
             // current @EasyXT.Stats.export() table are string (needs >= 1.53j ? , to getColumnAsStrings() )
             // and will also need parseDouble
-            String[]values;
-            values =  rt.getColumnAsStrings(columnName);
+            String[] values;
+            values = rt.getColumnAsStrings(columnName);
 
             // Here we'll filtered the ids if they pass the test :  minValue < value < maxValue
             // use List to add item
             List<Integer> filteredIdsList = new ArrayList<>();
-            for ( int i = 0 ; i < ids.length ; i++) {
+            for (int i = 0; i < ids.length; i++) {
                 if ((Double.parseDouble(values[i]) >= minValue) && (Double.parseDouble(values[i]) <= maxValue)) {
                     filteredIdsList.add((int) ids[i]);
                 }
             }
 
             // CopySurfaces requires a int[] so need to convert the List
-            int[] filteredIds = filteredIdsList.stream().mapToInt(i->i).toArray();
-            ISurfacesPrx filteredSurface = surface.CopySurfaces( filteredIds );
+            int[] filteredIds = filteredIdsList.stream().mapToInt(i -> i).toArray();
+            ISurfacesPrx filteredSurface = surface.CopySurfaces(filteredIds);
 
             return filteredSurface;
 
@@ -1677,34 +1679,30 @@ public class EasyXT {
          *
          * @param surface    the surface to filter
          * @param columnName ColumnName as displayed in ImageJ Results Table you got from @EasyXT.Stats.export()
-         * @param minValue  the minimum value
+         * @param minValue   the minimum value
          * @return filteredSurface the filtered surface
          * @throws Error an Imaris Error
          */
-        public static ISurfacesPrx filter(ISurfacesPrx surface, String columnName , double minValue ) throws Error {
-            //TODO find a way to use filter(ISurfacesPrx surface, String columnName , double minValue , double maxValue)?
-            //issue being that the results are retrieved as strings so can't do a simple getMax() of the array
+        public static ISurfacesPrx filterAbove(ISurfacesPrx surface, String columnName, double minValue) throws Error {
 
-            ResultsTable rt = Stats.export(surface , columnName);
+            ISurfacesPrx filteredSurface = EasyXT.Surfaces.filter(surface, columnName, minValue, Double.MAX_VALUE);
 
-            double[] ids = rt.getColumn("ID");
-            // current @EasyXT.Stats.export() table are string (needs >= 1.53j ? , to getColumnAsStrings() )
-            // and will also need parseDouble
-            String[]values;
-            values =  rt.getColumnAsStrings(columnName);
+            return filteredSurface;
 
-            // Here we'll filtered the ids if they pass the test :  minValue < value < maxValue
-            // use List to add item
-            List<Integer> filteredIdsList = new ArrayList<>();
-            for ( int i = 0 ; i < ids.length ; i++) {
-                if ((Double.parseDouble(values[i]) >= minValue) ) {
-                    filteredIdsList.add((int) ids[i]);
-                }
-            }
+        }
 
-            // CopySurfaces requires a int[] so need to convert the List
-            int[] filteredIds = filteredIdsList.stream().mapToInt(i->i).toArray();
-            ISurfacesPrx filteredSurface = surface.CopySurfaces( filteredIds );
+        /**
+         * Returns an Imaris surface filtered with a test minValue < value < maxValue for a defined columnName
+         *
+         * @param surface    the surface to filter
+         * @param columnName ColumnName as displayed in ImageJ Results Table you got from @EasyXT.Stats.export()
+         * @param maxValue   the minimum value
+         * @return filteredSurface the filtered surface
+         * @throws Error an Imaris Error
+         */
+        public static ISurfacesPrx filterBelow(ISurfacesPrx surface, String columnName, double maxValue) throws Error {
+
+            ISurfacesPrx filteredSurface = EasyXT.Surfaces.filter(surface, columnName, -1 * Double.MAX_VALUE, maxValue);
 
             return filteredSurface;
 
@@ -1733,8 +1731,8 @@ public class EasyXT {
          * So spots for all timepoints should be made in advance and use {@link #create(List, List, List)} instead
          *
          * @param coordinates coordinates list
-         * @param radiusXYZ radiuses in xyz for the spots, identical for all spots
-         * @param timepoint given timepoint
+         * @param radiusXYZ   radiuses in xyz for the spots, identical for all spots
+         * @param timepoint   given timepoint
          * @return an imaris spot object
          * @throws Error an Imaris Error
          */
@@ -2048,7 +2046,7 @@ public class EasyXT {
 
 
     /**
-     *This class contains methods directly related to Surface and Spots tracking.
+     * This class contains methods directly related to Surface and Spots tracking.
      */
     public static class Tracks {
 

@@ -37,6 +37,7 @@ import mcib3d.geom.ObjectCreator3D;
 import mcib3d.geom.Point3D;
 import mcib3d.geom.Vector3D;
 import net.imagej.ImageJ;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.awt.*;
 import java.io.File;
@@ -2148,6 +2149,149 @@ public class EasyXT {
 
         public static int getRGBAColor(Color color) {
             return color.getRed() + 256 * color.getGreen() + 256 * 256 * color.getBlue();
+        }
+
+
+        /**
+         * Returns an Imaris item filtered with a test minValue < value < maxValue for a defined columnName
+         *
+         * @param aItem    the item to filter
+         * @param columnName ColumnName as displayed in ImageJ Results Table you got from @EasyXT.Stats.export()
+         * @param minValue   the minimum value
+         * @param maxValue   the maximum value
+         * @return aItemFiltered the filtered item
+         * @throws Error an Imaris Error
+         */
+        public static ObjectPrx filter(IDataItemPrx aItem, String columnName, double minValue, double maxValue) throws Error {
+            IFactoryPrx factory = EasyXT.Utils.getImarisApp().GetFactory();
+            ObjectPrx aItemFiltered = null;
+
+            ResultsTable rt = Stats.export(aItem, columnName);
+
+            double[] ids = rt.getColumn("ID");
+            // current @EasyXT.Stats.export() table are string (needs >= 1.53j ? , to getColumnAsStrings() )
+            // and will also need parseDouble
+            String[] values;
+            values = rt.getColumnAsStrings(columnName);
+
+            // Here we'll filtered the ids if they pass the test :  minValue < value < maxValue
+            // use List to add item
+            List<Integer> filteredIdsList = new ArrayList<>();
+            for (int i = 0; i < ids.length; i++) {
+                if ((Double.parseDouble(values[i]) >= minValue) && (Double.parseDouble(values[i]) <= maxValue)) {
+                    filteredIdsList.add((int) ids[i]);
+                }
+            }
+
+            // CopySurfaces requires a int[] so need to convert the List
+
+            if (factory.IsSpots(aItem)) { // spots
+                long[] filteredIds = filteredIdsList.stream().mapToLong(l-> l).toArray();
+                ISpotsPrx spots_tofilter = (ISpotsPrx) EasyXT.Utils.castToType(aItem);
+                ISpotsPrx spots_filtered = null;
+                spots_filtered = copySpots( spots_tofilter,  filteredIds) ;
+
+                aItemFiltered = spots_filtered;
+            }else if (factory.IsSurfaces(aItem) ){// surfaces
+                int[] filteredIds = filteredIdsList.stream().mapToInt(i -> i).toArray();
+                ISurfacesPrx surfacesToFilter = (ISurfacesPrx) EasyXT.Utils.castToType(aItem);
+                ISurfacesPrx surfacesFiltered = null;
+                surfacesFiltered = surfacesToFilter.CopySurfaces(filteredIds);
+                aItemFiltered = surfacesFiltered;
+            }
+
+            return aItemFiltered;
+
+        }
+
+        /**
+         * Returns an Imaris Object filtered with a test minValue < value for a defined columnName
+         *
+         * @param aItem    the item to filter
+         * @param columnName ColumnName as displayed in ImageJ Results Table you got from @EasyXT.Stats.export()
+         * @param minValue   the minimum value
+         * @return filteredSurface the filtered surface
+         * @throws Error an Imaris Error
+         */
+        public static ObjectPrx filterAbove(IDataItemPrx aItem, String columnName, double minValue) throws Error {
+
+            ObjectPrx filteredItem = EasyXT.Utils.filter(aItem, columnName, minValue, Double.MAX_VALUE);
+
+            return filteredItem;
+
+        }
+
+        /**
+         * Returns an Imaris Object filtered with a test value < maxValue for a defined columnName
+         *
+         * @param aItem    the item to filter
+         * @param columnName ColumnName as displayed in ImageJ Results Table you got from @EasyXT.Stats.export()
+         * @param maxValue   the maximum value
+         * @return filteredSurface the filtered surface
+         * @throws Error an Imaris Error
+         */
+        public static ObjectPrx filterBelow(IDataItemPrx aItem, String columnName, double maxValue) throws Error {
+
+            ObjectPrx filteredItem = EasyXT.Utils.filter(aItem, columnName, -1 * Double.MAX_VALUE, maxValue);
+
+            return filteredItem;
+
+        }
+
+        /**
+         * Returns an Imaris spots
+         *
+         * @param spots    the item to filter
+         * @param filteredIds the Ids of the element to copy
+         * @return filteredSpots the filtered spots
+         * @throws Error an Imaris Error
+         */
+
+        public static ISpotsPrx copySpots( ISpotsPrx spots , long[] filteredIds )throws Error {
+
+            long[] ids = spots.GetIds();
+            float[][] coords = spots.GetPositionsXYZ();
+            int[] t = spots.GetIndicesT();
+            float[] rad = spots.GetRadii();
+            float[][] rads = spots.GetRadiiXYZ();
+
+            List<float[]> coords_list = new ArrayList<>();
+            List<Integer> t_list = new ArrayList<>();
+            List<Float> rad_list = new ArrayList<>();
+            List<float[]> rads_list = new ArrayList<>();
+
+            for ( int i = 0  ; i < filteredIds.length ; i++){
+                // find the filteredIds in ids to get the Index
+                int idx = ArrayUtils.indexOf( ids , filteredIds[i] );
+                // get all infos we need
+                coords_list.add( coords[idx] );
+                t_list.add( t[idx] );
+                rad_list.add( rad[idx] );
+                rads_list.add( rads[idx] );
+            }
+
+            // convert the List to Arrays
+            float[][] filtered_coords = new float[coords_list.size()][];
+            int i = 0;
+            for (float[] f : coords_list) {filtered_coords[i++] = (f != null ? f : null );}
+
+            int[] filtered_t ;
+            filtered_t = t_list.stream().mapToInt(j -> j).toArray();
+
+            float[] filtered_rad ;
+            filtered_rad = ArrayUtils.toPrimitive(rad_list.toArray(new Float[0]), 0.0F);
+
+            float[][] filtered_rads = new float[coords_list.size()][];
+            i = 0;
+            for (float[] f : rads_list) { filtered_rads[i++] = (f != null ? f : null);}
+
+            // create new spots
+            ISpotsPrx filteredSpots = Utils.getImarisApp().GetFactory().CreateSpots();
+            filteredSpots.Set(filtered_coords, filtered_t, filtered_rad);
+            // Radii can only be set in XYZ afterwards
+            filteredSpots.SetRadiiXYZ(filtered_rads);
+
+            return filteredSpots;
         }
 
         /**

@@ -2162,9 +2162,9 @@ public class EasyXT {
          * @return aItemFiltered the filtered item
          * @throws Error an Imaris Error
          */
-        public static ObjectPrx filter(IDataItemPrx aItem, String columnName, double minValue, double maxValue) throws Error {
+        public static IDataItemPrx filter(IDataItemPrx aItem, String columnName, double minValue, double maxValue) throws Error {
             IFactoryPrx factory = EasyXT.Utils.getImarisApp().GetFactory();
-            ObjectPrx aItemFiltered = null;
+            IDataItemPrx aItemFiltered = null;
 
             ResultsTable rt = Stats.export(aItem, columnName);
 
@@ -2214,9 +2214,9 @@ public class EasyXT {
          * @return filteredSurface the filtered surface
          * @throws Error an Imaris Error
          */
-        public static ObjectPrx filterAbove(IDataItemPrx aItem, String columnName, double minValue) throws Error {
+        public static IDataItemPrx filterAbove(IDataItemPrx aItem, String columnName, double minValue) throws Error {
 
-            ObjectPrx filteredItem = EasyXT.Utils.filter(aItem, columnName, minValue, Double.MAX_VALUE);
+            IDataItemPrx filteredItem = EasyXT.Utils.filter(aItem, columnName, minValue, Double.MAX_VALUE);
 
             return filteredItem;
 
@@ -2231,9 +2231,9 @@ public class EasyXT {
          * @return filteredSurface the filtered surface
          * @throws Error an Imaris Error
          */
-        public static ObjectPrx filterBelow(IDataItemPrx aItem, String columnName, double maxValue) throws Error {
+        public static IDataItemPrx filterBelow(IDataItemPrx aItem, String columnName, double maxValue) throws Error {
 
-            ObjectPrx filteredItem = EasyXT.Utils.filter(aItem, columnName, -1 * Double.MAX_VALUE, maxValue);
+            IDataItemPrx filteredItem = EasyXT.Utils.filter(aItem, columnName, -1 * Double.MAX_VALUE, maxValue);
 
             return filteredItem;
 
@@ -2256,6 +2256,21 @@ public class EasyXT {
             float[] rad = spots.GetRadii();
             float[][] rads = spots.GetRadiiXYZ();
 
+
+            float[][] filtered_coords = new float[filteredIds.length][];
+            int[] filtered_t = new int[filteredIds.length];
+            float[] filtered_rad = new float[filteredIds.length];
+            float[][] filtered_rads = new float[filteredIds.length][];
+
+            for (int i = 0; i < filteredIds.length; i++) {
+                // find the filteredIds in ids to get the Index
+                int idx = ArrayUtils.indexOf(ids, filteredIds[i]);
+                filtered_coords[i] = coords[idx];
+                filtered_t[i] = t[idx];
+                filtered_rad[i] = rad[idx];
+                filtered_rads[i] = rads[idx];
+            }
+            /*
             List<float[]> coords_list = new ArrayList<>();
             List<Integer> t_list = new ArrayList<>();
             List<Float> rad_list = new ArrayList<>();
@@ -2288,7 +2303,7 @@ public class EasyXT {
             i = 0;
             for (float[] f : rads_list) {
                 filtered_rads[i++] = (f != null ? f : null);
-            }
+            }*/
 
             // create new spots
             ISpotsPrx filteredSpots = Utils.getImarisApp().GetFactory().CreateSpots();

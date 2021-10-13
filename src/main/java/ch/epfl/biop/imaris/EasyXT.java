@@ -8,12 +8,12 @@
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-2.0.html>.
@@ -27,6 +27,7 @@ import Imaris.Error;
 import Imaris.*;
 import com.bitplane.xt.IceClient;
 import ij.*;
+import ij.macro.Variable;
 import ij.measure.Calibration;
 import ij.measure.ResultsTable;
 import ij.plugin.Concatenator;
@@ -37,6 +38,7 @@ import mcib3d.geom.ObjectCreator3D;
 import mcib3d.geom.Point3D;
 import mcib3d.geom.Vector3D;
 import net.imagej.ImageJ;
+import org.apache.commons.lang3.ArrayUtils;
 
 import java.awt.*;
 import java.io.File;
@@ -611,7 +613,7 @@ public class EasyXT {
             //for ( ISpotsPrx sp: spots ) { EasyXT.removeFromScene( sp ); }
             //for ( ISurfacesPrx srf: surfaces ) { EasyXT.removeFromScene( srf ); }
             //for ( IDataContainerPrx grp: groups ) { EasyXT.removeFromScene( grp );
-            if( Scene.getScene() != null) selectItem(Scene.getScene());
+            if (Scene.getScene() != null) selectItem(Scene.getScene());
         }
 
         /**
@@ -719,7 +721,7 @@ public class EasyXT {
          * Creates a new dataset with the right shape and calibration information
          *
          * @param calibration a calibration object with the bounds and dimensions of the desired dataset
-         * @param bitDepth bit depth, which can be 8, 16, 32
+         * @param bitDepth    bit depth, which can be 8, 16, 32
          * @return the new shaped dataset
          * @throws Error an Imaris Error
          */
@@ -733,9 +735,9 @@ public class EasyXT {
          *
          * @param dataset     the dataset to modify
          * @param calibration the calibration to base it off
-         * @param bitDepth bit depth, which can be 8, 16, 32
-         * @throws Error an Imaris Error
+         * @param bitDepth    bit depth, which can be 8, 16, 32
          * @return a new Imaris Dataset with the specified calibration and bit depth
+         * @throws Error an Imaris Error
          */
         public static IDataSetPrx matchDimensionsFromCalibration(IDataSetPrx dataset, ImarisCalibration calibration, int bitDepth) throws Error {
 
@@ -783,8 +785,8 @@ public class EasyXT {
          *
          * @param dataset the dataset to modify
          * @param imp     the imagePlus to use as reference
-         * @throws Error an Imaris Error
          * @return the new shaped dataset
+         * @throws Error an Imaris Error
          */
         public static IDataSetPrx matchDimensionsFromImagePlus(IDataSetPrx dataset, ImagePlus imp) throws Error {
 
@@ -823,7 +825,8 @@ public class EasyXT {
 
         /**
          * Set data from an ImagePlus image into a dataset
-         * @param imp the original image plus
+         *
+         * @param imp     the original image plus
          * @param dataset the dataset to insert the imagePlus into
          * @throws Error an Imaris Error Object
          */
@@ -901,7 +904,8 @@ public class EasyXT {
         /**
          * allows to change bit depth of the dataset
          * (Adapted from existing function in EasyXT-Matlab)*
-         * @param dataset the dataset to change
+         *
+         * @param dataset  the dataset to change
          * @param bitDepth the bit depth (8,16 or 32) to set the dataset to
          * @throws Error and Imaris Error
          */
@@ -1016,7 +1020,7 @@ public class EasyXT {
         /**
          * Possibility to add an extra dataset to the Imaris File
          *
-         * @param dataset the new dataset
+         * @param dataset  the new dataset
          * @param position position in the imaris app
          * @throws Error an Imaris Error
          */
@@ -1214,9 +1218,9 @@ public class EasyXT {
         /**
          * create a new surfaces object from this ImagePlus
          *
-         * @param imp       the image to get a surface from. Must be 8-bit and binary
+         * @param imp             the image to get a surface from. Must be 8-bit and binary
          * @param timepointOffset an index to offset the start of the surface creation.
-         *                  for single timepoint Images, this is effectively the timepoint at which to place the surface
+         *                        for single timepoint Images, this is effectively the timepoint at which to place the surface
          * @return a surfaces object that should render in Imaris (though pixellated)
          * @throws Error an Imaris Error if there was a problem
          */
@@ -1273,10 +1277,10 @@ public class EasyXT {
         ;
 
         /**
-         * @param impLabel  the image to get a Surfaces from.
-         *                  A label image, each label will be a surface of the Surfaces object.
+         * @param impLabel        the image to get a Surfaces from.
+         *                        A label image, each label will be a surface of the Surfaces object.
          * @param timepointOffset an index to offset the start of the surface creation.
-         *                  for single timepoint Images, this is effectively the timepoint at which to place the surface
+         *                        for single timepoint Images, this is effectively the timepoint at which to place the surface
          * @return the ISurfacesPrx with individual surface for each label value
          * @throws Error an Imaris Error if there was a problem
          */
@@ -1312,7 +1316,7 @@ public class EasyXT {
                     //  maybe using the histogram ? issue with 16-bit images  (histogram has only 256 bins)?
                     //  open to suggestions...
                     int tImpMax = (int) new StackStatistics(tempImage).max;
-                    if (tImpMax == 1 ) {
+                    if (tImpMax == 1) {
                         IDataSetPrx data = EasyXT.Dataset.create(tempImage);
                         surface.AddSurface(data, t + timepointOffset);
                         // TODO: Warning: Because there is no way to set the Surfaces's IDs, there will certainly be a
@@ -1538,7 +1542,7 @@ public class EasyXT {
 
                 // The mask is within 0-1 so we just need to multiply by the ID
                 // NOTE: We increment the ID by 1 because the surface ID can start at 0
-                pip.multiply(id+1);
+                pip.multiply(id + 1);
 
                 // Fast copy interface using Blitter
                 fip.copyBits(pip, startX, startY, Blitter.COPY_ZERO_TRANSPARENT);
@@ -1634,6 +1638,57 @@ public class EasyXT {
                     cal.xSize, cal.ySize, cal.zSize, timepoint);
             return data;
         }
+
+        /**
+         * Returns an Imaris surface filtered with a test minValue &lt; value &gt; maxValue for a defined columnName
+         *
+         * @param surface    the surface to filter
+         * @param columnName ColumnName as displayed in ImageJ Results Table you got from @EasyXT.Stats.export()
+         * @param minValue   the minimum value
+         * @param maxValue   the maximum value
+         * @return filteredSurface the filtered surface
+         * @throws Error an Imaris Error
+         */
+        public static ISurfacesPrx filter(ISurfacesPrx surface, String columnName, double minValue, double maxValue) throws Error {
+
+           return (ISurfacesPrx) Utils.filter( surface,  columnName,  minValue,  maxValue);
+
+        }
+
+        /**
+         * Returns an Imaris surface filtered with a test minValue &lt; value for a defined columnName
+         *
+         * @param surface    the surface to filter
+         * @param columnName ColumnName as displayed in ImageJ Results Table you got from @EasyXT.Stats.export()
+         * @param minValue   the minimum value
+         * @return filteredSurface the filtered surface
+         * @throws Error an Imaris Error
+         */
+        public static ISurfacesPrx filterAbove(ISurfacesPrx surface, String columnName, double minValue) throws Error {
+
+            ISurfacesPrx filteredSurface = EasyXT.Surfaces.filter(surface, columnName, minValue, Double.MAX_VALUE);
+
+            return filteredSurface;
+
+        }
+
+        /**
+         * Returns an Imaris surface filtered with a test value &gt; maxValue for a defined columnName
+         *
+         * @param surface    the surface to filter
+         * @param columnName ColumnName as displayed in ImageJ Results Table you got from @EasyXT.Stats.export()
+         * @param maxValue   the minimum value
+         * @return filteredSurface the filtered surface
+         * @throws Error an Imaris Error
+         */
+        public static ISurfacesPrx filterBelow(ISurfacesPrx surface, String columnName, double maxValue) throws Error {
+
+            ISurfacesPrx filteredSurface = EasyXT.Surfaces.filter(surface, columnName, -1 * Double.MAX_VALUE, maxValue);
+
+            return filteredSurface;
+
+        }
+
     }
 
     /**
@@ -1657,8 +1712,8 @@ public class EasyXT {
          * So spots for all timepoints should be made in advance and use {@link #create(List, List, List)} instead
          *
          * @param coordinates coordinates list
-         * @param radiusXYZ radiuses in xyz for the spots, identical for all spots
-         * @param timepoint given timepoint
+         * @param radiusXYZ   radiuses in xyz for the spots, identical for all spots
+         * @param timepoint   given timepoint
          * @return an imaris spot object
          * @throws Error an Imaris Error
          */
@@ -1739,6 +1794,53 @@ public class EasyXT {
         public static ISpotsPrx find(String name, IDataContainerPrx parent) throws Error {
             return Scene.findSpots(name, parent);
         }
+
+        /**
+         * Returns an Imaris surface filtered with a test minValue &lt; value &gt; maxValue for a defined columnName
+         *
+         * @param spots    the surface to filter
+         * @param columnName ColumnName as displayed in ImageJ Results Table you got from @EasyXT.Stats.export()
+         * @param minValue   the minimum value
+         * @param maxValue   the maximum value
+         * @return filteredSurface the filtered surface
+         * @throws Error an Imaris Error
+         */
+        public static ISpotsPrx filter(ISpotsPrx spots, String columnName, double minValue, double maxValue) throws Error {
+
+            return (ISpotsPrx) Utils.filter( spots,  columnName,  minValue,  maxValue);
+
+        }
+
+        /**
+         * Returns an Imaris surface filtered with a test minValue &lt; value for a defined columnName
+         *
+         * @param spots    the surface to filter
+         * @param columnName ColumnName as displayed in ImageJ Results Table you got from @EasyXT.Stats.export()
+         * @param minValue   the minimum value
+         * @return filteredSurface the filtered surface
+         * @throws Error an Imaris Error
+         */
+        public static ISpotsPrx filterAbove(ISpotsPrx spots, String columnName, double minValue) throws Error {
+
+            return EasyXT.Spots.filter(spots, columnName, minValue, Double.MAX_VALUE);
+
+        }
+
+        /**
+         * Returns an Imaris surface filtered with a test value &gt; maxValue for a defined columnName
+         *
+         * @param spots    the surface to filter
+         * @param columnName ColumnName as displayed in ImageJ Results Table you got from @EasyXT.Stats.export()
+         * @param maxValue   the minimum value
+         * @return filteredSurface the filtered surface
+         * @throws Error an Imaris Error
+         */
+        public static ISpotsPrx filterBelow(ISpotsPrx spots, String columnName, double maxValue) throws Error {
+
+            return EasyXT.Spots.filter(spots, columnName, -1 * Double.MAX_VALUE, maxValue);
+
+        }
+
 
         /**
          * returns the first Spots object in the main surpass scene with the given name
@@ -1972,7 +2074,7 @@ public class EasyXT {
 
 
     /**
-     *This class contains methods directly related to Surface and Spots tracking.
+     * This class contains methods directly related to Surface and Spots tracking.
      */
     public static class Tracks {
 
@@ -2074,6 +2176,168 @@ public class EasyXT {
 
         public static int getRGBAColor(Color color) {
             return color.getRed() + 256 * color.getGreen() + 256 * 256 * color.getBlue();
+        }
+
+
+        /**
+         * Returns an Imaris item filtered with a test minValue &lt; value &gt; maxValue for a defined columnName
+         *
+         * @param aItem      the item to filter
+         * @param columnName ColumnName as displayed in ImageJ Results Table you got from @EasyXT.Stats.export()
+         * @param minValue   the minimum value
+         * @param maxValue   the maximum value
+         * @return aItemFiltered the filtered item
+         * @throws Error an Imaris Error
+         */
+        public static IDataItemPrx filter(IDataItemPrx aItem, String columnName, double minValue, double maxValue) throws Error {
+            IFactoryPrx factory = EasyXT.Utils.getImarisApp().GetFactory();
+            IDataItemPrx aItemFiltered = null;
+
+            // current @EasyXT.Stats.export() table are string
+            // Issue with using imagej= 1.53j ? , to getColumnAsStrings() )
+            // workaround use Variable[]
+            ResultsTable rt = Stats.export(aItem, columnName);
+
+            double[] ids = Arrays.stream(rt.getColumnAsVariables("ID")).map(var -> var.getValue()).mapToDouble(d -> d).toArray();
+            double[] values = Arrays.stream(rt.getColumnAsVariables(columnName)).map(var -> var.getValue()).mapToDouble(d -> d).toArray();
+
+            // Here we'll filtered the ids if they pass the test :  minValue < value < maxValue
+            // use List to add item
+            List<Integer> filteredIdsList = new ArrayList<>();
+            for (int i = 0; i < ids.length; i++) {
+                if ( (values[i] >= minValue) && (values[i] <= maxValue)) {
+                    filteredIdsList.add((int) ids[i]);
+                }
+            }
+
+            // spots or surfaces ?
+            if (factory.IsSpots(aItem)) {
+                // copySpots requires a long[] so need to convert the List
+                long[] filteredIds = filteredIdsList.stream().mapToLong(l -> l).toArray();
+                ISpotsPrx spots_tofilter = (ISpotsPrx) EasyXT.Utils.castToType(aItem);
+                ISpotsPrx spots_filtered ;
+                spots_filtered = copySpots(spots_tofilter, filteredIds);
+                aItemFiltered = spots_filtered;
+            } else if (factory.IsSurfaces(aItem)) {
+                // CopySurfaces requires a int[] so need to convert the List
+                int[] filteredIds = filteredIdsList.stream().mapToInt(i -> i).toArray();
+                ISurfacesPrx surfacesToFilter = (ISurfacesPrx) EasyXT.Utils.castToType(aItem);
+                ISurfacesPrx surfacesFiltered ;
+                surfacesFiltered = surfacesToFilter.CopySurfaces(filteredIds);
+                aItemFiltered = surfacesFiltered;
+            }
+
+            return aItemFiltered;
+
+        }
+
+        /**
+         * Returns an Imaris Object filtered with a test minValue &lt; value for a defined columnName
+         *
+         * @param aItem      the item to filter
+         * @param columnName ColumnName as displayed in ImageJ Results Table you got from @EasyXT.Stats.export()
+         * @param minValue   the minimum value
+         * @return filteredSurface the filtered surface
+         * @throws Error an Imaris Error
+         */
+        public static IDataItemPrx filterAbove(IDataItemPrx aItem, String columnName, double minValue) throws Error {
+
+            IDataItemPrx filteredItem = EasyXT.Utils.filter(aItem, columnName, minValue, Double.MAX_VALUE);
+
+            return filteredItem;
+
+        }
+
+        /**
+         * Returns an Imaris Object filtered with a test value &gt; maxValue for a defined columnName
+         *
+         * @param aItem      the item to filter
+         * @param columnName ColumnName as displayed in ImageJ Results Table you got from @EasyXT.Stats.export()
+         * @param maxValue   the maximum value
+         * @return filteredSurface the filtered surface
+         * @throws Error an Imaris Error
+         */
+        public static IDataItemPrx filterBelow(IDataItemPrx aItem, String columnName, double maxValue) throws Error {
+
+            IDataItemPrx filteredItem = EasyXT.Utils.filter(aItem, columnName, -1 * Double.MAX_VALUE, maxValue);
+
+            return filteredItem;
+
+        }
+
+        /**
+         * Returns an Imaris spots
+         *
+         * @param spots       the item to filter
+         * @param filteredIds the Ids of the element to copy
+         * @return filteredSpots the filtered spots
+         * @throws Error an Imaris Error
+         */
+
+        public static ISpotsPrx copySpots(ISpotsPrx spots, long[] filteredIds) throws Error {
+
+            long[] ids = spots.GetIds();
+            float[][] coords = spots.GetPositionsXYZ();
+            int[] t = spots.GetIndicesT();
+            float[] rad = spots.GetRadii();
+            float[][] rads = spots.GetRadiiXYZ();
+
+
+            float[][] filtered_coords = new float[filteredIds.length][];
+            int[] filtered_t = new int[filteredIds.length];
+            float[] filtered_rad = new float[filteredIds.length];
+            float[][] filtered_rads = new float[filteredIds.length][];
+
+            for (int i = 0; i < filteredIds.length; i++) {
+                // find the filteredIds in ids to get the Index
+                int idx = ArrayUtils.indexOf(ids, filteredIds[i]);
+                filtered_coords[i] = coords[idx];
+                filtered_t[i] = t[idx];
+                filtered_rad[i] = rad[idx];
+                filtered_rads[i] = rads[idx];
+            }
+            /*
+            List<float[]> coords_list = new ArrayList<>();
+            List<Integer> t_list = new ArrayList<>();
+            List<Float> rad_list = new ArrayList<>();
+            List<float[]> rads_list = new ArrayList<>();
+
+            for (int i = 0; i < filteredIds.length; i++) {
+                // find the filteredIds in ids to get the Index
+                int idx = ArrayUtils.indexOf(ids, filteredIds[i]);
+                // get all infos we need
+                coords_list.add(coords[idx]);
+                t_list.add(t[idx]);
+                rad_list.add(rad[idx]);
+                rads_list.add(rads[idx]);
+            }
+
+            // convert the List to Arrays
+            float[][] filtered_coords = new float[coords_list.size()][];
+            int i = 0;
+            for (float[] f : coords_list) {
+                filtered_coords[i++] = (f != null ? f : null);
+            }
+
+            int[] filtered_t;
+            filtered_t = t_list.stream().mapToInt(j -> j).toArray();
+
+            float[] filtered_rad;
+            filtered_rad = ArrayUtils.toPrimitive(rad_list.toArray(new Float[0]), 0.0F);
+
+            float[][] filtered_rads = new float[coords_list.size()][];
+            i = 0;
+            for (float[] f : rads_list) {
+                filtered_rads[i++] = (f != null ? f : null);
+            }*/
+
+            // create new spots
+            ISpotsPrx filteredSpots = Utils.getImarisApp().GetFactory().CreateSpots();
+            filteredSpots.Set(filtered_coords, filtered_t, filtered_rad);
+            // Radii can only be set in XYZ afterwards
+            filteredSpots.SetRadiiXYZ(filtered_rads);
+
+            return filteredSpots;
         }
 
         /**

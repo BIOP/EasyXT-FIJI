@@ -27,6 +27,7 @@ import Imaris.Error;
 import Imaris.*;
 import com.bitplane.xt.IceClient;
 import ij.*;
+import ij.macro.Variable;
 import ij.measure.Calibration;
 import ij.measure.ResultsTable;
 import ij.plugin.Concatenator;
@@ -1652,6 +1653,34 @@ public class EasyXT {
 
             ResultsTable rt = Stats.export(surface, columnName);
 
+            //String[] headers = rt.getHeadingsAsVariableNames();
+            //int indexIDColumn = Arrays.asList(headers).indexOf("ID");
+
+            Variable[] ids_vars = rt.getColumnAsVariables("ID");
+
+            double[] ids = Arrays.stream(ids_vars).map(var -> var.getValue()).mapToDouble(d -> d).toArray();
+            // current @EasyXT.Stats.export() table are string (needs >= 1.53j ? , to getColumnAsStrings() )
+            // and will also need parseDouble
+            //String[] values;
+            String[] values = Arrays.stream(rt.getColumnAsVariables(columnName)).map(var ->var.toString()).toArray(String[]::new);
+
+            // Here we'll filtered the ids if they pass the test :  minValue < value < maxValue
+            // use List to add item
+            List<Integer> filteredIdsList = new ArrayList<>();
+            for (int i = 0; i < ids.length; i++) {
+                if ((Double.parseDouble(values[i]) >= minValue) && (Double.parseDouble(values[i]) <= maxValue)) {
+                    filteredIdsList.add((int) ids[i]);
+                }
+            }
+
+            // CopySurfaces requires a int[] so need to convert the List
+            int[] filteredIds = filteredIdsList.stream().mapToInt(i -> i).toArray();
+            ISurfacesPrx filteredSurface = surface.CopySurfaces(filteredIds);
+
+            return filteredSurface;
+
+            // With ij version >= 1.53m
+            /*
             double[] ids = rt.getColumn("ID");
             // current @EasyXT.Stats.export() table are string (needs >= 1.53j ? , to getColumnAsStrings() )
             // and will also need parseDouble
@@ -1672,6 +1701,7 @@ public class EasyXT {
             ISurfacesPrx filteredSurface = surface.CopySurfaces(filteredIds);
 
             return filteredSurface;
+            */
 
         }
 
@@ -2168,6 +2198,47 @@ public class EasyXT {
 
             ResultsTable rt = Stats.export(aItem, columnName);
 
+            //String[] headers = rt.getHeadingsAsVariableNames();
+            //int indexIDColumn = Arrays.asList(headers).indexOf("ID");
+
+            Variable[] ids_vars = rt.getColumnAsVariables("ID");
+
+            double[] ids = Arrays.stream(ids_vars).map(var -> var.getValue()).mapToDouble(d -> d).toArray();
+            // current @EasyXT.Stats.export() table are string (needs >= 1.53j ? , to getColumnAsStrings() )
+            // and will also need parseDouble
+            //String[] values;
+            String[] values = Arrays.stream(rt.getColumnAsVariables(columnName)).map(var -> var.toString()).toArray(String[]::new);
+
+            // Here we'll filtered the ids if they pass the test :  minValue < value < maxValue
+            // use List to add item
+            List<Integer> filteredIdsList = new ArrayList<>();
+            for (int i = 0; i < ids.length; i++) {
+                if ((Double.parseDouble(values[i]) >= minValue) && (Double.parseDouble(values[i]) <= maxValue)) {
+                    filteredIdsList.add((int) ids[i]);
+                }
+            }
+
+
+            // spots or surfaces ?
+            if (factory.IsSpots(aItem)) {
+                // copySpots requires a long[] so need to convert the List
+                long[] filteredIds = filteredIdsList.stream().mapToLong(l -> l).toArray();
+                ISpotsPrx spots_tofilter = (ISpotsPrx) EasyXT.Utils.castToType(aItem);
+                ISpotsPrx spots_filtered = null;
+                spots_filtered = copySpots(spots_tofilter, filteredIds);
+                aItemFiltered = spots_filtered;
+            } else if (factory.IsSurfaces(aItem)) {
+                // CopySurfaces requires a int[] so need to convert the List
+                int[] filteredIds = filteredIdsList.stream().mapToInt(i -> i).toArray();
+                ISurfacesPrx surfacesToFilter = (ISurfacesPrx) EasyXT.Utils.castToType(aItem);
+                ISurfacesPrx surfacesFiltered = null;
+                surfacesFiltered = surfacesToFilter.CopySurfaces(filteredIds);
+                aItemFiltered = surfacesFiltered;
+            }
+
+            return aItemFiltered;
+
+            /*
             double[] ids = rt.getColumn("ID");
             // current @EasyXT.Stats.export() table are string (needs >= 1.53j ? , to getColumnAsStrings() )
             // and will also need parseDouble
@@ -2201,7 +2272,7 @@ public class EasyXT {
                 aItemFiltered = surfacesFiltered;
             }
 
-            return aItemFiltered;
+            return aItemFiltered;*/
 
         }
 

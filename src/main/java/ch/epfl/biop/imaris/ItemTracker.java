@@ -59,10 +59,10 @@ public class ItemTracker {
         return ItemTrackerBuilder.setItem(aItem);
     }
 
-    public ObjectPrx track() throws Error {
+    public IDataItemPrx track() throws Error {
 
         IFactoryPrx factory = EasyXT.Utils.getImarisApp().GetFactory();
-        ObjectPrx aItemTracked = null;
+        IDataItemPrx aItemTracked = null;
 
         if (aMethod != null) {
             if (factory.IsSpots(aItem)) {

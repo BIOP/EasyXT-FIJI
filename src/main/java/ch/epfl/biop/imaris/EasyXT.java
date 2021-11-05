@@ -1914,7 +1914,7 @@ public class EasyXT {
                 // but if is_value_id is true, use the ID number for the value
                 if (isValueId) val = (int) spots_ids[t];
                 // add an ellipsoid to obj_creator
-                objCreator.createEllipsoidAxesUnit(spotsCenterXYZ[t][0], spotsCenterXYZ[t][1], spotsCenterXYZ[t][2], spotsRadiiXYZ[t][0], spotsRadiiXYZ[t][1], spotsRadiiXYZ[t][2], (float) val, vector3D1, vector3D2, isGauss);
+                objCreator.createEllipsoidAxesUnit(spotsCenterXYZ[t][0] - cal.xOrigin, spotsCenterXYZ[t][1]- cal.yOrigin, spotsCenterXYZ[t][2] - cal.zOrigin, spotsRadiiXYZ[t][0], spotsRadiiXYZ[t][1], spotsRadiiXYZ[t][2], (float) val, vector3D1, vector3D2, isGauss);
                 // set the previous_t
                 previousT = spotsT[t];
                 if (t % 10 == 0) log.info("Creating Labelled Spots " + (t + 1) + "/" + spotsT.length);

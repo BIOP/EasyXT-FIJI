@@ -956,41 +956,78 @@ public class EasyXT {
             int nz = cal.zSize;
             int nt = cal.tSize;
 
+            System.out.println(nc);
+            System.out.println(nz);
+            System.out.println(nt);
+
             int bitDepth = getBitDepth(dataset);
+            ImagePlus imp = null;
 
-            ImageStack stack = ImageStack.create(w, h, nc * nz * nt, bitDepth);
-            ImagePlus imp = new ImagePlus(Utils.getImarisApp().GetCurrentFileName(), stack);
-            imp.setDimensions(nc, nz, nt);
+            Boolean do2D = true;
+            if (( nc > 1) || (nz>1) || (nt>1)) do2D = false;
 
-            for (int c = 0; c < nc; c++) {
-                for (int z = 0; z < nz; z++) {
-                    for (int t = 0; t < nt; t++) {
-                        int idx = imp.getStackIndex(c + 1, z + 1, t + 1);
-                        ImageProcessor ip;
-                        switch (bitDepth) {
-                            case 8:
-                                byte[] dataB = dataset.GetDataSubVolumeAs1DArrayBytes(0, 0, z, c, t, w, h, 1);
-                                ip = new ByteProcessor(w, h, dataB, null);
-                                stack.setProcessor(ip, idx);
-                                break;
-                            case 16:
-                                short[] dataS = dataset.GetDataSubVolumeAs1DArrayShorts(0, 0, z, c, t, w, h, 1);
-                                ip = new ShortProcessor(w, h, dataS, null);
-                                stack.setProcessor(ip, idx);
-                                break;
-                            case 32:
-                                float[] dataF = dataset.GetDataSubVolumeAs1DArrayFloats(0, 0, z, c, t, w, h, 1);
-                                ip = new FloatProcessor(w, h, dataF, null);
-                                stack.setProcessor(ip, idx);
-                                break;
+            if (do2D) {
+                int z =1;
+                int c =0;
+                int t =0;
+
+                ImageProcessor ip = null;
+                ip.createProcessor(w, h);
+                switch (bitDepth) {
+                    case 8:
+                        ip.convertToByte(false);
+                        byte[] dataB = dataset.GetDataSubVolumeAs1DArrayBytes(0, 0, z, c, t, w, h, 1);
+                        ip = new ByteProcessor(w, h, dataB, null);
+                        break;
+                    case 16:
+                        ip.convertToShort(false);
+                        short[] dataS = dataset.GetDataSubVolumeAs1DArrayShorts(0, 0, z, c, t, w, h, 1);
+                        ip = new ShortProcessor(w, h, dataS, null);
+                        break;
+                    case 32:
+                        ip.convertToFloat();
+                        float[] dataF = dataset.GetDataSubVolumeAs1DArrayFloats(0, 0, z, c, t, w, h, 1);
+                        ip = new FloatProcessor(w, h, dataF, null);
+                        break;
+                }
+
+                imp = new ImagePlus(Utils.getImarisApp().GetCurrentFileName(), ip);
+
+            }else {
+                ImageStack stack = ImageStack.create(w, h, nc * nz * nt, bitDepth);
+                imp = new ImagePlus(Utils.getImarisApp().GetCurrentFileName(), stack);
+                imp.setDimensions(nc, nz, nt);
+
+                for (int c = 0; c < nc; c++) {
+                    for (int z = 0; z < nz; z++) {
+                        for (int t = 0; t < nt; t++) {
+                            int idx = imp.getStackIndex(c + 1, z + 1, t + 1);
+                            ImageProcessor ip;
+                            switch (bitDepth) {
+                                case 8:
+                                    byte[] dataB = dataset.GetDataSubVolumeAs1DArrayBytes(0, 0, z, c, t, w, h, 1);
+                                    ip = new ByteProcessor(w, h, dataB, null);
+                                    stack.setProcessor(ip, idx);
+                                    break;
+                                case 16:
+                                    short[] dataS = dataset.GetDataSubVolumeAs1DArrayShorts(0, 0, z, c, t, w, h, 1);
+                                    ip = new ShortProcessor(w, h, dataS, null);
+                                    stack.setProcessor(ip, idx);
+                                    break;
+                                case 32:
+                                    float[] dataF = dataset.GetDataSubVolumeAs1DArrayFloats(0, 0, z, c, t, w, h, 1);
+                                    ip = new FloatProcessor(w, h, dataF, null);
+                                    stack.setProcessor(ip, idx);
+                                    break;
+                            }
                         }
                     }
                 }
+                imp.setStack(stack);
+                imp = HyperStackConverter.toHyperStack(imp, nc, nz, nt);
             }
 
-            imp.setStack(stack);
             imp.setCalibration(cal);
-            imp = HyperStackConverter.toHyperStack(imp, nc, nz, nt);
 
             // Set LookUpTables
             if (imp instanceof CompositeImage) {

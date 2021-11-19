@@ -967,28 +967,27 @@ public class EasyXT {
             if (( nc > 1) || (nz>1) || (nt>1)) do2D = false;
 
             if (do2D) {
-                int z =1;
+                int z =0;
                 int c =0;
                 int t =0;
 
-                ImageProcessor ip = null;
-                ip.createProcessor(w, h);
+                ImageProcessor ip;
+
                 switch (bitDepth) {
                     case 8:
-                        ip.convertToByte(false);
                         byte[] dataB = dataset.GetDataSubVolumeAs1DArrayBytes(0, 0, z, c, t, w, h, 1);
                         ip = new ByteProcessor(w, h, dataB, null);
                         break;
                     case 16:
-                        ip.convertToShort(false);
                         short[] dataS = dataset.GetDataSubVolumeAs1DArrayShorts(0, 0, z, c, t, w, h, 1);
                         ip = new ShortProcessor(w, h, dataS, null);
                         break;
                     case 32:
-                        ip.convertToFloat();
                         float[] dataF = dataset.GetDataSubVolumeAs1DArrayFloats(0, 0, z, c, t, w, h, 1);
                         ip = new FloatProcessor(w, h, dataF, null);
                         break;
+                    default:
+                        throw new IllegalArgumentException("Unhandled bit Depth"+bitDepth);
                 }
 
                 imp = new ImagePlus(Utils.getImarisApp().GetCurrentFileName(), ip);

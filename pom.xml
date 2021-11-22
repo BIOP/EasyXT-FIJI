@@ -11,7 +11,7 @@
 
     <groupId>ch.epfl.biop.imaris</groupId>
     <artifactId>EasyXT</artifactId>
-    <version>0.2.12-SNAPSHOT</version>
+    <version>0.2.14-SNAPSHOT</version>
 
     <name>BIOP EasyXT-FIJI</name>
     <description>API and commands to facilitate communication between Imaris and FIJI</description>
@@ -124,7 +124,7 @@
         <license.copyrightOwners>ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland, BioImaging And Optics Platform (BIOP)</license.copyrightOwners>
         <!-- <scijava.app.directory>C:/Fiji.app/</scijava.app.directory> -->
         <imaris-lib.version>9.7.2</imaris-lib.version>
-        <mcib3d-core.version>3.96.3</mcib3d-core.version>
+        <mcib3d-core.version>4.0.1</mcib3d-core.version>
         <mcib3d-plugins.version>344b50080e</mcib3d-plugins.version>
         <imagescience.version>3.0.0</imagescience.version>
         <releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
@@ -134,6 +134,7 @@
         <dependency>
             <groupId>net.imagej</groupId>
             <artifactId>ij</artifactId>
+            <!--<version>1.53j</version> -->
         </dependency>
 
         <dependency>

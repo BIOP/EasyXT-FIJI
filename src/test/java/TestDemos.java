@@ -46,6 +46,12 @@ public class TestDemos {
     }
 
     @Test
+    public void LabelDemo2D() throws Exception {
+        if (envOkForTest())
+        GetSurfaceLabel2DDemo.main(mode);
+    }
+
+    @Test
     public void AddChildObjects() throws Exception {
         if (envOkForTest())
         AddChildObjects.main(mode);

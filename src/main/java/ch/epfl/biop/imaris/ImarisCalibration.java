@@ -46,6 +46,8 @@ import Imaris.Error;
 import Imaris.IDataSetPrx;
 import ij.ImagePlus;
 import ij.measure.Calibration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
@@ -58,6 +60,9 @@ import java.util.Objects;
  * @version 1.0
  */
 public class ImarisCalibration extends Calibration {
+
+    public static Logger logger = LoggerFactory.getLogger(ImarisCalibration.class);
+
     public final double xEnd, yEnd, zEnd;
     public int xSize, ySize, zSize, cSize, tSize;
     public float[] cMin, cMax;
@@ -83,9 +88,13 @@ public class ImarisCalibration extends Calibration {
         this.cSize = dataset.GetSizeC();
         this.tSize = dataset.GetSizeT();
 
-        this.pixelWidth  = (this.xEnd - this.xOrigin) / (this.xSize-1) ;
-        this.pixelHeight = (this.yEnd - this.yOrigin) / (this.ySize-1);
-        this.pixelDepth  = (this.zEnd - this.zOrigin) / (this.zSize-1);
+        if (xSize==0) {logger.error("Size X of dataset is 0 -> pixelWidth will be infinite");}
+        if (ySize==0) {logger.error("Size Y of dataset is 0 -> pixelHeight will be infinite");}
+        if (zSize==0) {logger.error("Size Z of dataset is 0 -> pixelDepth will be infinite");}
+
+        this.pixelWidth  = (this.xEnd - this.xOrigin) / (this.xSize);
+        this.pixelHeight = (this.yEnd - this.yOrigin) / (this.ySize);
+        this.pixelDepth  = (this.zEnd - this.zOrigin) / (this.zSize);
 
         this.setUnit( dataset.GetUnit() );
         this.setTimeUnit( "s" );

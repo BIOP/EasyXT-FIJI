@@ -986,7 +986,8 @@ public class EasyXT {
 
             imp.setStack(stack);
             imp.setCalibration(cal);
-            imp = HyperStackConverter.toHyperStack(imp, nc, nz, nt);
+
+            if (nc*nz*nt>1) imp = HyperStackConverter.toHyperStack(imp, nc, nz, nt);
 
             // Set LookUpTables
             if (imp instanceof CompositeImage) {

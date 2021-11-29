@@ -34,9 +34,12 @@ import ij.plugin.Concatenator;
 import ij.plugin.Duplicator;
 import ij.plugin.HyperStackConverter;
 import ij.process.*;
+import inra.ijpb.label.LabelImages;
 import mcib3d.geom.ObjectCreator3D;
 import mcib3d.geom.Point3D;
 import mcib3d.geom.Vector3D;
+import mcib3d.image3d.ImageByte;
+import mcib3d.image3d.ImageShort;
 import net.imagej.ImageJ;
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -1285,13 +1288,12 @@ public class EasyXT {
          * @return the ISurfacesPrx with individual surface for each label value
          * @throws Error an Imaris Error if there was a problem
          */
+
         public static ISurfacesPrx createFromLabels(ImagePlus impLabel, int timepointOffset) throws Error {
 
             // build empty surface object
             ISurfacesPrx surface = EasyXT.Utils.getImarisApp().GetFactory().CreateSurfaces();
 
-            //TODO fix issues with time-lapse Label
-            // not all labels per time point
             for (int t = 0; t < impLabel.getNFrames(); t++) {
                 // get the current t stack
                 ImagePlus tImpLabel = new Duplicator().run(impLabel, 1, 1, 1, impLabel.getNSlices(), t + 1, t + 1);
@@ -1299,31 +1301,34 @@ public class EasyXT {
                 //int impMin = (int) new StackStatistics(tImpLabel).min; // will always return 0 !
                 int impMax = (int) new StackStatistics(tImpLabel).max;
 
-                // TODO optimize idx start value, see below
-                for (int idx = 1; idx <= impMax; idx++) {
+                // we use findAllLabels() and voxelCount() from MorhopholibJ to "simplify" Labels processing
+                int[] labels = LabelImages.findAllLabels(tImpLabel);
+                int[] voxelCounts = LabelImages.voxelCount(tImpLabel.getStack(), labels);
 
-                    ImagePlus tempImage = tImpLabel.duplicate();
-                    IJ.setThreshold(tempImage, idx, idx);
-                    IJ.run(tempImage, "Convert to Mask", "method=Default background=Dark black");
+                for (int idx = 1; idx < labels.length; idx++) {
+                    if (voxelCounts[idx] > 1 ) {
+                        // duplicate and theshold a Label
+                        ImagePlus tempImage = tImpLabel.duplicate();
+                        IJ.setThreshold(tempImage, labels[idx], labels[idx]);
+                        IJ.run(tempImage, "Convert to Mask", "method=Default background=Dark black");// can't leave options blank, GUI pops-up
 
-                    int nProcessor = tempImage.getStack().getSize();
-                    IntStream.range(0, nProcessor).parallel().forEach(index -> {
-                        tempImage.getStack().getProcessor(index + 1).multiply(1.0 / 255.0);
-                    });
+                        // imaris requires binary 0-1
+                        int nProcessor = tempImage.getStack().getSize();
+                        IntStream.range(0, nProcessor).parallel().forEach(index -> {
+                            tempImage.getStack().getProcessor(index + 1).multiply(1.0 / 255.0);
+                        });
 
-                    // here we check if there are pixels at 1 , eg pixels have been thresholded
-                    // to avoid trying to create an Empty Surface that is causing an Imaris error
-                    // TODO find a better way to do it, possibly by optimizing the idx start
-                    //  maybe using the histogram ? issue with 16-bit images  (histogram has only 256 bins)?
-                    //  open to suggestions...
-                    int tImpMax = (int) new StackStatistics(tempImage).max;
-                    if (tImpMax == 1) {
+                        // we don't need to check anymore if the binary
+                        // - contains pixel , thanks to LabelImages.findAllLabels()
+                        // - has > 1 voxel thanks to LabelImages.voxelCount() and the  if (voxelCounts[idx] > 1 )
                         IDataSetPrx data = EasyXT.Dataset.create(tempImage);
                         surface.AddSurface(data, t + timepointOffset);
+                        tempImage.close();
                         // TODO: Warning: Because there is no way to set the Surfaces's IDs, there will certainly be a
-                        // TODO: discrepancy between the id of an original surface and a modified surface returned using this method...
+                        //  discrepancy between the id of an original surface and a modified surface returned using this method...
+                    }else if (voxelCounts[idx] == 1) {
+                        log.warning("Objects with a label "+labels[idx]+" has only 1 voxel and has been excluded (Imaris issue)");
                     }
-                    tempImage.close();
                 }
                 tImpLabel.close();
             }

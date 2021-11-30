@@ -8,12 +8,12 @@
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-2.0.html>.
@@ -994,7 +994,7 @@ public class EasyXT {
             imp.setStack(stack);
             imp.setCalibration(cal);
 
-            if (nc*nz*nt>1) imp = HyperStackConverter.toHyperStack(imp, nc, nz, nt);
+            if (nc * nz * nt > 1) imp = HyperStackConverter.toHyperStack(imp, nc, nz, nt);
 
             // Set LookUpTables
             if (imp instanceof CompositeImage) {
@@ -1306,8 +1306,9 @@ public class EasyXT {
                 int[] voxelCounts = LabelImages.voxelCount(tImpLabel.getStack(), labels);
 
                 for (int idx = 1; idx < labels.length; idx++) {
-                    if (voxelCounts[idx] > 1 ) {
-                        // duplicate and theshold a Label
+                    if (voxelCounts[idx] > 1) {
+
+                        // duplicate and threshold a Label
                         ImagePlus tempImage = tImpLabel.duplicate();
                         IJ.setThreshold(tempImage, labels[idx], labels[idx]);
                         IJ.run(tempImage, "Convert to Mask", "method=Default background=Dark black");// can't leave options blank, GUI pops-up
@@ -1326,8 +1327,8 @@ public class EasyXT {
                         tempImage.close();
                         // TODO: Warning: Because there is no way to set the Surfaces's IDs, there will certainly be a
                         //  discrepancy between the id of an original surface and a modified surface returned using this method...
-                    }else if (voxelCounts[idx] == 1) {
-                        log.warning("Objects with a label "+labels[idx]+" has only 1 voxel and has been excluded (Imaris issue)");
+                    } else if (voxelCounts[idx] == 1) {
+                        log.warning("Objects with a label " + labels[idx] + " has only 1 voxel and has been excluded (Imaris issue)");
                     }
                 }
                 tImpLabel.close();
@@ -1657,7 +1658,7 @@ public class EasyXT {
          */
         public static ISurfacesPrx filter(ISurfacesPrx surface, String columnName, double minValue, double maxValue) throws Error {
 
-           return (ISurfacesPrx) Utils.filter( surface,  columnName,  minValue,  maxValue);
+            return (ISurfacesPrx) Utils.filter(surface, columnName, minValue, maxValue);
 
         }
 
@@ -1804,7 +1805,7 @@ public class EasyXT {
         /**
          * Returns an Imaris surface filtered with a test minValue &lt; value &gt; maxValue for a defined columnName
          *
-         * @param spots    the surface to filter
+         * @param spots      the surface to filter
          * @param columnName ColumnName as displayed in ImageJ Results Table you got from @EasyXT.Stats.export()
          * @param minValue   the minimum value
          * @param maxValue   the maximum value
@@ -1813,14 +1814,14 @@ public class EasyXT {
          */
         public static ISpotsPrx filter(ISpotsPrx spots, String columnName, double minValue, double maxValue) throws Error {
 
-            return (ISpotsPrx) Utils.filter( spots,  columnName,  minValue,  maxValue);
+            return (ISpotsPrx) Utils.filter(spots, columnName, minValue, maxValue);
 
         }
 
         /**
          * Returns an Imaris surface filtered with a test minValue &lt; value for a defined columnName
          *
-         * @param spots    the surface to filter
+         * @param spots      the surface to filter
          * @param columnName ColumnName as displayed in ImageJ Results Table you got from @EasyXT.Stats.export()
          * @param minValue   the minimum value
          * @return filteredSurface the filtered surface
@@ -1835,7 +1836,7 @@ public class EasyXT {
         /**
          * Returns an Imaris surface filtered with a test value &gt; maxValue for a defined columnName
          *
-         * @param spots    the surface to filter
+         * @param spots      the surface to filter
          * @param columnName ColumnName as displayed in ImageJ Results Table you got from @EasyXT.Stats.export()
          * @param maxValue   the minimum value
          * @return filteredSurface the filtered surface
@@ -1920,7 +1921,7 @@ public class EasyXT {
                 // but if is_value_id is true, use the ID number for the value
                 if (isValueId) val = (int) spots_ids[t];
                 // add an ellipsoid to obj_creator
-                objCreator.createEllipsoidAxesUnit(spotsCenterXYZ[t][0] - cal.xOrigin, spotsCenterXYZ[t][1]- cal.yOrigin, spotsCenterXYZ[t][2] - cal.zOrigin, spotsRadiiXYZ[t][0], spotsRadiiXYZ[t][1], spotsRadiiXYZ[t][2], (float) val, vector3D1, vector3D2, isGauss);
+                objCreator.createEllipsoidAxesUnit(spotsCenterXYZ[t][0] - cal.xOrigin, spotsCenterXYZ[t][1] - cal.yOrigin, spotsCenterXYZ[t][2] - cal.zOrigin, spotsRadiiXYZ[t][0], spotsRadiiXYZ[t][1], spotsRadiiXYZ[t][2], (float) val, vector3D1, vector3D2, isGauss);
                 // set the previous_t
                 previousT = spotsT[t];
                 if (t % 10 == 0) log.info("Creating Labelled Spots " + (t + 1) + "/" + spotsT.length);
@@ -2211,7 +2212,7 @@ public class EasyXT {
             // use List to add item
             List<Integer> filteredIdsList = new ArrayList<>();
             for (int i = 0; i < ids.length; i++) {
-                if ( (values[i] >= minValue) && (values[i] <= maxValue)) {
+                if ((values[i] >= minValue) && (values[i] <= maxValue)) {
                     filteredIdsList.add((int) ids[i]);
                 }
             }
@@ -2221,14 +2222,14 @@ public class EasyXT {
                 // copySpots requires a long[] so need to convert the List
                 long[] filteredIds = filteredIdsList.stream().mapToLong(l -> l).toArray();
                 ISpotsPrx spots_tofilter = (ISpotsPrx) EasyXT.Utils.castToType(aItem);
-                ISpotsPrx spots_filtered ;
+                ISpotsPrx spots_filtered;
                 spots_filtered = copySpots(spots_tofilter, filteredIds);
                 aItemFiltered = spots_filtered;
             } else if (factory.IsSurfaces(aItem)) {
                 // CopySurfaces requires a int[] so need to convert the List
                 int[] filteredIds = filteredIdsList.stream().mapToInt(i -> i).toArray();
                 ISurfacesPrx surfacesToFilter = (ISurfacesPrx) EasyXT.Utils.castToType(aItem);
-                ISurfacesPrx surfacesFiltered ;
+                ISurfacesPrx surfacesFiltered;
                 surfacesFiltered = surfacesToFilter.CopySurfaces(filteredIds);
                 aItemFiltered = surfacesFiltered;
             }

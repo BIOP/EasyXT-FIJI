@@ -127,7 +127,7 @@
         <mcib3d-core.version>4.0.1</mcib3d-core.version>
         <mcib3d-plugins.version>344b50080e</mcib3d-plugins.version>
         <imagescience.version>3.0.0</imagescience.version>
-        <MorphoLibJ.version>v1.4.3</MorphoLibJ.version>
+        <MorphoLibJ.version>1.4.2</MorphoLibJ.version>
         <releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
     </properties>
 
@@ -169,8 +169,8 @@
 
         <!-- https://maven.scijava.org/#nexus-search;quick~morpholibj -->
         <dependency>
-            <groupId>com.github.ijpb</groupId>
-            <artifactId>MorphoLibJ</artifactId>
+            <groupId>fr.inra.ijpb</groupId>
+            <artifactId>MorphoLibJ_</artifactId>
             <version>${MorphoLibJ.version}</version>
         </dependency>
 

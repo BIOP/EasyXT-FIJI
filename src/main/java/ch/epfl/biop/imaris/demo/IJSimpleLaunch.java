@@ -21,13 +21,23 @@
  */
 package ch.epfl.biop.imaris.demo;
 
+import ij.IJ;
+import ij.ImagePlus;
 import net.imagej.ImageJ;
+
+import javax.script.ScriptException;
+import java.io.File;
+import java.io.FileNotFoundException;
 
 // TODO: Consider removing or adding to EasyXT directly as a means of debugging
 public class IJSimpleLaunch {
 
-    public static void main(String... args) {
+    public static void main(String... args) throws ScriptException, FileNotFoundException {
         ImageJ ij = new ImageJ();
         ij.ui().showUI();
+
+        //String script_path = "D:/github/github_BIOP/EasyXT-Fiji/EasyXT/scripts/LabelAndTracks.groovy";
+        //ij.script().run(new File(script_path) , true);
+
     }
 }

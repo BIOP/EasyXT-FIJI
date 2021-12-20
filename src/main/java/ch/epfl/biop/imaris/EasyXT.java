@@ -1336,7 +1336,10 @@ public class EasyXT {
                 int[] labels = LabelImages.findAllLabels(tImpLabel);
                 int[] voxelCounts = LabelImages.voxelCount(tImpLabel.getStack(), labels);
 
-                for (int idx = 1; idx < labels.length; idx++) {
+                for (int idx = 0; idx < labels.length; idx++) {
+                    //System.out.println("************");
+                    //System.out.println(labels[idx]);
+                    //System.out.println(voxelCounts[idx]);
                     if (voxelCounts[idx] > 1) {
 
                         // duplicate and threshold a Label

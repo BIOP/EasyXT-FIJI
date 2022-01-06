@@ -1348,10 +1348,13 @@ public class EasyXT {
                         //IJ.setThreshold(tempImage, labels[idx], labels[idx]);
                         //IJ.run(tempImage, "Convert to Mask", "method=Default background=Dark black");// can't leave options blank, GUI pops-up
 
-
+                        // altenatively can you keepLabels, but it still slow
                         //int[] labelAsArray ={ labels[idx] }; // LabelImages.keepLabels requires an int[]
                         //double label = labels[idx]; // Imaris requires an 0..1 dataset
                         //ImagePlus tempImage = LabelImages.keepLabels(tImpLabel, labelAsArray );
+
+                        // Finally can use cropLabel ()
+                        // TODO : replace with new release of morpholibj includes cropLabel with origin
                         ImagePlus tempImage = LabelImagesB.cropLabel(tImpLabel, labels[idx] , 2 , true);
 
                         // imaris requires binary 0-1

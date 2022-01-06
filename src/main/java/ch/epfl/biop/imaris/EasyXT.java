@@ -25,6 +25,7 @@ package ch.epfl.biop.imaris;
 import Ice.ObjectPrx;
 import Imaris.Error;
 import Imaris.*;
+import ch.epfl.biop.morpholibj.LabelImagesB;
 import com.bitplane.xt.IceClient;
 import ij.*;
 import ij.macro.Variable;
@@ -1343,9 +1344,15 @@ public class EasyXT {
                     if (voxelCounts[idx] > 1) {
 
                         // duplicate and threshold a Label
-                        ImagePlus tempImage = tImpLabel.duplicate();
-                        IJ.setThreshold(tempImage, labels[idx], labels[idx]);
-                        IJ.run(tempImage, "Convert to Mask", "method=Default background=Dark black");// can't leave options blank, GUI pops-up
+                        //ImagePlus tempImage = tImpLabel.duplicate();
+                        //IJ.setThreshold(tempImage, labels[idx], labels[idx]);
+                        //IJ.run(tempImage, "Convert to Mask", "method=Default background=Dark black");// can't leave options blank, GUI pops-up
+
+
+                        //int[] labelAsArray ={ labels[idx] }; // LabelImages.keepLabels requires an int[]
+                        //double label = labels[idx]; // Imaris requires an 0..1 dataset
+                        //ImagePlus tempImage = LabelImages.keepLabels(tImpLabel, labelAsArray );
+                        ImagePlus tempImage = LabelImagesB.cropLabel(tImpLabel, labels[idx] , 2 , true);
 
                         // imaris requires binary 0-1
                         int nProcessor = tempImage.getStack().getSize();

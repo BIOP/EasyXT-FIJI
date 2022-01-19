@@ -127,7 +127,7 @@ public class AllGettersDemo {
             List<ISurfacesPrx> surfacesList = EasyXT.Surfaces.findAll();
 
             // Generic Getter if you need other things
-            IDataItemPrx rawFrame = EasyXT.Scene.findItem("Frame");
+            IDataItemPrx rawFrame = EasyXT.Scene.findItem("Frame 1");
             IJ.log(String.valueOf(rawFrame));
             //it returns the right type
             IJ.log("Is " + EasyXT.Scene.getName(rawFrame) + " an IFramePrx?  - " + (rawFrame instanceof IFramePrx));

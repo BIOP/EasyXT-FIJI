@@ -179,8 +179,8 @@ public class EasyXT {
             }
 
             // All sanity checks passed, open the file
-            Utils.getImarisApp().FileOpen(filepath.getAbsolutePath(), options);
             Scene.createNewScene();
+            Utils.getImarisApp().FileOpen(filepath.getAbsolutePath(), options);
         }
 
         /**
@@ -2247,9 +2247,10 @@ public class EasyXT {
             // current @EasyXT.Stats.export() table are string
             // Issue with using imagej= 1.53j ? , to getColumnAsStrings() )
             // workaround use Variable[]
-            ResultsTable rt = Stats.export(aItem, columnName);
-
+            ResultsTable rt = Stats.export(aItem);
+            //rt.show("DerTisch");
             double[] ids = Arrays.stream(rt.getColumnAsVariables("ID")).map(var -> var.getValue()).mapToDouble(d -> d).toArray();
+            System.out.println( ids );
             double[] values = Arrays.stream(rt.getColumnAsVariables(columnName)).map(var -> var.getValue()).mapToDouble(d -> d).toArray();
 
             // Here we'll filtered the ids if they pass the test :  minValue < value < maxValue

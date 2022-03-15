@@ -178,8 +178,10 @@ public class EasyXT {
             }
 
             // All sanity checks passed, open the file
+            Scene.reset();
             Utils.getImarisApp().FileOpen(filepath.getAbsolutePath(), options);
-            Scene.createNewScene();
+            // to solve the issue with openImage when surface/spots object exist or not
+            if (Scene.getScene() == null) Scene.createNewScene();
         }
 
         /**
@@ -341,7 +343,6 @@ public class EasyXT {
             // CREATENEWSCENE Creates a new Surpass scene
             // CreateNewScene() is useful for clearning the current scene in
             // the case that we are batch opening images, for examples.
-
             IDataContainerPrx vSurpassScene = Utils.getImarisApp().GetFactory().CreateDataContainer();
             vSurpassScene.SetName("Scene");
             //// Add a light source
@@ -359,7 +360,6 @@ public class EasyXT {
             EasyXT.Scene.addItem(vLightSource);
             EasyXT.Scene.addItem(vFrame);
             EasyXT.Scene.addItem(vVolume);
-
         }
 
         /**

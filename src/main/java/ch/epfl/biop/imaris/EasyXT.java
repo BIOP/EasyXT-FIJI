@@ -25,7 +25,6 @@ package ch.epfl.biop.imaris;
 import Ice.ObjectPrx;
 import Imaris.Error;
 import Imaris.*;
-import ch.epfl.biop.morpholibj.LabelImagesB;
 import com.bitplane.xt.IceClient;
 import ij.*;
 import ij.macro.Variable;
@@ -40,6 +39,7 @@ import mcib3d.geom.ObjectCreator3D;
 import mcib3d.geom.Point3D;
 import mcib3d.geom.Vector3D;
 import mcib3d.image3d.ImageByte;
+import mcib3d.image3d.ImageFloat;
 import mcib3d.image3d.ImageShort;
 import net.imagej.ImageJ;
 import org.apache.commons.lang3.ArrayUtils;
@@ -179,8 +179,11 @@ public class EasyXT {
             }
 
             // All sanity checks passed, open the file
-            Scene.createNewScene();
+            Scene.reset();
+
             Utils.getImarisApp().FileOpen(filepath.getAbsolutePath(), options);
+            // to solve the issue with openImage when surface/spots object exist or not
+            if (Scene.getScene() == null) Scene.createNewScene();
         }
 
         /**
@@ -340,17 +343,16 @@ public class EasyXT {
          */
         public static void createNewScene() throws Error {
             // CREATENEWSCENE Creates a new Surpass scene
-            // CreateNewScene() is useful for clearning the current scene in
+            // CreateNewScene() is useful for cleaning the current scene in
             // the case that we are batch opening images, for examples.
-
             IDataContainerPrx vSurpassScene = Utils.getImarisApp().GetFactory().CreateDataContainer();
             vSurpassScene.SetName("Scene");
             //// Add a light source
             IDataItemPrx vLightSource = (IDataItemPrx) Utils.getImarisApp().GetFactory().CreateLightSource();
-            vLightSource.SetName("Light source");
+            vLightSource.SetName("Light source 1");
             //// Add a frame (otherwise no 3D rendering)
             IDataItemPrx vFrame = (IDataItemPrx) Utils.getImarisApp().GetFactory().CreateFrame();
-            vFrame.SetName("Frame");
+            vFrame.SetName("Frame 1");
             //// Add a Volume (otherwise no 3D rendering)
             IDataItemPrx vVolume = (IDataItemPrx) Utils.getImarisApp().GetFactory().CreateVolume();
             vVolume.SetName("Volume");
@@ -360,7 +362,6 @@ public class EasyXT {
             EasyXT.Scene.addItem(vLightSource);
             EasyXT.Scene.addItem(vFrame);
             EasyXT.Scene.addItem(vVolume);
-
         }
 
         /**
@@ -1344,18 +1345,9 @@ public class EasyXT {
                     if (voxelCounts[idx] > 1) {
 
                         // duplicate and threshold a Label
-                        //ImagePlus tempImage = tImpLabel.duplicate();
-                        //IJ.setThreshold(tempImage, labels[idx], labels[idx]);
-                        //IJ.run(tempImage, "Convert to Mask", "method=Default background=Dark black");// can't leave options blank, GUI pops-up
-
-                        // altenatively can you keepLabels, but it still slow
-                        //int[] labelAsArray ={ labels[idx] }; // LabelImages.keepLabels requires an int[]
-                        //double label = labels[idx]; // Imaris requires an 0..1 dataset
-                        //ImagePlus tempImage = LabelImages.keepLabels(tImpLabel, labelAsArray );
-
-                        // Finally can use cropLabel ()
-                        // TODO : replace with new release of morpholibj includes cropLabel with origin
-                        ImagePlus tempImage = LabelImagesB.cropLabel(tImpLabel, labels[idx] , 2 , true);
+                        ImagePlus tempImage = tImpLabel.duplicate();
+                        IJ.setThreshold(tempImage, labels[idx], labels[idx]);
+                        IJ.run(tempImage, "Convert to Mask", "method=Default background=Dark black");// can't leave options blank, GUI pops-up
 
                         // imaris requires binary 0-1
                         int nProcessor = tempImage.getStack().getSize();
@@ -2247,10 +2239,9 @@ public class EasyXT {
             // current @EasyXT.Stats.export() table are string
             // Issue with using imagej= 1.53j ? , to getColumnAsStrings() )
             // workaround use Variable[]
-            ResultsTable rt = Stats.export(aItem);
-            //rt.show("DerTisch");
+            ResultsTable rt = Stats.export(aItem, columnName);
+
             double[] ids = Arrays.stream(rt.getColumnAsVariables("ID")).map(var -> var.getValue()).mapToDouble(d -> d).toArray();
-            System.out.println( ids );
             double[] values = Arrays.stream(rt.getColumnAsVariables(columnName)).map(var -> var.getValue()).mapToDouble(d -> d).toArray();
 
             // Here we'll filtered the ids if they pass the test :  minValue < value < maxValue

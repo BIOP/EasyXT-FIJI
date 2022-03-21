@@ -127,7 +127,7 @@
         <mcib3d-core.version>4.0.1</mcib3d-core.version>
         <mcib3d-plugins.version>344b50080e</mcib3d-plugins.version>
         <imagescience.version>3.0.0</imagescience.version>
-        <MorphoLibJ.version>1.4.2</MorphoLibJ.version>
+        <MorphoLibJ.version>1.5.0</MorphoLibJ.version>
         <releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
     </properties>
 

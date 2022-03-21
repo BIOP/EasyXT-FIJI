@@ -27,7 +27,6 @@ import Imaris.Error;
 import Imaris.*;
 import com.bitplane.xt.IceClient;
 import ij.*;
-import ij.macro.Variable;
 import ij.measure.Calibration;
 import ij.measure.ResultsTable;
 import ij.plugin.Concatenator;
@@ -38,9 +37,6 @@ import inra.ijpb.label.LabelImages;
 import mcib3d.geom.ObjectCreator3D;
 import mcib3d.geom.Point3D;
 import mcib3d.geom.Vector3D;
-import mcib3d.image3d.ImageByte;
-import mcib3d.image3d.ImageFloat;
-import mcib3d.image3d.ImageShort;
 import net.imagej.ImageJ;
 import org.apache.commons.lang3.ArrayUtils;
 

@@ -90,6 +90,7 @@
     </mailingLists>
 
     <scm>
+        <connection>scm:git:https://github.com/BIOP/EasyXT-FIJI</connection>
         <developerConnection>scm:git:git@github.com:BIOP/EasyXT-FIJI</developerConnection>
         <url>https://github.com/BIOP/EasyXT-FIJI</url>
       <tag>HEAD</tag>

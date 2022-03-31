@@ -66,11 +66,11 @@ public class StatsQuery {
     private static Consumer<String> log = (str) -> System.out.println("StatsQuery : " + str);
     private final String itemName;
     private final cStatisticValues stats;
-    private final int channelIdx, timeIdx, catIdx;
     private List<Long> ids = new ArrayList<>();
     private List<String> names = new ArrayList<>();
     private List<String> timepoints = new ArrayList<>();
     private List<String> channels = new ArrayList<>();
+    private int nImages = 1;
     private ResultsTable results = new ResultsTable();
 
 
@@ -85,10 +85,14 @@ public class StatsQuery {
         // Heavy lifting here by Imaris to get all the statistics
         this.stats = item.GetStatistics();
 
-        // Identify the position of factors we want to use
-        this.channelIdx = Arrays.asList(this.stats.mFactorNames).indexOf("Channel");
-        this.timeIdx = Arrays.asList(this.stats.mFactorNames).indexOf("Time");
-        this.catIdx = Arrays.asList(this.stats.mFactorNames).indexOf("Category");
+        // Figure out some things: Will there be more than one image for the statistics?
+        int imageFactor = Arrays.asList(this.stats.mFactorNames).indexOf("Image");
+
+        // There should always be at least two values: "" and "Image 1"
+        this.nImages = Arrays.stream(this.stats.mFactors[imageFactor]).distinct().collect(Collectors.toList()).size() - 1;
+
+        if (this.nImages > 1 ) log.accept("More than one image: 'Image' will be appended to some column names ");
+
         this.itemName = item.GetName();
     }
 
@@ -297,6 +301,8 @@ public class StatsQuery {
 
             if (this.channels.size() > 0) { // We have requested specific channels
                 matchesChannel = false;
+                Integer channelIdx = Arrays.asList(this.stats.mFactorNames).indexOf("Channel");
+
                 for (String channel : this.channels) {
                     // Special case, if the name matches but there is no channel information, provide the result
                     // nonetheless. Eg. Requesting "Volume" should return volume, independently of channel
@@ -307,6 +313,8 @@ public class StatsQuery {
             } else matchesChannel = true;
 
             if (this.timepoints.size() > 0) { // We have requested specific timepoints
+                Integer timeIdx = Arrays.asList(this.stats.mFactorNames).indexOf("Time");
+
                 matchesTime = false;
                 for (String time : this.timepoints) {
                     matchesTime = this.stats.mFactors[timeIdx][i].matches(time);
@@ -326,10 +334,8 @@ public class StatsQuery {
             // Any "global" statistic has an ID of -1. We ignore these in favor of computing these outside Imaris
             if (matchesName && matchesChannel && matchesID && matchesTime && this.stats.mIds[i] != -1) {
                 String name = stats.mNames[i];
+
                 Float value = stats.mValues[i];
-                String cat = this.stats.mFactors[catIdx][i];
-                String channel = this.stats.mFactors[channelIdx][i];
-                String time = this.stats.mFactors[timeIdx][i];
                 long id = this.stats.mIds[i];
 
                 // If it exists, use it and append more stats
@@ -338,12 +344,40 @@ public class StatsQuery {
                 // List all stats we want to add
                 statElements.put("Label", imageName);
                 statElements.put("ID", String.valueOf(id));
-                statElements.put("Category", cat);
-                statElements.put("Timepoint", time);
                 statElements.put("Name", this.itemName);
 
-                if (!channel.equals("")) name += " C" + channel;
-                statElements.put(name, value.toString());
+                // Build the name of this statistic based on the factors that are available
+                for (int factorIdx = 0; factorIdx < this.stats.mFactorNames.length; factorIdx++) {
+                    String factorName = this.stats.mFactorNames[factorIdx];
+                    String factorValue = this.stats.mFactors[factorIdx][i];
+
+                    if (!factorValue.equals("")) {
+
+                        switch (factorName) {
+                            case "Time":
+                                // Goes into Timepoint column
+                                statElements.put("Timepoint", factorValue);
+                                break;
+                            case "Category":
+                                statElements.put("Category", factorValue);
+                                break;
+                            case "Collection":
+                            case "Time Index":
+                                // Do nothing
+                                break;
+                            case "Image":
+                                if (this.nImages > 1) name += " : " + factorValue;
+                                break;
+                            case "Channel":
+                                name += " C" + factorValue;
+                                break;
+                            default:
+                                name += " : " + factorValue;
+                                break;
+                        }
+                    }
+                }
+                statElements.put(name, String.valueOf(value));
 
                 // TODO : Check if this can be rewritten in a neater way as it is not necessary to 'put' again if it is already in statsByID
                 // TODO: But because it checks if the ID is unique, the overhead is not much. Still ugly though.

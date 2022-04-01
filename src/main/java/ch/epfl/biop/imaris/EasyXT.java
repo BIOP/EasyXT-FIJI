@@ -1304,7 +1304,7 @@ public class EasyXT {
                 return createFromLabels(impLabel, (int) tInd);
             }
             log.warning("EasyXT cannot find a timepoint associated with this surface mask. Defaulting to Timepoint 0");
-            log.warning("Use Surfaces.create(ImagePlus imp, int timepoint) to specify the desired timepoint to insert this surface");
+            log.warning("Use Surfaces.createFromLabels(ImagePlus imp, int timepoint) to specify the desired timepoint to insert this surface");
 
             return createFromLabels(impLabel, 0);
         }
@@ -1340,7 +1340,7 @@ public class EasyXT {
                     //System.out.println("************");
                     //System.out.println(labels[idx]);
                     //System.out.println(voxelCounts[idx]);
-                    if (voxelCounts[idx] > 1) {
+                    if (voxelCounts[idx] > 3) {
 
                         // duplicate and threshold a Label
                         ImagePlus tempImage = tImpLabel.duplicate();

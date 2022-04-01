@@ -2,7 +2,7 @@
  * #%L
  * API and commands to facilitate communication between Imaris and FIJI
  * %%
- * Copyright (C) 2020 - 2021 ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland, BioImaging And Optics Platform (BIOP)
+ * Copyright (C) 2020 - 2022 ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland, BioImaging And Optics Platform (BIOP)
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -27,7 +27,6 @@ import Imaris.Error;
 import Imaris.*;
 import com.bitplane.xt.IceClient;
 import ij.*;
-import ij.macro.Variable;
 import ij.measure.Calibration;
 import ij.measure.ResultsTable;
 import ij.plugin.Concatenator;
@@ -38,8 +37,6 @@ import inra.ijpb.label.LabelImages;
 import mcib3d.geom.ObjectCreator3D;
 import mcib3d.geom.Point3D;
 import mcib3d.geom.Vector3D;
-import mcib3d.image3d.ImageByte;
-import mcib3d.image3d.ImageShort;
 import net.imagej.ImageJ;
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -178,8 +175,11 @@ public class EasyXT {
             }
 
             // All sanity checks passed, open the file
+            Scene.reset();
+
             Utils.getImarisApp().FileOpen(filepath.getAbsolutePath(), options);
-            Scene.createNewScene();
+            // to solve the issue with openImage when surface/spots object exist or not
+            if (Scene.getScene() == null) Scene.createNewScene();
         }
 
         /**
@@ -339,17 +339,16 @@ public class EasyXT {
          */
         public static void createNewScene() throws Error {
             // CREATENEWSCENE Creates a new Surpass scene
-            // CreateNewScene() is useful for clearning the current scene in
+            // CreateNewScene() is useful for cleaning the current scene in
             // the case that we are batch opening images, for examples.
-
             IDataContainerPrx vSurpassScene = Utils.getImarisApp().GetFactory().CreateDataContainer();
             vSurpassScene.SetName("Scene");
             //// Add a light source
             IDataItemPrx vLightSource = (IDataItemPrx) Utils.getImarisApp().GetFactory().CreateLightSource();
-            vLightSource.SetName("Light source");
+            vLightSource.SetName("Light source 1");
             //// Add a frame (otherwise no 3D rendering)
             IDataItemPrx vFrame = (IDataItemPrx) Utils.getImarisApp().GetFactory().CreateFrame();
-            vFrame.SetName("Frame");
+            vFrame.SetName("Frame 1");
             //// Add a Volume (otherwise no 3D rendering)
             IDataItemPrx vVolume = (IDataItemPrx) Utils.getImarisApp().GetFactory().CreateVolume();
             vVolume.SetName("Volume");
@@ -359,7 +358,6 @@ public class EasyXT {
             EasyXT.Scene.addItem(vLightSource);
             EasyXT.Scene.addItem(vFrame);
             EasyXT.Scene.addItem(vVolume);
-
         }
 
         /**

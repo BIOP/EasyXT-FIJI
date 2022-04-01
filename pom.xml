@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
@@ -11,7 +11,7 @@
 
     <groupId>ch.epfl.biop.imaris</groupId>
     <artifactId>EasyXT</artifactId>
-    <version>0.2.17-SNAPSHOT</version>
+    <version>0.2.20-SNAPSHOT</version>
 
     <name>BIOP EasyXT-FIJI</name>
     <description>API and commands to facilitate communication between Imaris and FIJI</description>
@@ -90,7 +90,7 @@
     </mailingLists>
 
     <scm>
-        <connection>scm:git:git://github.com/BIOP/EasyXT-FIJI</connection>
+        <connection>scm:git:https://github.com/BIOP/EasyXT-FIJI</connection>
         <developerConnection>scm:git:git@github.com:BIOP/EasyXT-FIJI</developerConnection>
         <url>https://github.com/BIOP/EasyXT-FIJI</url>
       <tag>HEAD</tag>
@@ -127,7 +127,7 @@
         <mcib3d-core.version>4.0.1</mcib3d-core.version>
         <mcib3d-plugins.version>344b50080e</mcib3d-plugins.version>
         <imagescience.version>3.0.0</imagescience.version>
-        <MorphoLibJ.version>1.4.2</MorphoLibJ.version>
+        <MorphoLibJ.version>1.5.0</MorphoLibJ.version>
         <releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
     </properties>
 

@@ -372,7 +372,7 @@ public class StatsQuery {
                                 name += " C" + factorValue;
                                 break;
                             default:
-                                name += " : " + factorValue;
+                                name += " : " + factorName +" : " + factorValue;
                                 break;
                         }
                     }

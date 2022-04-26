@@ -124,8 +124,8 @@
         <license.copyrightOwners>ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland, BioImaging And Optics Platform (BIOP)</license.copyrightOwners>
         <!-- <scijava.app.directory>C:/Fiji.app/</scijava.app.directory> -->
         <imaris-lib.version>9.7.2</imaris-lib.version>
-        <mcib3d-core.version>4.0.1</mcib3d-core.version>
-        <mcib3d-plugins.version>344b50080e</mcib3d-plugins.version>
+        <mcib3d-core.version>4.0.87</mcib3d-core.version>
+        <!--<mcib3d-plugins.version>344b50080e</mcib3d-plugins.version>-->
         <imagescience.version>3.0.0</imagescience.version>
         <MorphoLibJ.version>1.5.0</MorphoLibJ.version>
         <releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
@@ -156,16 +156,16 @@
 
         <!-- https://mvnrepository.com/artifact/com.github.mcib3d/mcib3d-core -->
         <dependency>
-            <groupId>com.github.mcib3d</groupId>
+            <groupId>org.framagit.mcib3d</groupId>
             <artifactId>mcib3d-core</artifactId>
             <version>${mcib3d-core.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.github.mcib3d</groupId>
+   <!--     <dependency>
+            <groupId>org.framagit.mcib3d</groupId>
             <artifactId>mcib3d-plugins</artifactId>
             <version>${mcib3d-plugins.version}</version>
-        </dependency>
+        </dependency> -->
 
         <!-- https://maven.scijava.org/#nexus-search;quick~morpholibj -->
         <dependency>

@@ -63,6 +63,7 @@ public class ImarisCalibration extends Calibration {
 
     public static Logger logger = LoggerFactory.getLogger(ImarisCalibration.class);
 
+    public final double xStart, yStart, zStart;
     public final double xEnd, yEnd, zEnd;
     public int xSize, ySize, zSize, cSize, tSize;
     public float[] cMin, cMax;
@@ -70,12 +71,9 @@ public class ImarisCalibration extends Calibration {
     public String[] cNames;
     public ImarisCalibration( IDataSetPrx dataset ) throws Error {
 
-        // I know it's supposed to be pixels... BUT
-        // why is it double then?
-        // Makes no sense so here I do what I want
-        this.xOrigin = dataset.GetExtendMinX();
-        this.yOrigin = dataset.GetExtendMinY();
-        this.zOrigin = dataset.GetExtendMinZ();
+        this.xStart = dataset.GetExtendMinX();
+        this.yStart = dataset.GetExtendMinY();
+        this.zStart = dataset.GetExtendMinZ();
 
         this.xEnd = dataset.GetExtendMaxX();
         this.yEnd = dataset.GetExtendMaxY();
@@ -92,9 +90,15 @@ public class ImarisCalibration extends Calibration {
         if (ySize==0) {logger.error("Size Y of dataset is 0 -> pixelHeight will be infinite");}
         if (zSize==0) {logger.error("Size Z of dataset is 0 -> pixelDepth will be infinite");}
 
-        this.pixelWidth  = (this.xEnd - this.xOrigin) / (this.xSize);
-        this.pixelHeight = (this.yEnd - this.yOrigin) / (this.ySize);
-        this.pixelDepth  = (this.zEnd - this.zOrigin) / (this.zSize);
+        this.pixelWidth  = (this.xEnd - this.xStart) / (this.xSize);
+        this.pixelHeight = (this.yEnd - this.yStart) / (this.ySize);
+        this.pixelDepth  = (this.zEnd - this.zStart) / (this.zSize);
+
+        //
+        this.xOrigin = this.xStart / this.pixelWidth;
+        this.yOrigin = this.yStart / this.pixelHeight;
+        this.zOrigin = this.zStart / this.pixelDepth;
+
 
         this.setUnit( dataset.GetUnit() );
         this.setTimeUnit( "s" );

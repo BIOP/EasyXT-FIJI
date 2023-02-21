@@ -8,12 +8,12 @@
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-2.0.html>.
@@ -25,7 +25,6 @@ package ch.epfl.biop.imaris;
 import Ice.ObjectPrx;
 import Imaris.Error;
 import Imaris.*;
-
 import com.bitplane.xt.BPImarisLib;
 import ij.*;
 import ij.measure.Calibration;
@@ -34,7 +33,6 @@ import ij.plugin.Concatenator;
 import ij.plugin.Duplicator;
 import ij.plugin.HyperStackConverter;
 import ij.process.*;
-import inra.ijpb.label.LabelImages;
 import mcib3d.geom.ObjectCreator3D;
 import mcib3d.geom.Point3D;
 import mcib3d.geom.Vector3D;
@@ -107,14 +105,19 @@ public class EasyXT {
                 })
 
         );
-        log.info("Initialization Done. Ready to work with EasyXT");
+
+        if( APP == null ) {
+            log.warning("Imaris connection failed");
+        } else {
+            log.info("Initialization Done. Ready to work with EasyXT");
+        }
     }
 
     /**
      * Close the ICE client after using EasyXT
      */
     private static void closeImarisConnection() {
-        if( vImarisLib != null ) {
+        if (vImarisLib != null) {
             log.info("Closing existing ImarisLib connection");
             vImarisLib.Disconnect();
             vImarisLib = null;
@@ -263,7 +266,7 @@ public class EasyXT {
             // If the file is not there, download it
             if (!destPath.toFile().exists()) {
                 log.info("Sample file " + destPath.toFile().getAbsolutePath() + " does not exist, downloading...");
-                log.info("From: " + sampleUri.toString());
+                log.info("From: " + sampleUri);
 
                 // To download the file, we open an InputStream to it and use Files.copy
                 try (InputStream in = sampleUri.toURL().openStream()) {
@@ -341,13 +344,13 @@ public class EasyXT {
             IDataContainerPrx vSurpassScene = Utils.getImarisApp().GetFactory().CreateDataContainer();
             vSurpassScene.SetName("Scene");
             //// Add a light source
-            IDataItemPrx vLightSource = (IDataItemPrx) Utils.getImarisApp().GetFactory().CreateLightSource();
+            IDataItemPrx vLightSource = Utils.getImarisApp().GetFactory().CreateLightSource();
             vLightSource.SetName("Light source 1");
             //// Add a frame (otherwise no 3D rendering)
-            IDataItemPrx vFrame = (IDataItemPrx) Utils.getImarisApp().GetFactory().CreateFrame();
+            IDataItemPrx vFrame = Utils.getImarisApp().GetFactory().CreateFrame();
             vFrame.SetName("Frame 1");
             //// Add a Volume (otherwise no 3D rendering)
-            IDataItemPrx vVolume = (IDataItemPrx) Utils.getImarisApp().GetFactory().CreateVolume();
+            IDataItemPrx vVolume = Utils.getImarisApp().GetFactory().CreateVolume();
             vVolume.SetName("Volume");
 
             //// Set up the surpass scene
@@ -777,9 +780,9 @@ public class EasyXT {
                     calibration.cSize,
                     calibration.tSize);
 
-            dataset.SetExtendMinX((float) calibration.xOrigin);
-            dataset.SetExtendMinY((float) calibration.yOrigin);
-            dataset.SetExtendMinZ((float) calibration.zOrigin);
+            dataset.SetExtendMinX((float) calibration.xStart);
+            dataset.SetExtendMinY((float) calibration.yStart);
+            dataset.SetExtendMinZ((float) calibration.zStart);
 
             dataset.SetExtendMaxX((float) calibration.xEnd);
             dataset.SetExtendMaxY((float) calibration.yEnd);
@@ -829,13 +832,13 @@ public class EasyXT {
                     imp.getNChannels(),
                     imp.getNFrames());
 
-            dataset.SetExtendMinX((float) cal.xOrigin);
-            dataset.SetExtendMinY((float) cal.yOrigin);
-            dataset.SetExtendMinZ((float) cal.zOrigin);
+            dataset.SetExtendMinX((float) ( cal.xOrigin * cal.pixelWidth) );
+            dataset.SetExtendMinY((float) ( cal.yOrigin * cal.pixelHeight) );
+            dataset.SetExtendMinZ((float) ( cal.zOrigin * cal.pixelDepth) );
 
-            dataset.SetExtendMaxX((float) (cal.xOrigin + (imp.getWidth()) * cal.pixelWidth));
-            dataset.SetExtendMaxY((float) (cal.yOrigin + (imp.getHeight()) * cal.pixelHeight));
-            dataset.SetExtendMaxZ((float) (cal.zOrigin + (imp.getNSlices()) * cal.pixelDepth));
+            dataset.SetExtendMaxX((float) ( (cal.xOrigin + imp.getWidth()) * cal.pixelWidth));
+            dataset.SetExtendMaxY((float) ( (cal.yOrigin + imp.getHeight()) * cal.pixelHeight));
+            dataset.SetExtendMaxZ((float) ( (cal.zOrigin + imp.getNSlices()) * cal.pixelDepth));
 
             // Set channel color and range for dataset
             for (int c = 0; c < imp.getNChannels(); c++) {
@@ -1284,7 +1287,7 @@ public class EasyXT {
             return surface;
         }
 
-/**
+        /**
          * Create a new surfaces object from this ImagePlus
          *
          * @param impLabel the label image to get a surface from. can be 8 or 16 bit
@@ -1300,24 +1303,23 @@ public class EasyXT {
 
 
             ILabelImagePrx labelImage = EasyXT.Utils.getImarisApp().GetFactory().CreateLabelImage();
-            labelImage.Create( width, height, slices, timepoints );
+            labelImage.Create(width, height, slices, timepoints);
+
+            IDataSetPrx currentDataset = Dataset.getCurrent();
+            ImarisCalibration cal = new ImarisCalibration(currentDataset);
 
             // Calibrate it to match the image being given
-            Calibration cal = impLabel.getCalibration();
-            labelImage.SetExtendMinX( (float) cal.xOrigin);
-            labelImage.SetExtendMinY( (float) cal.yOrigin);
-            labelImage.SetExtendMinZ( (float) cal.zOrigin);
-            labelImage.SetExtendMaxX((float) cal.xOrigin + width * (float) cal.pixelWidth);
-            labelImage.SetExtendMaxY((float) cal.yOrigin + height * (float) cal.pixelHeight);
-            labelImage.SetExtendMaxZ((float) cal.zOrigin + slices * (float) cal.pixelDepth);
-
-            // Need the get the dataset to figure out the timestamps
-            IDataSetPrx currentDataset = Dataset.getCurrent();
+            labelImage.SetExtendMinX( (float) cal.xStart );
+            labelImage.SetExtendMinY( (float) cal.yStart );
+            labelImage.SetExtendMinZ( (float) cal.zStart );
+            labelImage.SetExtendMaxX( (float) cal.xEnd );
+            labelImage.SetExtendMaxY((float) cal.yEnd);
+            labelImage.SetExtendMaxZ((float) cal.zEnd);
 
             for (int t = 0; t < timepoints; t++) {
                 // Make sure it doesn't try to get an invalid timepoint
-                if( currentDataset.GetSizeT() > t ) {
-                    labelImage.SetTimePoint( t, currentDataset.GetTimePoint( t ) );
+                if (currentDataset.GetSizeT() > t) {
+                    labelImage.SetTimePoint(t, currentDataset.GetTimePoint(t));
                 }
             }
 
@@ -1326,16 +1328,42 @@ public class EasyXT {
                 for (int t = 0; t < timepoints; t++) {
                     int idx = impLabel.getStackIndex(1, z + 1, t + 1);
                     ImageProcessor ip = impLabel.getStack().getProcessor(idx);
+
+                    int[] pixelsInt = new int[ip.getPixelCount()];
+
+                    switch (ip.getBitDepth()) {
+                        case 8:
+                            byte[] pixels8 = (byte[]) ip.getPixels();
+                            for (int i = 0; i < pixels8.length; i++) {
+                                pixelsInt[i] = pixels8[i];
+                            }
+                            break;
+                        case 16:
+                            short[] pixels16 = (short[]) ip.getPixels();
+                            for (int i = 0; i < pixels16.length; i++) {
+                                pixelsInt[i] = pixels16[i];
+                            }
+                            break;
+                        case 32:
+                            float[] pixels32 = (float[]) ip.getPixels();
+                            for (int i = 0; i < pixels32.length; i++) {
+                                pixelsInt[i] = (int) Math.round(pixels32[i]);
+                            }
+                            break;
+
+                        default:
+                            log.severe("Unsupported pixel type for label image");
+                            throw new Error("Unsupported Pixel Type", "Unsupported pixel type for label image", "");
+                    }
                     short[] pixels = (short[]) ip.getPixels();
-                    int[] pixelsInt = new int[pixels.length];
                     for (int i = 0; i < pixels.length; i++) {
                         pixelsInt[i] = pixels[i];
                     }
-                    labelImage.SetDataSubVolumeAs1DArrayInts( pixelsInt, 0, 0, z, t, width, height, 1);
+                    labelImage.SetDataSubVolumeAs1DArrayInts(pixelsInt, 0, 0, z, t, width, height, 1);
                 }
             }
-            log.info("Interal label image created, detecting surfaces");
-            ISurfacesPrx surface = EasyXT.Utils.getImarisApp().GetImageProcessing().DetectSurfacesFromLabelImage( labelImage );
+            log.info("InterNal label image created, detecting surfaces");
+            ISurfacesPrx surface = EasyXT.Utils.getImarisApp().GetImageProcessing().DetectSurfacesFromLabelImage(labelImage);
             return surface;
         }
 
@@ -1385,7 +1413,6 @@ public class EasyXT {
          */
         public static ImagePlus getMaskImage(ISurfacesPrx surface) throws Error {
             ImagePlus masks = getLabelsImage(surface);
-
             masks.getProcessor().setThreshold(1, Double.MAX_VALUE, ImageProcessor.NO_LUT_UPDATE);
             Prefs.blackBackground = true;
             IJ.run(masks, "Convert to Mask", "method=Default background=Dark black");
@@ -1517,6 +1544,7 @@ public class EasyXT {
         private static void addSurfaceIndexToLabelImage(ISurfacesPrx surface, int index, ImagePlus image) throws Error {
             // get the extents to find where to put the data
             Calibration fCal = image.getCalibration();
+
             // There is no guarantee that the surface will have the same calibration, so we need to coerce it to a multiple of the calibration of the ImagePlus
             // This means checking that the origin is a multiple of the ImagePlus Origin plus x times the pixel size
             cSurfaceLayout layout = adjustBounds(surface.GetSurfaceDataLayout(index), fCal);
@@ -1534,9 +1562,9 @@ public class EasyXT {
             Calibration tCal = temp.getCalibration();
 
             // Find where the temp image starts
-            int startX = (int) Math.round((tCal.xOrigin - fCal.xOrigin) / fCal.pixelWidth);
-            int startY = (int) Math.round((tCal.yOrigin - fCal.yOrigin) / fCal.pixelHeight);
-            int startZ = (int) Math.round((tCal.zOrigin - fCal.zOrigin) / fCal.pixelDepth);
+            int startX = (int) Math.round((tCal.xOrigin - fCal.xOrigin) );
+            int startY = (int) Math.round((tCal.yOrigin - fCal.yOrigin) );
+            int startZ = (int) Math.round((tCal.zOrigin - fCal.zOrigin) );
 
             // Make sure the startZ is correct
             if (startZ < 0) startZ = 0;
@@ -1579,28 +1607,39 @@ public class EasyXT {
 
             // Step 1: coerce origin to a multiple of the origin of the imagePlus x the calibration
             // This means (example with X: layoutXOrigin = imageXOrigin + x*xCal)
-            double xmi = Math.floor((originalLayout.mExtendMinX - referenceCalibration.xOrigin) / referenceCalibration.pixelWidth);
-            double xma = Math.ceil((originalLayout.mExtendMaxX - referenceCalibration.xOrigin) / referenceCalibration.pixelWidth);
+            double xmi = Math.floor(originalLayout.mExtendMinX / referenceCalibration.pixelWidth - referenceCalibration.xOrigin);
+            double xma = Math.ceil(originalLayout.mExtendMaxX / referenceCalibration.pixelWidth - referenceCalibration.xOrigin);
 
-            newLayout.mExtendMinX = (float) (referenceCalibration.xOrigin + xmi * referenceCalibration.pixelWidth);
-            newLayout.mExtendMaxX = (float) (referenceCalibration.xOrigin + xma * referenceCalibration.pixelWidth);
+            // do not allow the offsets to be negative
+            if (xmi < 0) xmi = 0;
+            if (xma < 0) xma = 0;
 
-            double ymi = Math.floor((originalLayout.mExtendMinY - referenceCalibration.yOrigin) / referenceCalibration.pixelHeight);
-            double yma = Math.ceil((originalLayout.mExtendMaxY - referenceCalibration.yOrigin) / referenceCalibration.pixelHeight);
+            newLayout.mExtendMinX = (float) ((referenceCalibration.xOrigin + xmi) * referenceCalibration.pixelWidth);
+            newLayout.mExtendMaxX = (float) ((referenceCalibration.xOrigin + xma) * referenceCalibration.pixelWidth);
 
-            newLayout.mExtendMinY = (float) (referenceCalibration.yOrigin + ymi * referenceCalibration.pixelHeight);
-            newLayout.mExtendMaxY = (float) (referenceCalibration.yOrigin + yma * referenceCalibration.pixelHeight);
+            double ymi = Math.floor(originalLayout.mExtendMinY / referenceCalibration.pixelHeight - referenceCalibration.yOrigin);
+            double yma = Math.ceil(originalLayout.mExtendMaxY / referenceCalibration.pixelHeight - referenceCalibration.yOrigin);
 
-            double zmi = Math.floor((originalLayout.mExtendMinZ - referenceCalibration.zOrigin) / referenceCalibration.pixelDepth);
-            double zma = Math.ceil((originalLayout.mExtendMaxZ - referenceCalibration.zOrigin) / referenceCalibration.pixelDepth);
+            // do not allow the offsets to be negative
+            if (ymi < 0) ymi = 0;
+            if (yma < 0) yma = 0;
+            newLayout.mExtendMinY = (float) ((referenceCalibration.yOrigin + ymi) * referenceCalibration.pixelHeight);
+            newLayout.mExtendMaxY = (float) ((referenceCalibration.yOrigin + yma) * referenceCalibration.pixelHeight);
 
-            newLayout.mExtendMinZ = (float) (referenceCalibration.zOrigin + zmi * referenceCalibration.pixelDepth);
-            newLayout.mExtendMaxZ = (float) (referenceCalibration.zOrigin + zma * referenceCalibration.pixelDepth);
+            double zmi = Math.floor(originalLayout.mExtendMinZ / referenceCalibration.pixelDepth - referenceCalibration.zOrigin);
+            double zma = Math.ceil(originalLayout.mExtendMaxZ / referenceCalibration.pixelDepth - referenceCalibration.zOrigin);
 
-            // Finally adjust number of pixels
-            newLayout.mSizeX = (int) (Math.ceil((newLayout.mExtendMaxX - newLayout.mExtendMinX) / referenceCalibration.pixelWidth));
-            newLayout.mSizeY = (int) (Math.ceil((newLayout.mExtendMaxY - newLayout.mExtendMinY) / referenceCalibration.pixelHeight));
-            newLayout.mSizeZ = (int) (Math.ceil((newLayout.mExtendMaxZ - newLayout.mExtendMinZ) / referenceCalibration.pixelDepth));
+            // do not allow the offsets to be negative
+            if (zmi < 0) zmi = 0;
+            if (zma < 0) zma = 0;
+
+            newLayout.mExtendMinZ = (float) ((referenceCalibration.zOrigin + zmi) * referenceCalibration.pixelDepth);
+            newLayout.mExtendMaxZ = (float) ((referenceCalibration.zOrigin + zma) * referenceCalibration.pixelDepth);
+
+            // Finally adjust number of pixels. This should be very close to a whole number
+            newLayout.mSizeX = (int) (Math.round((newLayout.mExtendMaxX - newLayout.mExtendMinX) / referenceCalibration.pixelWidth));
+            newLayout.mSizeY = (int) (Math.round((newLayout.mExtendMaxY - newLayout.mExtendMinY) / referenceCalibration.pixelHeight));
+            newLayout.mSizeZ = (int) (Math.round((newLayout.mExtendMaxZ - newLayout.mExtendMinZ) / referenceCalibration.pixelDepth));
 
             return newLayout;
         }
@@ -1643,7 +1682,7 @@ public class EasyXT {
         public static IDataSetPrx getMaskDataset(ISurfacesPrx surface, double downsample, int timepoint) throws Error {
             ImarisCalibration cal = new ImarisCalibration(Utils.getImarisApp().GetDataSet()).getDownsampled(downsample);
 
-            IDataSetPrx data = surface.GetMask((float) cal.xOrigin, (float) cal.yOrigin, (float) cal.zOrigin,
+            IDataSetPrx data = surface.GetMask((float) cal.xStart, (float) cal.yStart, (float) cal.zStart,
                     (float) cal.xEnd, (float) cal.yEnd, (float) cal.zEnd,
                     cal.xSize, cal.ySize, cal.zSize, timepoint);
             return data;
@@ -1924,7 +1963,7 @@ public class EasyXT {
                 // but if is_value_id is true, use the ID number for the value
                 if (isValueId) val = (int) spots_ids[t];
                 // add an ellipsoid to obj_creator
-                objCreator.createEllipsoidAxesUnit(spotsCenterXYZ[t][0] - cal.xOrigin, spotsCenterXYZ[t][1] - cal.yOrigin, spotsCenterXYZ[t][2] - cal.zOrigin, spotsRadiiXYZ[t][0], spotsRadiiXYZ[t][1], spotsRadiiXYZ[t][2], (float) val, vector3D1, vector3D2, isGauss);
+                objCreator.createEllipsoidAxesUnit(spotsCenterXYZ[t][0] - cal.xStart , spotsCenterXYZ[t][1] - cal.yStart, spotsCenterXYZ[t][2] - cal.zStart, spotsRadiiXYZ[t][0], spotsRadiiXYZ[t][1], spotsRadiiXYZ[t][2], (float) val, vector3D1, vector3D2, isGauss);
                 // set the previous_t
                 previousT = spotsT[t];
                 if (t % 10 == 0) log.info("Creating Labelled Spots " + (t + 1) + "/" + spotsT.length);
@@ -2155,9 +2194,12 @@ public class EasyXT {
             log.info("Getting Imaris Server");
 
             ImarisServer.IServerPrx vServer = vImarisLib.GetServer();
-
+            if (vServer == null) {
+                log.severe("Could not connect to Imaris Server. Try closing Fiji and Restart Imaris");
+                return;
+            }
             int nObjects = vServer.GetNumberOfObjects();
-            log.info("Number of Potential Applications found : " + nObjects);
+            log.info("Number of potential Applications found : " + nObjects);
             // Get the first Imaris object
             if (nObjects > 0) {
                 for (int i = 0; i < nObjects; i++) {

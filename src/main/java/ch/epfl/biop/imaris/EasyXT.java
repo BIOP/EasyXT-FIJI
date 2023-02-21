@@ -1305,17 +1305,19 @@ public class EasyXT {
             ILabelImagePrx labelImage = EasyXT.Utils.getImarisApp().GetFactory().CreateLabelImage();
             labelImage.Create(width, height, slices, timepoints);
 
-            IDataSetPrx currentDataset = Dataset.getCurrent();
-            ImarisCalibration cal = new ImarisCalibration(currentDataset);
+            Calibration cal = impLabel.getCalibration();
 
             // Calibrate it to match the image being given
-            labelImage.SetExtendMinX( (float) cal.xStart );
-            labelImage.SetExtendMinY( (float) cal.yStart );
-            labelImage.SetExtendMinZ( (float) cal.zStart );
-            labelImage.SetExtendMaxX( (float) cal.xEnd );
-            labelImage.SetExtendMaxY((float) cal.yEnd);
-            labelImage.SetExtendMaxZ((float) cal.zEnd);
+            labelImage.SetExtendMinX( (float) (cal.xOrigin * cal.pixelWidth));
+            labelImage.SetExtendMinY( (float) (cal.yOrigin * cal.pixelHeight));
+            labelImage.SetExtendMinZ( (float) (cal.zOrigin * cal.pixelDepth));
 
+            labelImage.SetExtendMaxX( (float) ((cal.xOrigin + width ) * cal.pixelWidth) );
+            labelImage.SetExtendMaxY((float) ((cal.yOrigin + height ) * cal.pixelHeight));
+            labelImage.SetExtendMaxZ((float) ((cal.zOrigin + slices ) * cal.pixelDepth));
+
+            // We are not being fancy with the timepoints. Assume that they MUST match the original dataset's.
+            IDataSetPrx currentDataset = Dataset.getCurrent();
             for (int t = 0; t < timepoints; t++) {
                 // Make sure it doesn't try to get an invalid timepoint
                 if (currentDataset.GetSizeT() > t) {

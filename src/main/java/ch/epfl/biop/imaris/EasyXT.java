@@ -780,9 +780,9 @@ public class EasyXT {
                     calibration.cSize,
                     calibration.tSize);
 
-            dataset.SetExtendMinX((float) calibration.xOrigin);
-            dataset.SetExtendMinY((float) calibration.yOrigin);
-            dataset.SetExtendMinZ((float) calibration.zOrigin);
+            dataset.SetExtendMinX((float) calibration.xStart);
+            dataset.SetExtendMinY((float) calibration.yStart);
+            dataset.SetExtendMinZ((float) calibration.zStart);
 
             dataset.SetExtendMaxX((float) calibration.xEnd);
             dataset.SetExtendMaxY((float) calibration.yEnd);
@@ -832,13 +832,13 @@ public class EasyXT {
                     imp.getNChannels(),
                     imp.getNFrames());
 
-            dataset.SetExtendMinX((float) cal.xOrigin);
-            dataset.SetExtendMinY((float) cal.yOrigin);
-            dataset.SetExtendMinZ((float) cal.zOrigin);
+            dataset.SetExtendMinX((float) ( cal.xOrigin * cal.pixelWidth) );
+            dataset.SetExtendMinY((float) ( cal.yOrigin * cal.pixelHeight) );
+            dataset.SetExtendMinZ((float) ( cal.zOrigin * cal.pixelDepth) );
 
-            dataset.SetExtendMaxX((float) (cal.xOrigin + (imp.getWidth()) * cal.pixelWidth));
-            dataset.SetExtendMaxY((float) (cal.yOrigin + (imp.getHeight()) * cal.pixelHeight));
-            dataset.SetExtendMaxZ((float) (cal.zOrigin + (imp.getNSlices()) * cal.pixelDepth));
+            dataset.SetExtendMaxX((float) ( (cal.xOrigin + imp.getWidth()) * cal.pixelWidth));
+            dataset.SetExtendMaxY((float) ( (cal.yOrigin + imp.getHeight()) * cal.pixelHeight));
+            dataset.SetExtendMaxZ((float) ( (cal.zOrigin + imp.getNSlices()) * cal.pixelDepth));
 
             // Set channel color and range for dataset
             for (int c = 0; c < imp.getNChannels(); c++) {
@@ -1563,9 +1563,9 @@ public class EasyXT {
             Calibration tCal = temp.getCalibration();
 
             // Find where the temp image starts
-            int startX = (int) Math.round((tCal.xOrigin - fCal.xOrigin) / fCal.pixelWidth);
-            int startY = (int) Math.round((tCal.yOrigin - fCal.yOrigin) / fCal.pixelHeight);
-            int startZ = (int) Math.round((tCal.zOrigin - fCal.zOrigin) / fCal.pixelDepth);
+            int startX = (int) Math.round((tCal.xOrigin - fCal.xOrigin) );
+            int startY = (int) Math.round((tCal.yOrigin - fCal.yOrigin) );
+            int startZ = (int) Math.round((tCal.zOrigin - fCal.zOrigin) );
 
             // Make sure the startZ is correct
             if (startZ < 0) startZ = 0;
@@ -1608,28 +1608,39 @@ public class EasyXT {
 
             // Step 1: coerce origin to a multiple of the origin of the imagePlus x the calibration
             // This means (example with X: layoutXOrigin = imageXOrigin + x*xCal)
-            double xmi = Math.floor((originalLayout.mExtendMinX - referenceCalibration.xOrigin) / referenceCalibration.pixelWidth);
-            double xma = Math.ceil((originalLayout.mExtendMaxX - referenceCalibration.xOrigin) / referenceCalibration.pixelWidth);
+            double xmi = Math.floor(originalLayout.mExtendMinX / referenceCalibration.pixelWidth - referenceCalibration.xOrigin);
+            double xma = Math.ceil(originalLayout.mExtendMaxX / referenceCalibration.pixelWidth - referenceCalibration.xOrigin);
 
-            newLayout.mExtendMinX = (float) (referenceCalibration.xOrigin + xmi * referenceCalibration.pixelWidth);
-            newLayout.mExtendMaxX = (float) (referenceCalibration.xOrigin + xma * referenceCalibration.pixelWidth);
+            // do not allow the offsets to be negative
+            if (xmi < 0) xmi = 0;
+            if (xma < 0) xma = 0;
 
-            double ymi = Math.floor((originalLayout.mExtendMinY - referenceCalibration.yOrigin) / referenceCalibration.pixelHeight);
-            double yma = Math.ceil((originalLayout.mExtendMaxY - referenceCalibration.yOrigin) / referenceCalibration.pixelHeight);
+            newLayout.mExtendMinX = (float) ((referenceCalibration.xOrigin + xmi) * referenceCalibration.pixelWidth);
+            newLayout.mExtendMaxX = (float) ((referenceCalibration.xOrigin + xma) * referenceCalibration.pixelWidth);
 
-            newLayout.mExtendMinY = (float) (referenceCalibration.yOrigin + ymi * referenceCalibration.pixelHeight);
-            newLayout.mExtendMaxY = (float) (referenceCalibration.yOrigin + yma * referenceCalibration.pixelHeight);
+            double ymi = Math.floor(originalLayout.mExtendMinY / referenceCalibration.pixelHeight - referenceCalibration.yOrigin);
+            double yma = Math.ceil(originalLayout.mExtendMaxY / referenceCalibration.pixelHeight - referenceCalibration.yOrigin);
 
-            double zmi = Math.floor((originalLayout.mExtendMinZ - referenceCalibration.zOrigin) / referenceCalibration.pixelDepth);
-            double zma = Math.ceil((originalLayout.mExtendMaxZ - referenceCalibration.zOrigin) / referenceCalibration.pixelDepth);
+            // do not allow the offsets to be negative
+            if (ymi < 0) ymi = 0;
+            if (yma < 0) yma = 0;
+            newLayout.mExtendMinY = (float) ((referenceCalibration.yOrigin + ymi) * referenceCalibration.pixelHeight);
+            newLayout.mExtendMaxY = (float) ((referenceCalibration.yOrigin + yma) * referenceCalibration.pixelHeight);
 
-            newLayout.mExtendMinZ = (float) (referenceCalibration.zOrigin + zmi * referenceCalibration.pixelDepth);
-            newLayout.mExtendMaxZ = (float) (referenceCalibration.zOrigin + zma * referenceCalibration.pixelDepth);
+            double zmi = Math.floor(originalLayout.mExtendMinZ / referenceCalibration.pixelDepth - referenceCalibration.zOrigin);
+            double zma = Math.ceil(originalLayout.mExtendMaxZ / referenceCalibration.pixelDepth - referenceCalibration.zOrigin);
 
-            // Finally adjust number of pixels
-            newLayout.mSizeX = (int) (Math.ceil((newLayout.mExtendMaxX - newLayout.mExtendMinX) / referenceCalibration.pixelWidth));
-            newLayout.mSizeY = (int) (Math.ceil((newLayout.mExtendMaxY - newLayout.mExtendMinY) / referenceCalibration.pixelHeight));
-            newLayout.mSizeZ = (int) (Math.ceil((newLayout.mExtendMaxZ - newLayout.mExtendMinZ) / referenceCalibration.pixelDepth));
+            // do not allow the offsets to be negative
+            if (zmi < 0) zmi = 0;
+            if (zma < 0) zma = 0;
+
+            newLayout.mExtendMinZ = (float) ((referenceCalibration.zOrigin + zmi) * referenceCalibration.pixelDepth);
+            newLayout.mExtendMaxZ = (float) ((referenceCalibration.zOrigin + zma) * referenceCalibration.pixelDepth);
+
+            // Finally adjust number of pixels. This should be very close to a whole number
+            newLayout.mSizeX = (int) (Math.round((newLayout.mExtendMaxX - newLayout.mExtendMinX) / referenceCalibration.pixelWidth));
+            newLayout.mSizeY = (int) (Math.round((newLayout.mExtendMaxY - newLayout.mExtendMinY) / referenceCalibration.pixelHeight));
+            newLayout.mSizeZ = (int) (Math.round((newLayout.mExtendMaxZ - newLayout.mExtendMinZ) / referenceCalibration.pixelDepth));
 
             return newLayout;
         }

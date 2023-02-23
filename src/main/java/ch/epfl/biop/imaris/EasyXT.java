@@ -8,12 +8,12 @@
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-2.0.html>.
@@ -105,7 +105,7 @@ public class EasyXT {
 
         );
 
-        if( APP == null ) {
+        if (APP == null) {
             log.warning("Imaris connection failed");
         } else {
             log.info("Initialization Done. Ready to work with EasyXT");
@@ -831,13 +831,13 @@ public class EasyXT {
                     imp.getNChannels(),
                     imp.getNFrames());
 
-            dataset.SetExtendMinX((float) ( cal.xOrigin * cal.pixelWidth) );
-            dataset.SetExtendMinY((float) ( cal.yOrigin * cal.pixelHeight) );
-            dataset.SetExtendMinZ((float) ( cal.zOrigin * cal.pixelDepth) );
+            dataset.SetExtendMinX((float) (cal.xOrigin * cal.pixelWidth));
+            dataset.SetExtendMinY((float) (cal.yOrigin * cal.pixelHeight));
+            dataset.SetExtendMinZ((float) (cal.zOrigin * cal.pixelDepth));
 
-            dataset.SetExtendMaxX((float) ( (cal.xOrigin + imp.getWidth()) * cal.pixelWidth));
-            dataset.SetExtendMaxY((float) ( (cal.yOrigin + imp.getHeight()) * cal.pixelHeight));
-            dataset.SetExtendMaxZ((float) ( (cal.zOrigin + imp.getNSlices()) * cal.pixelDepth));
+            dataset.SetExtendMaxX((float) ((cal.xOrigin + imp.getWidth()) * cal.pixelWidth));
+            dataset.SetExtendMaxY((float) ((cal.yOrigin + imp.getHeight()) * cal.pixelHeight));
+            dataset.SetExtendMaxZ((float) ((cal.zOrigin + imp.getNSlices()) * cal.pixelDepth));
 
             // Set channel color and range for dataset
             for (int c = 0; c < imp.getNChannels(); c++) {
@@ -1307,13 +1307,13 @@ public class EasyXT {
             Calibration cal = impLabel.getCalibration();
 
             // Calibrate it to match the image being given
-            labelImage.SetExtendMinX( (float) (cal.xOrigin * cal.pixelWidth));
-            labelImage.SetExtendMinY( (float) (cal.yOrigin * cal.pixelHeight));
-            labelImage.SetExtendMinZ( (float) (cal.zOrigin * cal.pixelDepth));
+            labelImage.SetExtendMinX((float) (cal.xOrigin * cal.pixelWidth));
+            labelImage.SetExtendMinY((float) (cal.yOrigin * cal.pixelHeight));
+            labelImage.SetExtendMinZ((float) (cal.zOrigin * cal.pixelDepth));
 
-            labelImage.SetExtendMaxX( (float) ((cal.xOrigin + width ) * cal.pixelWidth) );
-            labelImage.SetExtendMaxY((float) ((cal.yOrigin + height ) * cal.pixelHeight));
-            labelImage.SetExtendMaxZ((float) ((cal.zOrigin + slices ) * cal.pixelDepth));
+            labelImage.SetExtendMaxX((float) ((cal.xOrigin + width) * cal.pixelWidth));
+            labelImage.SetExtendMaxY((float) ((cal.yOrigin + height) * cal.pixelHeight));
+            labelImage.SetExtendMaxZ((float) ((cal.zOrigin + slices) * cal.pixelDepth));
 
             // We are not being fancy with the timepoints. Assume that they MUST match the original dataset's.
             IDataSetPrx currentDataset = Dataset.getCurrent();
@@ -1563,9 +1563,9 @@ public class EasyXT {
             Calibration tCal = temp.getCalibration();
 
             // Find where the temp image starts
-            int startX = (int) Math.round((tCal.xOrigin - fCal.xOrigin) );
-            int startY = (int) Math.round((tCal.yOrigin - fCal.yOrigin) );
-            int startZ = (int) Math.round((tCal.zOrigin - fCal.zOrigin) );
+            int startX = (int) Math.round((tCal.xOrigin - fCal.xOrigin));
+            int startY = (int) Math.round((tCal.yOrigin - fCal.yOrigin));
+            int startZ = (int) Math.round((tCal.zOrigin - fCal.zOrigin));
 
             // Make sure the startZ is correct
             if (startZ < 0) startZ = 0;
@@ -1964,7 +1964,7 @@ public class EasyXT {
                 // but if is_value_id is true, use the ID number for the value
                 if (isValueId) val = (int) spots_ids[t];
                 // add an ellipsoid to obj_creator
-                objCreator.createEllipsoidAxesUnit(spotsCenterXYZ[t][0] - cal.xStart , spotsCenterXYZ[t][1] - cal.yStart, spotsCenterXYZ[t][2] - cal.zStart, spotsRadiiXYZ[t][0], spotsRadiiXYZ[t][1], spotsRadiiXYZ[t][2], (float) val, vector3D1, vector3D2, isGauss);
+                objCreator.createEllipsoidAxesUnit(spotsCenterXYZ[t][0] - cal.xStart, spotsCenterXYZ[t][1] - cal.yStart, spotsCenterXYZ[t][2] - cal.zStart, spotsRadiiXYZ[t][0], spotsRadiiXYZ[t][1], spotsRadiiXYZ[t][2], (float) val, vector3D1, vector3D2, isGauss);
                 // set the previous_t
                 previousT = spotsT[t];
                 if (t % 10 == 0) log.info("Creating Labelled Spots " + (t + 1) + "/" + spotsT.length);

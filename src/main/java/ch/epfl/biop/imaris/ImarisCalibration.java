@@ -64,7 +64,7 @@ public class ImarisCalibration extends Calibration {
     public static Logger logger = LoggerFactory.getLogger(ImarisCalibration.class);
 
     public final double xEnd, yEnd, zEnd;
-    private final double xStart, yStart, zStart;
+    public final double xStart, yStart, zStart;
     public int xSize, ySize, zSize, cSize, tSize;
     public float[] cMin, cMax;
     public int[] cColorsRGBA;

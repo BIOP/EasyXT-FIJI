@@ -2,7 +2,7 @@
  * #%L
  * API and commands to facilitate communication between Imaris and FIJI
  * %%
- * Copyright (C) 2020 - 2022 ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland, BioImaging And Optics Platform (BIOP)
+ * Copyright (C) 2020 - 2023 ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland, BioImaging And Optics Platform (BIOP)
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -258,7 +258,7 @@ public class SurfacesDetector {
         Boolean aSeedsSubtractBackground;
         String aSeedsFiltersString;
         Boolean aLowerThresholdEnabled;
-        Boolean aIntensityLowerThresholdAutomatic = new Boolean(true);
+        Boolean aIntensityLowerThresholdAutomatic = Boolean.TRUE;
         Float aIntensityLowerThresholdManual = new Float(0);
         Boolean aUpperThresholdEnabled;
         Boolean aIntensityUpperThresholdAutomatic;

@@ -2,7 +2,7 @@
  * #%L
  * API and commands to facilitate communication between Imaris and FIJI
  * %%
- * Copyright (C) 2020 - 2022 ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland, BioImaging And Optics Platform (BIOP)
+ * Copyright (C) 2020 - 2023 ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland, BioImaging And Optics Platform (BIOP)
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -49,8 +49,6 @@ import ij.measure.Calibration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Objects;
-
 /**
  * Extension of ImageJ calibration:
  * Easy way to set ImageJ calibration from an Imaris dataset
@@ -94,11 +92,9 @@ public class ImarisCalibration extends Calibration {
         this.pixelHeight = (this.yEnd - this.yStart) / (this.ySize);
         this.pixelDepth  = (this.zEnd - this.zStart) / (this.zSize);
 
-        //
         this.xOrigin = this.xStart / this.pixelWidth;
         this.yOrigin = this.yStart / this.pixelHeight;
         this.zOrigin = this.zStart / this.pixelDepth;
-
 
         this.setUnit( dataset.GetUnit() );
         this.setTimeUnit( "s" );

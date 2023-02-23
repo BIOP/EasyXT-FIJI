@@ -2,18 +2,18 @@
  * #%L
  * API and commands to facilitate communication between Imaris and FIJI
  * %%
- * Copyright (C) 2020 - 2022 ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland, BioImaging And Optics Platform (BIOP)
+ * Copyright (C) 2020 - 2023 ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland, BioImaging And Optics Platform (BIOP)
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 2 of the
  * License, or (at your option) any later version.
- *
+ * 
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- *
+ * 
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-2.0.html>.
@@ -72,7 +72,6 @@ public class EasyXT {
 
     // APP is not final because we reserve the right to restart the connection
     private static IApplicationPrx APP;
-    private static final String M_END_POINTS = "default -p 4029";
     public static Map<tType, Integer> datatype;
     public static Logger log = Logger.getLogger(EasyXT.class.getName());
     private static BPImarisLib vImarisLib;
@@ -1349,7 +1348,7 @@ public class EasyXT {
                         case 32:
                             float[] pixels32 = (float[]) ip.getPixels();
                             for (int i = 0; i < pixels32.length; i++) {
-                                pixelsInt[i] = (int) Math.round(pixels32[i]);
+                                pixelsInt[i] = Math.round(pixels32[i]);
                             }
                             break;
 

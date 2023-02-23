@@ -5,7 +5,7 @@ import ch.epfl.biop.imaris.EasyXT
 import ij.plugin.*
 import ij.*
 
-IJ.run("Close All", "");
+IJ.run("Close All", "")
 
 // Imaris comes with a couple of images, stored into a user folder...
 // "celldemo.ims" , ...

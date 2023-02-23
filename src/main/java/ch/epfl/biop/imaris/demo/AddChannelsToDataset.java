@@ -2,7 +2,7 @@
  * #%L
  * API and commands to facilitate communication between Imaris and FIJI
  * %%
- * Copyright (C) 2020 - 2022 ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland, BioImaging And Optics Platform (BIOP)
+ * Copyright (C) 2020 - 2023 ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland, BioImaging And Optics Platform (BIOP)
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -88,7 +88,7 @@ public class AddChannelsToDataset {
         } catch (Error error) {
             System.out.println("ERROR:" + error.mDescription);
             System.out.println("LOCATION:" + error.mLocation);
-            System.out.println("String:" + error.toString());
+            System.out.println("String:" + error);
         }
     }
 }

@@ -4,7 +4,7 @@ import ch.epfl.biop.imaris.EasyXT
 import ij.plugin.*
 import ij.*
 
-IJ.run("Close All", "");
+IJ.run("Close All", "")
 
 // Imaris comes with a couple of images, stored into a user folder...
 // "celldemo.ims" , ...
@@ -27,7 +27,7 @@ spots = EasyXT.Spots.create(0)
                     	.isCreateRegionsChannel(false)// [Spot Regions] Create Region Channel
                     	.setColor(new Integer[]{255, 128, 0})
                     	.build()
-                    	.detect();
+                    	.detect()
                     	
 //uncomment below to have the "non-tracked" surface
 EasyXT.Scene.setName(spots, "spots")

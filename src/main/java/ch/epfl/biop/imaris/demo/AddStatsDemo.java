@@ -2,7 +2,7 @@
  * #%L
  * API and commands to facilitate communication between Imaris and FIJI
  * %%
- * Copyright (C) 2020 - 2022 ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland, BioImaging And Optics Platform (BIOP)
+ * Copyright (C) 2020 - 2023 ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland, BioImaging And Optics Platform (BIOP)
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -26,6 +26,7 @@ import ch.epfl.biop.imaris.EasyXT;
 import ij.measure.ResultsTable;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Map;
 
 
@@ -57,7 +58,7 @@ public class AddStatsDemo {
         EasyXT.Scene.addItem(spots);
 
         // Get the spot statistics first before adding a new one
-        ResultsTable stats = EasyXT.Stats.export(spots, Arrays.asList("Intensity Mean"), Arrays.asList(1, 2));
+        ResultsTable stats = EasyXT.Stats.export(spots, Collections.singletonList("Intensity Mean"), Arrays.asList(1, 2));
 
         // Compute the mean of the two channels in ImageJ from the results table
         for (int i = 0; i < stats.size(); i++) {

@@ -2,7 +2,7 @@
  * #%L
  * API and commands to facilitate communication between Imaris and FIJI
  * %%
- * Copyright (C) 2020 - 2022 ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland, BioImaging And Optics Platform (BIOP)
+ * Copyright (C) 2020 - 2023 ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland, BioImaging And Optics Platform (BIOP)
  * %%
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as
@@ -71,12 +71,12 @@ public class SpotsDetector {
     /**
      * Standard logger
      */
-    private static Consumer<String> log = (str) -> System.out.println("SpotsDetector : " + str);
+    private static final Consumer<String> log = (str) -> System.out.println("SpotsDetector : " + str);
 
     /**
      * Error logger
      */
-    private static Consumer<String> errlog = (str) -> System.err.println("SpotsDetector : " + str);
+    private static final Consumer<String> errlog = (str) -> System.err.println("SpotsDetector : " + str);
 
 
     // Fields from Imaris API - DetectSpots2D (Replaces DetectSpots, implemented for bpPointsViewer.)

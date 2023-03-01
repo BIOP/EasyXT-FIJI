@@ -8,12 +8,12 @@
  * it under the terms of the GNU General Public License as
  * published by the Free Software Foundation, either version 2 of the
  * License, or (at your option) any later version.
- * 
+ *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public
  * License along with this program.  If not, see
  * <http://www.gnu.org/licenses/gpl-2.0.html>.
@@ -25,7 +25,7 @@ package ch.epfl.biop.imaris;
 import Ice.ObjectPrx;
 import Imaris.Error;
 import Imaris.*;
-import com.bitplane.xt.IceClient;
+import com.bitplane.xt.BPImarisLib;
 import ij.*;
 import ij.measure.Calibration;
 import ij.measure.ResultsTable;
@@ -33,7 +33,6 @@ import ij.plugin.Concatenator;
 import ij.plugin.Duplicator;
 import ij.plugin.HyperStackConverter;
 import ij.process.*;
-import inra.ijpb.label.LabelImages;
 import mcib3d.geom.ObjectCreator3D;
 import mcib3d.geom.Point3D;
 import mcib3d.geom.Vector3D;
@@ -73,10 +72,9 @@ public class EasyXT {
 
     // APP is not final because we reserve the right to restart the connection
     private static IApplicationPrx APP;
-    private static final String M_END_POINTS = "default -p 4029";
     public static Map<tType, Integer> datatype;
     public static Logger log = Logger.getLogger(EasyXT.class.getName());
-    private static IceClient mIceClient;
+    private static BPImarisLib vImarisLib;
 
     /*
       Static initialisation :
@@ -85,6 +83,7 @@ public class EasyXT {
      */
     static {
         log.info("Initializing EasyXT");
+        Utils.connectToImaris();
 
         // Populate static map : Imaris Type -> Bit Depth
         Map<tType, Integer> tmap = new HashMap<>(4);
@@ -95,34 +94,34 @@ public class EasyXT {
 
         datatype = Collections.unmodifiableMap(tmap);
 
-        // Get the client and get the instance of the Imaris Application, which is the starting point for all
-        // Imaris related queries
-        mIceClient = new IceClient("ImarisServer", M_END_POINTS, 10000);
-        ObjectPrx potentialApp = mIceClient.GetServer().GetObject(0);
-        APP = IApplicationPrxHelper.checkedCast(potentialApp);
-
+        log.info("Adding shutdown hook");
         // Closing connection on jvm close
         Runtime.getRuntime().addShutdownHook(
                 new Thread(() -> {
                     log.info("Closing ICE Connection from Imaris...");
-                    CloseIceClient();
+                    closeImarisConnection();
                     log.info("Done.");
                 })
 
         );
-        log.info("Initialization Done. Ready to work with EasyXT");
+
+        if (APP == null) {
+            log.warning("Imaris connection failed");
+        } else {
+            log.info("Initialization Done. Ready to work with EasyXT");
+        }
     }
 
     /**
      * Close the ICE client after using EasyXT
      */
-    private static void CloseIceClient() {
-        if (mIceClient != null) {
-            log.info("Closing previous Imaris ICE connection...");
-            mIceClient.Terminate();
-            mIceClient = null;
-            log.info("Imaris ICE connection closed.");
-
+    private static void closeImarisConnection() {
+        if (vImarisLib != null) {
+            log.info("Closing existing ImarisLib connection");
+            vImarisLib.Disconnect();
+            vImarisLib = null;
+        } else {
+            log.info("No ImarisLib connection to close");
         }
     }
 
@@ -266,7 +265,7 @@ public class EasyXT {
             // If the file is not there, download it
             if (!destPath.toFile().exists()) {
                 log.info("Sample file " + destPath.toFile().getAbsolutePath() + " does not exist, downloading...");
-                log.info("From: " + sampleUri.toString());
+                log.info("From: " + sampleUri);
 
                 // To download the file, we open an InputStream to it and use Files.copy
                 try (InputStream in = sampleUri.toURL().openStream()) {
@@ -344,13 +343,13 @@ public class EasyXT {
             IDataContainerPrx vSurpassScene = Utils.getImarisApp().GetFactory().CreateDataContainer();
             vSurpassScene.SetName("Scene");
             //// Add a light source
-            IDataItemPrx vLightSource = (IDataItemPrx) Utils.getImarisApp().GetFactory().CreateLightSource();
+            IDataItemPrx vLightSource = Utils.getImarisApp().GetFactory().CreateLightSource();
             vLightSource.SetName("Light source 1");
             //// Add a frame (otherwise no 3D rendering)
-            IDataItemPrx vFrame = (IDataItemPrx) Utils.getImarisApp().GetFactory().CreateFrame();
+            IDataItemPrx vFrame = Utils.getImarisApp().GetFactory().CreateFrame();
             vFrame.SetName("Frame 1");
             //// Add a Volume (otherwise no 3D rendering)
-            IDataItemPrx vVolume = (IDataItemPrx) Utils.getImarisApp().GetFactory().CreateVolume();
+            IDataItemPrx vVolume = Utils.getImarisApp().GetFactory().CreateVolume();
             vVolume.SetName("Volume");
 
             //// Set up the surpass scene
@@ -832,13 +831,13 @@ public class EasyXT {
                     imp.getNChannels(),
                     imp.getNFrames());
 
-            dataset.SetExtendMinX((float) ( cal.xOrigin * cal.pixelWidth) );
-            dataset.SetExtendMinY((float) ( cal.yOrigin * cal.pixelHeight) );
-            dataset.SetExtendMinZ((float) ( cal.zOrigin * cal.pixelDepth) );
+            dataset.SetExtendMinX((float) (cal.xOrigin * cal.pixelWidth));
+            dataset.SetExtendMinY((float) (cal.yOrigin * cal.pixelHeight));
+            dataset.SetExtendMinZ((float) (cal.zOrigin * cal.pixelDepth));
 
-            dataset.SetExtendMaxX((float) ( (cal.xOrigin + imp.getWidth()) * cal.pixelWidth));
-            dataset.SetExtendMaxY((float) ( (cal.yOrigin + imp.getHeight()) * cal.pixelHeight));
-            dataset.SetExtendMaxZ((float) ( (cal.zOrigin + imp.getNSlices()) * cal.pixelDepth));
+            dataset.SetExtendMaxX((float) ((cal.xOrigin + imp.getWidth()) * cal.pixelWidth));
+            dataset.SetExtendMaxY((float) ((cal.yOrigin + imp.getHeight()) * cal.pixelHeight));
+            dataset.SetExtendMaxZ((float) ((cal.zOrigin + imp.getNSlices()) * cal.pixelDepth));
 
             // Set channel color and range for dataset
             for (int c = 0; c < imp.getNChannels(); c++) {
@@ -1288,86 +1287,87 @@ public class EasyXT {
         }
 
         /**
-         * create a new surfaces object from a Label ImagePlus
+         * Create a new surfaces object from this ImagePlus
          *
-         * @param impLabel the image to get a Surfaces from.
-         *                 A label image, each label will be a surface of the Surfaces object.
-         * @return the ISurfacesPrx with individual surface for each label value
+         * @param impLabel the label image to get a surface from. can be 8 or 16 bit
+         * @return a surfaces object that should render in Imaris (though pixellated)
          * @throws Error an Imaris Error if there was a problem
          */
         public static ISurfacesPrx createFromLabels(ImagePlus impLabel) throws Error {
-            // Check if it has a Time Index Property
-            Object tInd = impLabel.getProperty("Time Index");
-            if (tInd != null) {
-                return createFromLabels(impLabel, (int) tInd);
-            }
-            log.warning("EasyXT cannot find a timepoint associated with this surface mask. Defaulting to Timepoint 0");
-            log.warning("Use Surfaces.createFromLabels(ImagePlus imp, int timepoint) to specify the desired timepoint to insert this surface");
 
-            return createFromLabels(impLabel, 0);
-        }
+            int width = impLabel.getWidth();
+            int height = impLabel.getHeight();
+            int slices = impLabel.getNSlices();
+            int timepoints = impLabel.getNFrames();
 
-        ;
 
-        /**
-         * @param impLabel        the image to get a Surfaces from.
-         *                        A label image, each label will be a surface of the Surfaces object.
-         * @param timepointOffset an index to offset the start of the surface creation.
-         *                        for single timepoint Images, this is effectively the timepoint at which to place the surface
-         * @return the ISurfacesPrx with individual surface for each label value
-         * @throws Error an Imaris Error if there was a problem
-         */
+            ILabelImagePrx labelImage = EasyXT.Utils.getImarisApp().GetFactory().CreateLabelImage();
+            labelImage.Create(width, height, slices, timepoints);
 
-        public static ISurfacesPrx createFromLabels(ImagePlus impLabel, int timepointOffset) throws Error {
+            Calibration cal = impLabel.getCalibration();
 
-            // build empty surface object
-            ISurfacesPrx surface = EasyXT.Utils.getImarisApp().GetFactory().CreateSurfaces();
+            // Calibrate it to match the image being given
+            labelImage.SetExtendMinX((float) (cal.xOrigin * cal.pixelWidth));
+            labelImage.SetExtendMinY((float) (cal.yOrigin * cal.pixelHeight));
+            labelImage.SetExtendMinZ((float) (cal.zOrigin * cal.pixelDepth));
 
-            for (int t = 0; t < impLabel.getNFrames(); t++) {
-                // get the current t stack
-                ImagePlus tImpLabel = new Duplicator().run(impLabel, 1, 1, 1, impLabel.getNSlices(), t + 1, t + 1);
-                // get the minimum and Maximum value of the current t, Labels
-                //int impMin = (int) new StackStatistics(tImpLabel).min; // will always return 0 !
-                int impMax = (int) new StackStatistics(tImpLabel).max;
+            labelImage.SetExtendMaxX((float) ((cal.xOrigin + width) * cal.pixelWidth));
+            labelImage.SetExtendMaxY((float) ((cal.yOrigin + height) * cal.pixelHeight));
+            labelImage.SetExtendMaxZ((float) ((cal.zOrigin + slices) * cal.pixelDepth));
 
-                // we use findAllLabels() and voxelCount() from MorhopholibJ to "simplify" Labels processing
-                int[] labels = LabelImages.findAllLabels(tImpLabel);
-                int[] voxelCounts = LabelImages.voxelCount(tImpLabel.getStack(), labels);
-
-                for (int idx = 0; idx < labels.length; idx++) {
-                    //System.out.println("************");
-                    //System.out.println(labels[idx]);
-                    //System.out.println(voxelCounts[idx]);
-                    if (voxelCounts[idx] > 3) {
-
-                        // duplicate and threshold a Label
-                        ImagePlus tempImage = tImpLabel.duplicate();
-                        IJ.setThreshold(tempImage, labels[idx], labels[idx]);
-                        IJ.run(tempImage, "Convert to Mask", "method=Default background=Dark black");// can't leave options blank, GUI pops-up
-
-                        // imaris requires binary 0-1
-                        int nProcessor = tempImage.getStack().getSize();
-                        IntStream.range(0, nProcessor).parallel().forEach(index -> {
-                            tempImage.getStack().getProcessor(index + 1).multiply(1.0 / 255.0);
-                        });
-
-                        // we don't need to check anymore if the binary
-                        // - contains pixel , thanks to LabelImages.findAllLabels()
-                        // - has > 1 voxel thanks to LabelImages.voxelCount() and the  if (voxelCounts[idx] > 1 )
-                        IDataSetPrx data = EasyXT.Dataset.create(tempImage);
-                        surface.AddSurface(data, t + timepointOffset);
-                        tempImage.close();
-                        // TODO: Warning: Because there is no way to set the Surfaces's IDs, there will certainly be a
-                        //  discrepancy between the id of an original surface and a modified surface returned using this method...
-                    } else if (voxelCounts[idx] == 1) {
-                        log.warning("Objects with a label " + labels[idx] + " has only 1 voxel and has been excluded (Imaris issue)");
-                    }
+            // We are not being fancy with the timepoints. Assume that they MUST match the original dataset's.
+            IDataSetPrx currentDataset = Dataset.getCurrent();
+            for (int t = 0; t < timepoints; t++) {
+                // Make sure it doesn't try to get an invalid timepoint
+                if (currentDataset.GetSizeT() > t) {
+                    labelImage.SetTimePoint(t, currentDataset.GetTimePoint(t));
                 }
-                tImpLabel.close();
             }
 
+            // Go through T and Z, produce 1D array of pixels to add to label image
+            for (int z = 0; z < slices; z++) {
+                for (int t = 0; t < timepoints; t++) {
+                    int idx = impLabel.getStackIndex(1, z + 1, t + 1);
+                    ImageProcessor ip = impLabel.getStack().getProcessor(idx);
+
+                    int[] pixelsInt = new int[ip.getPixelCount()];
+
+                    switch (ip.getBitDepth()) {
+                        case 8:
+                            byte[] pixels8 = (byte[]) ip.getPixels();
+                            for (int i = 0; i < pixels8.length; i++) {
+                                pixelsInt[i] = pixels8[i];
+                            }
+                            break;
+                        case 16:
+                            short[] pixels16 = (short[]) ip.getPixels();
+                            for (int i = 0; i < pixels16.length; i++) {
+                                pixelsInt[i] = pixels16[i];
+                            }
+                            break;
+                        case 32:
+                            float[] pixels32 = (float[]) ip.getPixels();
+                            for (int i = 0; i < pixels32.length; i++) {
+                                pixelsInt[i] = Math.round(pixels32[i]);
+                            }
+                            break;
+
+                        default:
+                            log.severe("Unsupported pixel type for label image");
+                            throw new Error("Unsupported Pixel Type", "Unsupported pixel type for label image", "");
+                    }
+                    short[] pixels = (short[]) ip.getPixels();
+                    for (int i = 0; i < pixels.length; i++) {
+                        pixelsInt[i] = pixels[i];
+                    }
+                    labelImage.SetDataSubVolumeAs1DArrayInts(pixelsInt, 0, 0, z, t, width, height, 1);
+                }
+            }
+            log.info("InterNal label image created, detecting surfaces");
+            ISurfacesPrx surface = EasyXT.Utils.getImarisApp().GetImageProcessing().DetectSurfacesFromLabelImage(labelImage);
             return surface;
         }
+
 
         /**
          * Get all surfaces objects in the main scene as a list (not within subfolder, groups)
@@ -1414,7 +1414,6 @@ public class EasyXT {
          */
         public static ImagePlus getMaskImage(ISurfacesPrx surface) throws Error {
             ImagePlus masks = getLabelsImage(surface);
-
             masks.getProcessor().setThreshold(1, Double.MAX_VALUE, ImageProcessor.NO_LUT_UPDATE);
             Prefs.blackBackground = true;
             IJ.run(masks, "Convert to Mask", "method=Default background=Dark black");
@@ -1546,6 +1545,7 @@ public class EasyXT {
         private static void addSurfaceIndexToLabelImage(ISurfacesPrx surface, int index, ImagePlus image) throws Error {
             // get the extents to find where to put the data
             Calibration fCal = image.getCalibration();
+
             // There is no guarantee that the surface will have the same calibration, so we need to coerce it to a multiple of the calibration of the ImagePlus
             // This means checking that the origin is a multiple of the ImagePlus Origin plus x times the pixel size
             cSurfaceLayout layout = adjustBounds(surface.GetSurfaceDataLayout(index), fCal);
@@ -1563,9 +1563,9 @@ public class EasyXT {
             Calibration tCal = temp.getCalibration();
 
             // Find where the temp image starts
-            int startX = (int) Math.round((tCal.xOrigin - fCal.xOrigin) );
-            int startY = (int) Math.round((tCal.yOrigin - fCal.yOrigin) );
-            int startZ = (int) Math.round((tCal.zOrigin - fCal.zOrigin) );
+            int startX = (int) Math.round((tCal.xOrigin - fCal.xOrigin));
+            int startY = (int) Math.round((tCal.yOrigin - fCal.yOrigin));
+            int startZ = (int) Math.round((tCal.zOrigin - fCal.zOrigin));
 
             // Make sure the startZ is correct
             if (startZ < 0) startZ = 0;
@@ -1683,7 +1683,7 @@ public class EasyXT {
         public static IDataSetPrx getMaskDataset(ISurfacesPrx surface, double downsample, int timepoint) throws Error {
             ImarisCalibration cal = new ImarisCalibration(Utils.getImarisApp().GetDataSet()).getDownsampled(downsample);
 
-            IDataSetPrx data = surface.GetMask((float) cal.xOrigin, (float) cal.yOrigin, (float) cal.zOrigin,
+            IDataSetPrx data = surface.GetMask((float) cal.xStart, (float) cal.yStart, (float) cal.zStart,
                     (float) cal.xEnd, (float) cal.yEnd, (float) cal.zEnd,
                     cal.xSize, cal.ySize, cal.zSize, timepoint);
             return data;
@@ -1964,7 +1964,7 @@ public class EasyXT {
                 // but if is_value_id is true, use the ID number for the value
                 if (isValueId) val = (int) spots_ids[t];
                 // add an ellipsoid to obj_creator
-                objCreator.createEllipsoidAxesUnit(spotsCenterXYZ[t][0] - cal.xOrigin, spotsCenterXYZ[t][1] - cal.yOrigin, spotsCenterXYZ[t][2] - cal.zOrigin, spotsRadiiXYZ[t][0], spotsRadiiXYZ[t][1], spotsRadiiXYZ[t][2], (float) val, vector3D1, vector3D2, isGauss);
+                objCreator.createEllipsoidAxesUnit(spotsCenterXYZ[t][0] - cal.xStart, spotsCenterXYZ[t][1] - cal.yStart, spotsCenterXYZ[t][2] - cal.zStart, spotsRadiiXYZ[t][0], spotsRadiiXYZ[t][1], spotsRadiiXYZ[t][2], (float) val, vector3D1, vector3D2, isGauss);
                 // set the previous_t
                 previousT = spotsT[t];
                 if (t % 10 == 0) log.info("Creating Labelled Spots " + (t + 1) + "/" + spotsT.length);
@@ -2185,13 +2185,32 @@ public class EasyXT {
          * Closes an existing Imaris ICE connection before reattempting to connect.
          * This is useful when Imaris has crashed but fiji is still running.
          */
-        public static void resetImarisConnection() {
-            CloseIceClient();
-            log.info("Reconnecting to Imaris ICE Server...");
-            mIceClient = new IceClient("ImarisServer", M_END_POINTS, 10000);
-            ObjectPrx potentialApp = mIceClient.GetServer().GetObject(0);
-            APP = IApplicationPrxHelper.checkedCast(potentialApp);
-            log.info("Connection Re-established");
+        public static void connectToImaris() {
+
+            closeImarisConnection();
+
+            log.info("Starting ImarisLib");
+            vImarisLib = new BPImarisLib();
+
+            log.info("Getting Imaris Server");
+
+            ImarisServer.IServerPrx vServer = vImarisLib.GetServer();
+            if (vServer == null) {
+                log.severe("Could not connect to Imaris Server. Try closing Fiji and Restart Imaris");
+                return;
+            }
+            int nObjects = vServer.GetNumberOfObjects();
+            log.info("Number of potential Applications found : " + nObjects);
+            // Get the first Imaris object
+            if (nObjects > 0) {
+                for (int i = 0; i < nObjects; i++) {
+                    int id = vServer.GetObjectID(i);
+                    ObjectPrx vObject = vServer.GetObject(id);
+                    APP = IApplicationPrxHelper.checkedCast(vObject);
+                    if (APP != null) break;
+                }
+
+            }
         }
 
         /**

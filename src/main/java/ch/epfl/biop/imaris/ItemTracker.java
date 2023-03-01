@@ -33,12 +33,12 @@ public class ItemTracker {
     /**
      * Standard logger
      */
-    private static Consumer<String> log = (str) -> System.out.println("ItemTracker : " + str);
+    private static final Consumer<String> log = (str) -> System.out.println("ItemTracker : " + str);
 
     /**
      * Error logger
      */
-    private static Consumer<String> errlog = (str) -> System.err.println("ItemTracker : " + str);
+    private static final Consumer<String> errlog = (str) -> System.err.println("ItemTracker : " + str);
 
 
     // Fields from Imaris API
@@ -195,7 +195,7 @@ public class ItemTracker {
             System.out.println(aIntensityWeight);
             */
             ItemTracker itemTracker = new ItemTracker();
-            itemTracker.aItem = (ObjectPrx) this.aItem;
+            itemTracker.aItem = this.aItem;
             itemTracker.aMethod = this.aMethod;
             itemTracker.aTrackFiltersString = this.aTrackFiltersString;
             itemTracker.aGapSize = this.aGapSize;

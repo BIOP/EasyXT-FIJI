@@ -258,7 +258,7 @@ public class SurfacesDetector {
         Boolean aSeedsSubtractBackground;
         String aSeedsFiltersString;
         Boolean aLowerThresholdEnabled;
-        Boolean aIntensityLowerThresholdAutomatic = new Boolean(true);
+        Boolean aIntensityLowerThresholdAutomatic = Boolean.TRUE;
         Float aIntensityLowerThresholdManual = new Float(0);
         Boolean aUpperThresholdEnabled;
         Boolean aIntensityUpperThresholdAutomatic;

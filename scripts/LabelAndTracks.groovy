@@ -32,20 +32,20 @@ imp.show()
 // It would be easier to do it with Imaris Surfaces but this won't be fun
 //
 // I.A. Make a binary
-def nuc_imp = new Duplicator().run(imp, 1, 1, 1, imp.getNSlices(), 1, imp.getNFrames());
+def nuc_imp = new Duplicator().run(imp, 1, 1, 1, imp.getNSlices(), 1, imp.getNFrames())
 //nuc_imp.show()
 
-IJ.setRawThreshold(nuc_imp, 100, 255, null);
-IJ.run(nuc_imp, "Convert to Mask", "background=Dark black");
+IJ.setRawThreshold(nuc_imp, 100, 255, null)
+IJ.run(nuc_imp, "Convert to Mask", "background=Dark black")
 
-IJ.run(nuc_imp, "Median 3D...", "x=2 y=2 z=2");
+IJ.run(nuc_imp, "Median 3D...", "x=2 y=2 z=2")
 
 
 // I.B. Detect 3D nuclei on all the frames
 def hypStk = []
 (1..imp.getNFrames()).each{
-	mask = new Duplicator().run(nuc_imp, 1, 1, 1, imp.getNSlices(), it, it);
-	IJ.run(mask, "3D Nuclei Segmentation (beta)", "auto_threshold=Default manual=128 separate_nuclei");
+	mask = new Duplicator().run(nuc_imp, 1, 1, 1, imp.getNSlices(), it, it)
+	IJ.run(mask, "3D Nuclei Segmentation (beta)", "auto_threshold=Default manual=128 separate_nuclei")
 	labels_imp = IJ.getImage()
 	t_imp = labels_imp.duplicate()
 	hypStk.add(t_imp)

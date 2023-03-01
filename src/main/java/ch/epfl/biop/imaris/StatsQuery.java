@@ -63,11 +63,11 @@ import java.util.stream.Collectors;
  */
 public class StatsQuery {
     private static final List<String> firstColumns = Arrays.asList("Label", "Name", "ID", "Timepoint", "Category");
-    private static Consumer<String> log = (str) -> System.out.println("StatsQuery : " + str);
+    private static final Consumer<String> log = (str) -> System.out.println("StatsQuery : " + str);
     private final String itemName;
     private final cStatisticValues stats;
-    private List<Long> ids = new ArrayList<>();
-    private List<String> names = new ArrayList<>();
+    private final List<Long> ids = new ArrayList<>();
+    private final List<String> names = new ArrayList<>();
     private List<String> timepoints = new ArrayList<>();
     private List<String> channels = new ArrayList<>();
     private int nImages = 1;

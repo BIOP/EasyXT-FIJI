@@ -3,7 +3,7 @@ import ij.*
 import ij.plugin.Duplicator
 import ij.measure.ResultsTable
 
-IJ.run("Close All", "");
+IJ.run("Close All", "")
 
 // based on the Imaris image name, we get the path and open the image
 image_path = EasyXT.Samples.getImarisDemoFile("CellDemoMembrane3D.ims")
@@ -16,11 +16,11 @@ imp.show()
 
 // Here we just do some silly processing in Fiji
 // duplicate, the channel 1 , threshold, median filter it and skeletonize
-mb = new Duplicator().run(imp, 1, 1, 1, 44, 1, 1);
+mb = new Duplicator().run(imp, 1, 1, 1, 44, 1, 1)
 mb.show()
-IJ.run(mb, "Convert to Mask", "method=Default background=Dark calculate black");
-IJ.run(mb, "Median 3D...", "x=2 y=2 z=2");
-IJ.run(mb, "Skeletonize (2D/3D)", "");
+IJ.run(mb, "Convert to Mask", "method=Default background=Dark calculate black")
+IJ.run(mb, "Median 3D...", "x=2 y=2 z=2")
+IJ.run(mb, "Skeletonize (2D/3D)", "")
 mb.setTitle("Skeleton")
 
 // before we send back the Mask as a Surfaces to Imaris

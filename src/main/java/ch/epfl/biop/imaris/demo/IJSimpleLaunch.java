@@ -21,12 +21,9 @@
  */
 package ch.epfl.biop.imaris.demo;
 
-import ij.IJ;
-import ij.ImagePlus;
 import net.imagej.ImageJ;
 
 import javax.script.ScriptException;
-import java.io.File;
 import java.io.FileNotFoundException;
 
 // TODO: Consider removing or adding to EasyXT directly as a means of debugging

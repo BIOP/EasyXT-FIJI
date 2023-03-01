@@ -31,7 +31,7 @@ import java.io.File;
  */
 
 public class TestDemos {
-    private static String mode = "Test Mode";
+    private static final String mode = "Test Mode";
 
     final public static String OS_OK_FOR_TEST = "Windows 10";
 

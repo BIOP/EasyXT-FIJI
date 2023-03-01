@@ -71,12 +71,12 @@ public class SpotsDetector {
     /**
      * Standard logger
      */
-    private static Consumer<String> log = (str) -> System.out.println("SpotsDetector : " + str);
+    private static final Consumer<String> log = (str) -> System.out.println("SpotsDetector : " + str);
 
     /**
      * Error logger
      */
-    private static Consumer<String> errlog = (str) -> System.err.println("SpotsDetector : " + str);
+    private static final Consumer<String> errlog = (str) -> System.err.println("SpotsDetector : " + str);
 
 
     // Fields from Imaris API - DetectSpots2D (Replaces DetectSpots, implemented for bpPointsViewer.)

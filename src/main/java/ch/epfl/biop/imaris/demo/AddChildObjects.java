@@ -68,7 +68,7 @@ public class AddChildObjects {
         } catch (Error error) {
             System.out.println("ERROR:" + error.mDescription);
             System.out.println("LOCATION:" + error.mLocation);
-            System.out.println("String:" + error.toString());
+            System.out.println("String:" + error);
         }
     }
 }

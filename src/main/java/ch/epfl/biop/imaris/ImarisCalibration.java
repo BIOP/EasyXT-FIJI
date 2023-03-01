@@ -49,8 +49,6 @@ import ij.measure.Calibration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Objects;
-
 /**
  * Extension of ImageJ calibration:
  * Easy way to set ImageJ calibration from an Imaris dataset
@@ -63,8 +61,8 @@ public class ImarisCalibration extends Calibration {
 
     public static Logger logger = LoggerFactory.getLogger(ImarisCalibration.class);
 
-    public final double xEnd, yEnd, zEnd;
     public final double xStart, yStart, zStart;
+    public final double xEnd, yEnd, zEnd;
     public int xSize, ySize, zSize, cSize, tSize;
     public float[] cMin, cMax;
     public int[] cColorsRGBA;

@@ -21,11 +21,9 @@
  */
 package ch.epfl.biop.imaris.demo;
 
-import Ice.ObjectPrx;
 import Imaris.IDataItemPrx;
 import Imaris.ISurfacesPrx;
 import ch.epfl.biop.imaris.EasyXT;
-import ij.IJ;
 
 import java.io.File;
 

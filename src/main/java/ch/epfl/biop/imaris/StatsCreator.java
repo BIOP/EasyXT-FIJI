@@ -59,13 +59,13 @@ import java.util.function.Consumer;
  */
 public class StatsCreator {
 
-    private static Consumer<String> log = (str) -> System.out.println("StatsCreator : " + str);
+    private static final Consumer<String> log = (str) -> System.out.println("StatsCreator : " + str);
     private String channel = "";
-    private String statName;
-    private Map<Long, Map<String, Double>> statValues;
-    private IDataItemPrx item;
+    private final String statName;
+    private final Map<Long, Map<String, Double>> statValues;
+    private final IDataItemPrx item;
     private Integer time;
-    private List<String> units;
+    private final List<String> units;
     private String category;
 
     // Need IDs

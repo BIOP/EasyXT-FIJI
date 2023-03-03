@@ -2168,6 +2168,21 @@ public class EasyXT {
             if (factory.IsDataContainer(item)) {
                 return factory.ToDataContainer(item);
             }
+            if (factory.IsClippingPlane(item)) {
+                return factory.ToClippingPlane(item);
+            }
+            if (factory.IsCells(item)) {
+                return factory.ToCells(item);
+            }
+            if (factory.IsFilaments(item)) {
+                return factory.ToFilaments(item);
+            }
+            if(factory.IsMeasurementPoints(item)) {
+                return factory.ToMeasurementPoints(item);
+            }
+            if(factory.IsReferenceFrames(item)) {
+                return factory.ToReferenceFrames(item);
+            }
             return null;
         }
 

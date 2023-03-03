@@ -178,6 +178,8 @@ public class ItemQuery {
         for (int i = 0; i < nChildren; i++) {
             IDataItemPrx child = EasyXT.Utils.castToType(parent.GetChild(i));
 
+            if (child == null) continue;
+            // check that is has a method called GetName
             String aName = child.GetName();
             Class aCls = getType(child);
             // If it's a group, recurse before continuing

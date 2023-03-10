@@ -2229,6 +2229,15 @@ public class EasyXT {
         }
 
         /**
+         * Backwards compatibility with EasyXT 0.2.x
+         * @deprecated
+         * Use {@link Utils#connectToImaris()} } instead.
+         */
+        public static void resetImarisConnection() {
+            connectToImaris();
+        }
+
+        /**
          * Recover a Color for use to set ImagePlus LUTs
          *
          * @param color the Imaris Color descriptor

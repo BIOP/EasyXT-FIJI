@@ -45,7 +45,7 @@ public class ItemTracker {
     // file:///C:/Program%20Files/Bitplane/Imaris%20x64%209.6.0/html/xtinterface/structImaris_1_1IImageProcessing.html
     //
     // minimal value
-    ObjectPrx aItem; // either aSpots or aSurfaces
+    IDataItemPrx aItem; // either aSpots or aSurfaces
     String aTrackFiltersString; // for all
 
     float aMaximalDistance; // required for AutoregressiveMotion(Expert), Brownian , Lineage
@@ -55,7 +55,7 @@ public class ItemTracker {
 
     String aMethod;
 
-    public static ItemTrackerBuilder Item(ObjectPrx aItem) throws Error {
+    public static ItemTrackerBuilder Item(IDataItemPrx aItem) throws Error {
         return ItemTrackerBuilder.setItem(aItem);
     }
 
@@ -66,7 +66,7 @@ public class ItemTracker {
 
         if (aMethod != null) {
             if (factory.IsSpots(aItem)) {
-                ISpotsPrx spots_totrack = (ISpotsPrx) EasyXT.Utils.castToType(aItem);
+                ISpotsPrx spots_totrack = (ISpotsPrx) EasyXT.Utils.convertToSubType(aItem);
 
                 ISpotsPrx spots_tracked = null;
 
@@ -86,7 +86,7 @@ public class ItemTracker {
 
             } else if (factory.IsSurfaces(aItem)) {
 
-                ISurfacesPrx surfaces_totrack = (ISurfacesPrx) EasyXT.Utils.castToType(aItem);
+                ISurfacesPrx surfaces_totrack = (ISurfacesPrx) EasyXT.Utils.convertToSubType(aItem);
 
                 ISurfacesPrx surfaces_tracked = null;
 
@@ -120,18 +120,18 @@ public class ItemTracker {
 
 
     public static final class ItemTrackerBuilder {
-        ObjectPrx aItem;
+        IDataItemPrx aItem;
         String aMethod;//= "AutoregressiveMotion";
         String aTrackFiltersString; // for all
         float aMaximalDistance; // required for AutoregressiveMotion(Expert), Brownian , Lineage
         int aGapSize; // required for AutoregressiveMotion(Expert), Brownian , Lineage
         float aIntensityWeight;   // required for AutoregressiveMotionExpert
 
-        private ItemTrackerBuilder(ObjectPrx aItem) throws Error {
+        private ItemTrackerBuilder(IDataItemPrx aItem) throws Error {
             this.aItem = aItem;
         }
 
-        public static ItemTrackerBuilder setItem(ObjectPrx aItem) throws Error {
+        public static ItemTrackerBuilder setItem(IDataItemPrx aItem) throws Error {
             return new ItemTrackerBuilder(aItem);
         }
 

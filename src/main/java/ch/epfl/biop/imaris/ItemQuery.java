@@ -46,7 +46,9 @@ import Imaris.Error;
 import Imaris.*;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.logging.Logger;
 
 /**
@@ -66,61 +68,17 @@ public class ItemQuery {
 
 
     /**
-     * type of objects that are matched to the classes. That way users just need to specify the names as Strings
-     * "Spots", "Frame", "Group", etc...
-     */
-    public enum ItemType {
-
-        Spots(ISpots.class),
-        Surfaces(ISurfaces.class),
-        Volume(IVolume.class),
-        Camera(ISurpassCamera.class),
-        Light(ILightSource.class),
-        Frame(IFrame.class),
-        Group(IDataContainer.class);
-
-        Class cls;
-
-        ItemType(Class cls) {
-            this.cls = cls;
-        }
-
-        Class<? extends IDataItem> getType() {
-
-            return this.cls;
-        }
-    }
-
-    /**
-     * Helper method : kind of odd, but we cannot cast to the class directly and we need to explicitely use the
-     * ImarisFactory type checkers... so this wrapper is used along with the ENUM {@link ItemQuery.ItemType}
+     * Helper method : kind of odd, but we cannot cast to the class directly, and we need to explicitly use the
+     * ImarisFactory type checkers... so this wrapper is used along with the ENUM {@link ItemType}
      * @param item
      * @return class of the contained item
      * @throws Error
      */
     private static Class<? extends IDataItem> getType(IDataItemPrx item) throws Error {
-        IFactoryPrx factory = EasyXT.Utils.getImarisApp().GetFactory();
-
-        if (factory.IsSpots(item)) {
-            return ItemType.Spots.getType();
-        }
-        if (factory.IsSurfaces(item)) {
-            return ItemType.Surfaces.getType();
-        }
-        if (factory.IsVolume(item)) {
-            return ItemType.Volume.getType();
-        }
-        if (factory.IsSurpassCamera(item)) {
-            return ItemType.Camera.getType();
-        }
-        if (factory.IsLightSource(item)) {
-            return ItemType.Light.getType();
-        }
-        if (factory.IsFrame(item)) {
-            return ItemType.Frame.getType();
-        }
-        if (factory.IsDataContainer(item)) {
-            return ItemType.Group.getType();
+        Optional<ItemType> itype = Arrays.stream(ItemType.values())
+                .filter( t-> t.matches(item)).findFirst();
+        if (itype.isPresent()) {
+            return itype.get().getType();
         }
 
         log.warning("Type not found for item " + item + " of class " + item.getClass().getSimpleName());
@@ -176,7 +134,7 @@ public class ItemQuery {
         int nChildren = parent.GetNumberOfChildren();
 
         for (int i = 0; i < nChildren; i++) {
-            IDataItemPrx child = EasyXT.Utils.castToType(parent.GetChild(i));
+            IDataItemPrx child = EasyXT.Utils.convertToSubType(parent.GetChild(i));
 
             if (child == null) continue;
             // check that is has a method called GetName
@@ -211,7 +169,7 @@ public class ItemQuery {
         // Cleanup all items for them to match their class
         items.replaceAll(item -> {
             try {
-                return EasyXT.Utils.castToType(item);
+                return EasyXT.Utils.convertToSubType(item);
             } catch (Error error) {
                 error.printStackTrace();
             }

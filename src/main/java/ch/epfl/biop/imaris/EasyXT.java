@@ -497,7 +497,7 @@ public class EasyXT {
         /**
          * Get all items of the requested type in the main scene as a list (not within subfolder, groups)
          *
-         * @param type   the type, defined by a String. See {@link ItemQuery.ItemType}
+         * @param type   the type, defined by a String. See {@link ItemType}
          * @param parent the parent object, a group
          * @return a list containins the objects
          * * @param parent the parent object, a group
@@ -512,7 +512,7 @@ public class EasyXT {
          * Get all items of the requested type in the main scene as a list
          * You can set the public field {@link ItemQuery#isRecursiveSearch} to true if you want a recursive search
          *
-         * @param type the type, defined by a String. See {@link ItemQuery.ItemType}
+         * @param type the type, defined by a String. See {@link ItemType}
          * @return a list containins the objects
          * @throws Error an Imaris Error Object
          */
@@ -2128,7 +2128,7 @@ public class EasyXT {
      */
     public static class Tracks {
 
-        public static ItemTracker.ItemTrackerBuilder create(ObjectPrx aItem) throws Error {
+        public static ItemTracker.ItemTrackerBuilder create(IDataItemPrx aItem) throws Error {
             return ItemTracker.Item(aItem);
         }
 
@@ -2147,42 +2147,10 @@ public class EasyXT {
          * @return the same item but cast to its appropriate subclass
          * @throws Error an Imaris Error Object
          */
-        static IDataItemPrx castToType(ObjectPrx item) throws Error {
-            IFactoryPrx factory = getImarisApp().GetFactory();
+        static IDataItemPrx convertToSubType(IDataItemPrx item) throws Error {
+            Optional<ItemType> type = Arrays.stream(ItemType.values()).filter(i -> i.matches(item)).findFirst();
+            if (type.isPresent()) return type.get().convert(item);
 
-            if (factory.IsSpots(item)) {
-                return factory.ToSpots(item);
-            }
-            if (factory.IsSurfaces(item)) {
-                return factory.ToSurfaces(item);
-            }
-            if (factory.IsVolume(item)) {
-                return factory.ToVolume(item);
-            }
-            if (factory.IsLightSource(item)) {
-                return factory.ToLightSource(item);
-            }
-            if (factory.IsFrame(item)) {
-                return factory.ToFrame(item);
-            }
-            if (factory.IsDataContainer(item)) {
-                return factory.ToDataContainer(item);
-            }
-            if (factory.IsClippingPlane(item)) {
-                return factory.ToClippingPlane(item);
-            }
-            if (factory.IsCells(item)) {
-                return factory.ToCells(item);
-            }
-            if (factory.IsFilaments(item)) {
-                return factory.ToFilaments(item);
-            }
-            if(factory.IsMeasurementPoints(item)) {
-                return factory.ToMeasurementPoints(item);
-            }
-            if(factory.IsReferenceFrames(item)) {
-                return factory.ToReferenceFrames(item);
-            }
             return null;
         }
 
@@ -2307,14 +2275,14 @@ public class EasyXT {
             if (factory.IsSpots(aItem)) {
                 // copySpots requires a long[] so need to convert the List
                 long[] filteredIds = filteredIdsList.stream().mapToLong(l -> l).toArray();
-                ISpotsPrx spots_tofilter = (ISpotsPrx) EasyXT.Utils.castToType(aItem);
+                ISpotsPrx spots_tofilter = (ISpotsPrx) EasyXT.Utils.convertToSubType(aItem);
                 ISpotsPrx spots_filtered;
                 spots_filtered = copySpots(spots_tofilter, filteredIds);
                 aItemFiltered = spots_filtered;
             } else if (factory.IsSurfaces(aItem)) {
                 // CopySurfaces requires a int[] so need to convert the List
                 int[] filteredIds = filteredIdsList.stream().mapToInt(i -> i).toArray();
-                ISurfacesPrx surfacesToFilter = (ISurfacesPrx) EasyXT.Utils.castToType(aItem);
+                ISurfacesPrx surfacesToFilter = (ISurfacesPrx) EasyXT.Utils.convertToSubType(aItem);
                 ISurfacesPrx surfacesFiltered;
                 surfacesFiltered = surfacesToFilter.CopySurfaces(filteredIds);
                 aItemFiltered = surfacesFiltered;
@@ -2450,6 +2418,15 @@ public class EasyXT {
                     return tType.eTypeFloat;
                 default:
                     return tType.eTypeUnknown;
+            }
+        }
+
+        public static IFactoryPrx getFactory() {
+            try {
+                return Utils.getImarisApp().GetFactory();
+
+            } catch (Error e) {
+                throw new RuntimeException(e);
             }
         }
     }

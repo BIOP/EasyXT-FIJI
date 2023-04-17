@@ -377,6 +377,8 @@ public class StatsQuery {
                         }
                     }
                 }
+                // Remove potential commas from the name
+                name = name.replaceAll(",", "");
                 statElements.put(name, String.valueOf(value));
 
                 // TODO : Check if this can be rewritten in a neater way as it is not necessary to 'put' again if it is already in statsByID

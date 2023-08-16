@@ -14,7 +14,7 @@ This collection of Java-friendly APIs can help simplify the interaction between 
 
 ### In Fiji
 To install EasyXT, you need to add and activate the following update sites in Fiji :
-- Fiji-EasyXT : `https://biop.epfl.ch/Fiji-EasyXT/` (you need to add it manually)
+- PTBIOP : `https://biop.epfl.ch/Fiji-Update/`
 - 3D ImageJ Suite :`https://sites.imagej.net/Tboudier/`
 
 ### In Imaris

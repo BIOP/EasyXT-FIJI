@@ -58,11 +58,6 @@ rm.runCommand(c3_imp,"Measure");
 
 /** B - create Imaris spots from the Results Table
  */
-// here all the spots will have same dimensions (you can also make a List of points)
-radiusXYZ = new Point3D()
-radiusXYZ.setX(xRad_spot as double )
-radiusXYZ.setY(yRad_spot as double)
-radiusXYZ.setZ(zRad_spot as double )
 
 // Couldn't make it work with "X" and "Y" :'( 
 // use "XM, YM" instead ! 
@@ -82,6 +77,15 @@ coordinates = (0..<rt.getCounter()).collect { it ->
  	pt.setZ( zS_cal[it] as double )
  	return pt
 }
+
+// To create spots we need a list of coordinates and a Point3D (or a list of Point3D) that defines the radius (xyz) of the spot object
+//
+// here all the spots will have same dimensions
+radiusXYZ = new Point3D()
+radiusXYZ.setX(xRad_spot as double )
+radiusXYZ.setY(yRad_spot as double)
+radiusXYZ.setZ(zRad_spot as double )
+
 // Finally create the ImarisSpots 
 spots = EasyXT.Spots.create(coordinates , radiusXYZ, 0)// single timepoint -> 0
 EasyXT.Scene.setName(spots , "Spots_FindMaxima_Prominence-"+prominence )

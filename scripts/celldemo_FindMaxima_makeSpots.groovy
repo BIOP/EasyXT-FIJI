@@ -73,19 +73,19 @@ radiusXYZ.setZ(zRad_spot as double )
 // Couldn't make it work with "X" and "Y" :'( 
 // use "XM, YM" instead ! 
 xS = rt.getColumn("XM")
-xS = xS.collect{ (it + cal.xOrigin) * cal.pixelWidth }
+xS_cal = xS.collect{ (it + cal.xOrigin) * cal.pixelWidth }
 
 yS = rt.getColumn("YM")
-yS = yS.collect{ (it + cal.yOrigin) * cal.pixelWidth }
+yS_cal = yS.collect{ (it + cal.yOrigin) * cal.pixelHeight }
 
 zS = rt.getColumn("Slice") // Slices are "int", need to be scaled 
-zS = zS.collect{it * cal.pixelDepth }
+zS_cal = zS.collect{ (it + cal.zOrigin)  * cal.pixelDepth }
 
 coordinates = (0..<rt.getCounter()).collect { it ->
  	pt = new Point3D()
- 	pt.setX( xS[it] as double )
- 	pt.setY( yS[it] as double )
- 	pt.setZ( zS[it] as double )
+ 	pt.setX( xS_cal[it] as double )
+ 	pt.setY( yS_cal[it] as double )
+ 	pt.setZ( zS_cal[it] as double )
  	return pt
 }
 // Finally create the ImarisSpots 

@@ -19,12 +19,6 @@ rm.reset();
 IJ.run("Close All", "");
 EasyXT.Utils.connectToImaris()
 
-// imports
-import ij.IJ
-import ch.epfl.biop.imaris.EasyXT
-import ij.plugin.Duplicator
-import mcib3d.geom.Point3D
-
 // Open an image in Imaris, 
 // get it as an ImagePlus in Fiji 
 // and get calibration 
@@ -46,7 +40,7 @@ if (showImages) c3_imp.show()
 IJ.run(c3_imp, "Median 3D...", "x=2 y=2 z=2");
 
 // Use a simple FindMaxima per Slice 
-// (more adavaned tools can be used like RS-FISH (https://github.com/PreibischLab/RS-FISH#download , update site : "Radial Symmetry") )
+// (more advanced tools can be used like RS-FISH (https://github.com/PreibischLab/RS-FISH#download , update site : "Radial Symmetry") )
 (1..imp.getNSlices()).each{ z ->
 	c3_imp.setZ(z)
 	IJ.run(c3_imp, "Find Maxima...", "prominence="+prominence+" output=[Point Selection]");
@@ -95,3 +89,9 @@ EasyXT.Scene.addItem(spots)
 
 println ("Processing Done !")
 
+
+// imports
+import ij.IJ
+import ch.epfl.biop.imaris.EasyXT
+import ij.plugin.Duplicator
+import mcib3d.geom.Point3D // update site 3D Image Suite

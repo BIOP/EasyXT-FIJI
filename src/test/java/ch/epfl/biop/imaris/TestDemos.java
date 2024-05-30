@@ -1,4 +1,4 @@
-/*-
+package ch.epfl.biop.imaris;/*-
  * #%L
  * API and commands to facilitate communication between Imaris and FIJI
  * %%
@@ -19,7 +19,6 @@
  * <http://www.gnu.org/licenses/gpl-2.0.html>.
  * #L%
  */
-import ch.epfl.biop.imaris.EasyXT;
 
 import ch.epfl.biop.imaris.demo.AddChildObjects;
 import ch.epfl.biop.imaris.demo.AddStatsDemo;

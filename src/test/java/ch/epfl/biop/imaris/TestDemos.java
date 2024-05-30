@@ -41,7 +41,11 @@ import java.io.File;
 public class TestDemos {
 
     static {
-        LegacyInjector.preinit();
+        try {
+            LegacyInjector.preinit();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private static final String mode = "Test Mode";

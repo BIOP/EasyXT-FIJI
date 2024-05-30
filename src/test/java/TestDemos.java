@@ -20,7 +20,16 @@
  * #L%
  */
 import ch.epfl.biop.imaris.EasyXT;
-import ch.epfl.biop.imaris.demo.*;
+
+import ch.epfl.biop.imaris.demo.AddChildObjects;
+import ch.epfl.biop.imaris.demo.AddStatsDemo;
+import ch.epfl.biop.imaris.demo.AllGettersDemo;
+import ch.epfl.biop.imaris.demo.FreshStartWithIJAndBIOPImsSample;
+import ch.epfl.biop.imaris.demo.GetStatisticsDemo;
+import ch.epfl.biop.imaris.demo.GetSurfaceLabel2DDemo;
+import ch.epfl.biop.imaris.demo.MakeAndGetSpotsDemo;
+import ch.epfl.biop.imaris.demo.MakeAndGetSurfaceDemo;
+import ch.epfl.biop.imaris.demo.MakeSurfaceFromMaskDemo;
 import net.imagej.patcher.LegacyInjector;
 import org.junit.Before;
 import org.junit.Test;
@@ -94,7 +103,7 @@ public class TestDemos {
     }
 
     @Test
-    public void LaunchIJFromEasyXT() throws Exception {
+    public void LaunchIJFromEasyXT() {
         if (envOkForTest()) {
             EasyXT.main(mode);
         }

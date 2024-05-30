@@ -29,7 +29,6 @@ import ch.epfl.biop.imaris.demo.GetSurfaceLabel2DDemo;
 import ch.epfl.biop.imaris.demo.MakeAndGetSpotsDemo;
 import ch.epfl.biop.imaris.demo.MakeAndGetSurfaceDemo;
 import ch.epfl.biop.imaris.demo.MakeSurfaceFromMaskDemo;
-import net.imagej.patcher.LegacyInjector;
 import org.junit.Test;
 
 import java.io.File;
@@ -39,14 +38,6 @@ import java.io.File;
  */
 
 public class TestDemos {
-
-    static {
-        try {
-            LegacyInjector.preinit();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
 
     private static final String mode = "Test Mode";
 

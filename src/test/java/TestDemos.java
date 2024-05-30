@@ -21,6 +21,7 @@
  */
 import ch.epfl.biop.imaris.EasyXT;
 import ch.epfl.biop.imaris.demo.*;
+import net.imagej.patcher.LegacyInjector;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -36,79 +37,90 @@ public class TestDemos {
     final public static String OS_OK_FOR_TEST = "Windows 10";
 
     public static String getOperatingSystem() {
-        String os = System.getProperty("os.name");
-        return os;
+        return System.getProperty("os.name");
     }
 
     static public boolean envOkForTest() {
+        LegacyInjector.preinit();
         if (!getOperatingSystem().equals(OS_OK_FOR_TEST)) return false;
         return new File("C:/Program Files/Bitplane").exists();
     }
 
     @Test
     public void LabelDemo2D() throws Exception {
-        if (envOkForTest())
-        GetSurfaceLabel2DDemo.main(mode);
+        if (envOkForTest()) {
+            GetSurfaceLabel2DDemo.main(mode);
+        }
     }
 
     @Test
     public void AddChildObjects() throws Exception {
-        if (envOkForTest())
-        AddChildObjects.main(mode);
+        if (envOkForTest()) {
+            AddChildObjects.main(mode);
+        }
     }
 
     @Test
     public void AddStatsDemo() throws Exception {
-        if (envOkForTest())
-        AddStatsDemo.main(mode);
+        if (envOkForTest()) {
+            AddStatsDemo.main(mode);
+        }
     }
 
     @Test
     public void AllGetters() throws Exception {
-        if (envOkForTest())
-        AllGettersDemo.main(mode);
+        if (envOkForTest()) {
+            AllGettersDemo.main(mode);
+        }
     }
 
     @Test
     public void FreshStartWithIJAndBIOPImsSample() throws Exception {
-        if (envOkForTest())
-        FreshStartWithIJAndBIOPImsSample.main(mode);
+        if (envOkForTest()) {
+            FreshStartWithIJAndBIOPImsSample.main(mode);
+        }
     }
 
     @Test
     public void GetStatisticsDemo() throws Exception {
-        if (envOkForTest())
-        GetStatisticsDemo.main(mode);
+        if (envOkForTest()) {
+            GetStatisticsDemo.main(mode);
+        }
     }
 
     @Test
     public void LaunchIJFromEasyXT() throws Exception {
-        if (envOkForTest())
-        EasyXT.main(mode);
+        if (envOkForTest()) {
+            EasyXT.main(mode);
+        }
     }
 
     @Test
     public void MakeAndGetSpotsDemo() throws Exception {
-        if (envOkForTest())
-        MakeAndGetSpotsDemo.main(mode);
+        if (envOkForTest()) {
+            MakeAndGetSpotsDemo.main(mode);
+        }
     }
 
     @Test
     public void MakeAndGetSurfaceDemo() throws Exception {
-        if (envOkForTest())
-        MakeAndGetSurfaceDemo.main(mode);
+        if (envOkForTest()) {
+            MakeAndGetSurfaceDemo.main(mode);
+        }
     }
 
     @Test
     public void MakeSurfaceFromMaskDemo() throws Exception {
-        if (envOkForTest())
-        MakeSurfaceFromMaskDemo.main(mode);
+        if (envOkForTest()) {
+            MakeSurfaceFromMaskDemo.main(mode);
+        }
     }
 
     @Test
     public void TrackSurfaceDemo() throws Exception {
-        if (envOkForTest())
-        MakeSurfaceFromMaskDemo.main(mode);
+        if (envOkForTest()) {
+            MakeSurfaceFromMaskDemo.main(mode);
+        }
     }
 
 }

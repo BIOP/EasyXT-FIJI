@@ -22,7 +22,7 @@
 import ch.epfl.biop.imaris.EasyXT;
 import ch.epfl.biop.imaris.demo.*;
 import net.imagej.patcher.LegacyInjector;
-import org.junit.Ignore;
+import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
@@ -32,6 +32,12 @@ import java.io.File;
  */
 
 public class TestDemos {
+
+    @Before
+    public void initLegacy() {
+        LegacyInjector.preinit();
+    }
+
     private static final String mode = "Test Mode";
 
     final public static String OS_OK_FOR_TEST = "Windows 10";
@@ -41,7 +47,6 @@ public class TestDemos {
     }
 
     static public boolean envOkForTest() {
-        LegacyInjector.preinit();
         if (!getOperatingSystem().equals(OS_OK_FOR_TEST)) return false;
         return new File("C:/Program Files/Bitplane").exists();
     }

@@ -2257,7 +2257,7 @@ public class EasyXT {
             // current @EasyXT.Stats.export() table are string
             // Issue with using imagej= 1.53j ? , to getColumnAsStrings() )
             // workaround use Variable[]
-            ResultsTable rt = Stats.export(aItem, columnName);
+            ResultsTable rt = Stats.export(aItem);
 
             double[] ids = Arrays.stream(rt.getColumnAsVariables("ID")).map(var -> var.getValue()).mapToDouble(d -> d).toArray();
             double[] values = Arrays.stream(rt.getColumnAsVariables(columnName)).map(var -> var.getValue()).mapToDouble(d -> d).toArray();

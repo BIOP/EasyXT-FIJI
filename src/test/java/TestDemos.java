@@ -31,7 +31,6 @@ import ch.epfl.biop.imaris.demo.MakeAndGetSpotsDemo;
 import ch.epfl.biop.imaris.demo.MakeAndGetSurfaceDemo;
 import ch.epfl.biop.imaris.demo.MakeSurfaceFromMaskDemo;
 import net.imagej.patcher.LegacyInjector;
-import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
@@ -42,8 +41,7 @@ import java.io.File;
 
 public class TestDemos {
 
-    @Before
-    public void initLegacy() {
+    static {
         LegacyInjector.preinit();
     }
 

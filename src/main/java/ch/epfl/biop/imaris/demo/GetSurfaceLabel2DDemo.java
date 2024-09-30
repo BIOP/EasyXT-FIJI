@@ -51,7 +51,7 @@ public class GetSurfaceLabel2DDemo {
         EasyXT.Scene.reset();
         IJ.run("Close All", "");
 
-        ImagePlus blobs = IJ.openImage("http://imagej.nih.gov/ij/images/blobs.gif");
+        ImagePlus blobs = IJ.openImage("http://imagej.net/images/blobs.gif");
         IJ.run(blobs, "Invert LUT", "");
 
         blobs.show();

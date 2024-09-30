@@ -33,7 +33,7 @@ import java.io.File;
 public class TestDemos {
     private static final String mode = "Test Mode";
 
-    final public static String OS_OK_FOR_TEST = "Windows 10";
+    final public static String OS_OK_FOR_TEST = "Windows 11";
 
     public static String getOperatingSystem() {
         String os = System.getProperty("os.name");

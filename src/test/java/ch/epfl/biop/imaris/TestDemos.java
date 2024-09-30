@@ -1,4 +1,4 @@
-/*-
+package ch.epfl.biop.imaris;/*-
  * #%L
  * API and commands to facilitate communication between Imaris and FIJI
  * %%
@@ -19,9 +19,16 @@
  * <http://www.gnu.org/licenses/gpl-2.0.html>.
  * #L%
  */
-import ch.epfl.biop.imaris.EasyXT;
-import ch.epfl.biop.imaris.demo.*;
-import org.junit.Ignore;
+
+import ch.epfl.biop.imaris.demo.AddChildObjects;
+import ch.epfl.biop.imaris.demo.AddStatsDemo;
+import ch.epfl.biop.imaris.demo.AllGettersDemo;
+import ch.epfl.biop.imaris.demo.FreshStartWithIJAndBIOPImsSample;
+import ch.epfl.biop.imaris.demo.GetStatisticsDemo;
+import ch.epfl.biop.imaris.demo.GetSurfaceLabel2DDemo;
+import ch.epfl.biop.imaris.demo.MakeAndGetSpotsDemo;
+import ch.epfl.biop.imaris.demo.MakeAndGetSurfaceDemo;
+import ch.epfl.biop.imaris.demo.MakeSurfaceFromMaskDemo;
 import org.junit.Test;
 
 import java.io.File;
@@ -31,13 +38,13 @@ import java.io.File;
  */
 
 public class TestDemos {
+
     private static final String mode = "Test Mode";
 
     final public static String OS_OK_FOR_TEST = "Windows 11";
 
     public static String getOperatingSystem() {
-        String os = System.getProperty("os.name");
-        return os;
+        return System.getProperty("os.name");
     }
 
     static public boolean envOkForTest() {
@@ -47,68 +54,79 @@ public class TestDemos {
 
     @Test
     public void LabelDemo2D() throws Exception {
-        if (envOkForTest())
-        GetSurfaceLabel2DDemo.main(mode);
+        if (envOkForTest()) {
+            GetSurfaceLabel2DDemo.main(mode);
+        }
     }
 
     @Test
     public void AddChildObjects() throws Exception {
-        if (envOkForTest())
-        AddChildObjects.main(mode);
+        if (envOkForTest()) {
+            AddChildObjects.main(mode);
+        }
     }
 
     @Test
     public void AddStatsDemo() throws Exception {
-        if (envOkForTest())
-        AddStatsDemo.main(mode);
+        if (envOkForTest()) {
+            AddStatsDemo.main(mode);
+        }
     }
 
     @Test
     public void AllGetters() throws Exception {
-        if (envOkForTest())
-        AllGettersDemo.main(mode);
+        if (envOkForTest()) {
+            AllGettersDemo.main(mode);
+        }
     }
 
     @Test
     public void FreshStartWithIJAndBIOPImsSample() throws Exception {
-        if (envOkForTest())
-        FreshStartWithIJAndBIOPImsSample.main(mode);
+        if (envOkForTest()) {
+            FreshStartWithIJAndBIOPImsSample.main(mode);
+        }
     }
 
     @Test
     public void GetStatisticsDemo() throws Exception {
-        if (envOkForTest())
-        GetStatisticsDemo.main(mode);
+        if (envOkForTest()) {
+            GetStatisticsDemo.main(mode);
+        }
     }
 
     @Test
-    public void LaunchIJFromEasyXT() throws Exception {
-        if (envOkForTest())
-        EasyXT.main(mode);
+    public void LaunchIJFromEasyXT() {
+        if (envOkForTest()) {
+            EasyXT.main(mode);
+        }
     }
 
     @Test
     public void MakeAndGetSpotsDemo() throws Exception {
-        if (envOkForTest())
-        MakeAndGetSpotsDemo.main(mode);
+        if (envOkForTest()) {
+            MakeAndGetSpotsDemo.main(mode);
+        }
     }
 
     @Test
     public void MakeAndGetSurfaceDemo() throws Exception {
-        if (envOkForTest())
-        MakeAndGetSurfaceDemo.main(mode);
+        if (envOkForTest()) {
+            MakeAndGetSurfaceDemo.main(mode);
+        }
     }
 
     @Test
     public void MakeSurfaceFromMaskDemo() throws Exception {
-        if (envOkForTest())
-        MakeSurfaceFromMaskDemo.main(mode);
+        if (envOkForTest()) {
+            MakeSurfaceFromMaskDemo.main(mode);
+        }
     }
 
     @Test
     public void TrackSurfaceDemo() throws Exception {
-        if (envOkForTest())
-        MakeSurfaceFromMaskDemo.main(mode);
+        if (envOkForTest()) {
+            MakeSurfaceFromMaskDemo.main(mode);
+        }
     }
 
 }

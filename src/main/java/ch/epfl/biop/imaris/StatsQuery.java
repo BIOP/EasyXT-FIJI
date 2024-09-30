@@ -71,6 +71,8 @@ public class StatsQuery {
     private List<String> timepoints = new ArrayList<>();
     private List<String> channels = new ArrayList<>();
     private int nImages = 1;
+
+    private boolean getGlobalStatsOnly = false;
     private ResultsTable results = new ResultsTable();
 
 
@@ -123,6 +125,11 @@ public class StatsQuery {
         log.accept("The statistic: '" + statName + "' does not exist in the provided Results Table");
 
         return null;
+    }
+
+    public StatsQuery globalStats() {
+        this.getGlobalStatsOnly = true;
+        return this;
     }
 
     /**
@@ -332,58 +339,61 @@ public class StatsQuery {
 
             // If we get a true for all these, then we can keep the statistic
             // Any "global" statistic has an ID of -1. We ignore these in favor of computing these outside Imaris
-            if (matchesName && matchesChannel && matchesID && matchesTime && this.stats.mIds[i] != -1) {
-                String name = stats.mNames[i];
+            if (matchesName && matchesChannel && matchesID && matchesTime ) {
+                // Check if we want global stats or not
+                if ( (this.stats.mIds[i] == -1 && this.getGlobalStatsOnly ) || ( this.stats.mIds[i] != -1 && !this.getGlobalStatsOnly )) {
+                    String name = stats.mNames[i];
 
-                Float value = stats.mValues[i];
-                long id = this.stats.mIds[i];
+                    Float value = stats.mValues[i];
+                    long id = this.stats.mIds[i];
 
-                // If it exists, use it and append more stats
-                Map<String, String> statElements = (statsById.containsKey(id)) ? statsById.get(id) : new HashMap<>();
+                    // If it exists, use it and append more stats
+                    Map<String, String> statElements = (statsById.containsKey(id)) ? statsById.get(id) : new HashMap<>();
 
-                // List all stats we want to add
-                statElements.put("Label", imageName);
-                statElements.put("ID", String.valueOf(id));
-                statElements.put("Name", this.itemName);
+                    // List all stats we want to add
+                    statElements.put("Label", imageName);
+                    statElements.put("ID", String.valueOf(id));
+                    statElements.put("Name", this.itemName);
 
-                // Build the name of this statistic based on the factors that are available
-                for (int factorIdx = 0; factorIdx < this.stats.mFactorNames.length; factorIdx++) {
-                    String factorName = this.stats.mFactorNames[factorIdx];
-                    String factorValue = this.stats.mFactors[factorIdx][i];
+                    // Build the name of this statistic based on the factors that are available
+                    for (int factorIdx = 0; factorIdx < this.stats.mFactorNames.length; factorIdx++) {
+                        String factorName = this.stats.mFactorNames[factorIdx];
+                        String factorValue = this.stats.mFactors[factorIdx][i];
 
-                    if (!factorValue.equals("")) {
+                        if (!factorValue.equals("")) {
 
-                        switch (factorName) {
-                            case "Time":
-                                // Goes into Timepoint column
-                                statElements.put("Timepoint", factorValue);
-                                break;
-                            case "Category":
-                                statElements.put("Category", factorValue);
-                                break;
-                            case "Collection":
-                            case "Time Index":
-                                // Do nothing
-                                break;
-                            case "Image":
-                                if (this.nImages > 1) name += " : " + factorValue;
-                                break;
-                            case "Channel":
-                                name += " C" + factorValue;
-                                break;
-                            default:
-                                name += " : " + factorName +" : " + factorValue;
-                                break;
+                            switch (factorName) {
+                                case "Time":
+                                    // Goes into Timepoint column
+                                    statElements.put("Timepoint", factorValue);
+                                    break;
+                                case "Category":
+                                    statElements.put("Category", factorValue);
+                                    break;
+                                case "Collection":
+                                case "Time Index":
+                                    // Do nothing
+                                    break;
+                                case "Image":
+                                    if (this.nImages > 1) name += " : " + factorValue;
+                                    break;
+                                case "Channel":
+                                    name += " C" + factorValue;
+                                    break;
+                                default:
+                                    name += " : " + factorName + " : " + factorValue;
+                                    break;
+                            }
                         }
                     }
-                }
-                // Remove potential commas from the name
-                name = name.replaceAll(",", "");
-                statElements.put(name, String.valueOf(value));
+                    // Remove potential commas from the name
+                    name = name.replaceAll(",", "");
+                    statElements.put(name, String.valueOf(value));
 
-                // TODO : Check if this can be rewritten in a neater way as it is not necessary to 'put' again if it is already in statsByID
-                // TODO: But because it checks if the ID is unique, the overhead is not much. Still ugly though.
-                statsById.put(id, statElements);
+                    // TODO : Check if this can be rewritten in a neater way as it is not necessary to 'put' again if it is already in statsByID
+                    // TODO: But because it checks if the ID is unique, the overhead is not much. Still ugly though.
+                    statsById.put(id, statElements);
+                }
             }
         }
 

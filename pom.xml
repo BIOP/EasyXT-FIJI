@@ -129,6 +129,9 @@
         <imagescience.version>3.0.0</imagescience.version>
         <MorphoLibJ.version>1.6.0.1</MorphoLibJ.version>
         <releaseProfiles>sign,deploy-to-scijava</releaseProfiles>
+
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
     </properties>
 
     <dependencies>

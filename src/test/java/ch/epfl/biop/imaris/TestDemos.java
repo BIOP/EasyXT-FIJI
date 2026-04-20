@@ -29,6 +29,7 @@ import ch.epfl.biop.imaris.demo.GetSurfaceLabel2DDemo;
 import ch.epfl.biop.imaris.demo.MakeAndGetSpotsDemo;
 import ch.epfl.biop.imaris.demo.MakeAndGetSurfaceDemo;
 import ch.epfl.biop.imaris.demo.MakeSurfaceFromMaskDemo;
+import ch.epfl.biop.imaris.demo.RemoveChannelsFromDataset;
 import org.junit.Test;
 
 import java.io.File;
@@ -126,6 +127,13 @@ public class TestDemos {
     public void TrackSurfaceDemo() throws Exception {
         if (envOkForTest()) {
             MakeSurfaceFromMaskDemo.main(mode);
+        }
+    }
+
+    @Test
+    public void RemoveChannelsFromDataset() throws Exception {
+        if (envOkForTest()) {
+            RemoveChannelsFromDataset.main(mode);
         }
     }
 

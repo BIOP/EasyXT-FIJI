@@ -1210,6 +1210,110 @@ public class EasyXT {
         public static void addChannels(ImagePlus imp, IDataSetPrx dataset) throws Error {
             addChannels(imp, dataset, 0, 0, 0, 0);
         }
+
+        /**
+         * Removes the selected channels from the current Dataset. Mirrors {@link #addChannels(ImagePlus)}.
+         * To avoid slow Imaris GUI refreshes, we clone the dataset, remove the channels from the clone,
+         * then replace the current dataset.
+         *
+         * @param channelIndices 0-based channel indices to remove. Order does not matter, duplicates are ignored.
+         * @throws Error an Imaris Error object
+         */
+        public static void removeChannels(int... channelIndices) throws Error {
+            IDataSetPrx dataset = EasyXT.Dataset.getCurrent();
+            IDataSetPrx newDataset = dataset.Clone();
+
+            removeChannels(newDataset, channelIndices);
+            setCurrent(newDataset);
+
+            dataset.Dispose();
+        }
+
+        /**
+         * <p>Removes the selected channels from the provided IDataSetPrx in place, by shifting the kept
+         * channels down and shrinking the channel count. The Imaris API (10.0) has no native
+         * "remove channel" call, so we copy data and per-channel metadata (color, name, description,
+         * range, gamma, color table) for each channel that shifts.</p>
+         *
+         * @param dataset        the dataset to modify in place
+         * @param channelIndices 0-based channel indices to remove. Order does not matter, duplicates are ignored.
+         * @throws Error an Imaris Error object
+         */
+        public static void removeChannels(IDataSetPrx dataset, int... channelIndices) throws Error {
+            int dc = dataset.GetSizeC();
+            int w = dataset.GetSizeX();
+            int h = dataset.GetSizeY();
+            int nz = dataset.GetSizeZ();
+            int nt = dataset.GetSizeT();
+            int bitDepth = getBitDepth(dataset);
+
+            // Build a sorted, deduplicated, validated set of indices to remove.
+            java.util.TreeSet<Integer> toRemove = new java.util.TreeSet<>();
+            for (int idx : channelIndices) {
+                if (idx < 0 || idx >= dc) {
+                    throw new Error("Invalid channel index",
+                            "Channel index " + idx + " is out of range [0, " + dc + ")", "");
+                }
+                toRemove.add(idx);
+            }
+
+            if (toRemove.isEmpty()) {
+                log.warning("removeChannels: no channel indices provided, nothing to do.");
+                return;
+            }
+
+            if (toRemove.size() >= dc) {
+                throw new Error("Cannot remove all channels",
+                        "Requested removal of " + toRemove.size() + " of " + dc + " channels; at least one must remain.", "");
+            }
+
+            // Build the list of channels to keep, in original order.
+            java.util.List<Integer> toKeep = new java.util.ArrayList<>(dc - toRemove.size());
+            for (int c = 0; c < dc; c++) {
+                if (!toRemove.contains(c)) toKeep.add(c);
+            }
+
+            // Shift each kept channel to its new position if needed. Walk left-to-right so we never overwrite
+            // data we still need to read (new index <= old index).
+            for (int newC = 0; newC < toKeep.size(); newC++) {
+                int oldC = toKeep.get(newC);
+                if (oldC == newC) continue;
+
+                // Copy volume data, one (z, t) slab at a time.
+                for (int t = 0; t < nt; t++) {
+                    for (int z = 0; z < nz; z++) {
+                        switch (bitDepth) {
+                            case 8:
+                                byte[] dataB = dataset.GetDataSubVolumeAs1DArrayBytes(0, 0, z, oldC, t, w, h, 1);
+                                dataset.SetDataSubVolumeAs1DArrayBytes(dataB, 0, 0, z, newC, t, w, h, 1);
+                                break;
+                            case 16:
+                                short[] dataS = dataset.GetDataSubVolumeAs1DArrayShorts(0, 0, z, oldC, t, w, h, 1);
+                                dataset.SetDataSubVolumeAs1DArrayShorts(dataS, 0, 0, z, newC, t, w, h, 1);
+                                break;
+                            case 32:
+                                float[] dataF = dataset.GetDataSubVolumeAs1DArrayFloats(0, 0, z, oldC, t, w, h, 1);
+                                dataset.SetDataSubVolumeAs1DArrayFloats(dataF, 0, 0, z, newC, t, w, h, 1);
+                                break;
+                        }
+                    }
+                }
+
+                // Copy per-channel metadata.
+                dataset.SetChannelColorRGBA(newC, dataset.GetChannelColorRGBA(oldC));
+                dataset.SetChannelName(newC, dataset.GetChannelName(oldC));
+                dataset.SetChannelDescription(newC, dataset.GetChannelDescription(oldC));
+                dataset.SetChannelRange(newC, dataset.GetChannelRangeMin(oldC), dataset.GetChannelRangeMax(oldC));
+                dataset.SetChannelGamma(newC, dataset.GetChannelGamma(oldC));
+                Imaris.cColorTable table = dataset.GetChannelColorTable(oldC);
+                if (table != null && table.mColorRGB != null && table.mColorRGB.length > 0) {
+                    dataset.SetChannelColorTable(newC, table.mColorRGB, table.mAlpha);
+                }
+            }
+
+            // Shrink channel count; Imaris drops the trailing (now-duplicate) channels.
+            dataset.SetSizeC(toKeep.size());
+        }
     }
 
     /**

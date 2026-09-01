@@ -19,28 +19,33 @@
  * <http://www.gnu.org/licenses/gpl-2.0.html>.
  * #L%
  */
-package ch.epfl.biop.imaris.command;
+package ch.epfl.biop.imaris.demo;
 
-import Imaris.Error;
 import ch.epfl.biop.imaris.EasyXT;
-import ij.ImagePlus;
-import org.scijava.ItemIO;
-import org.scijava.command.Command;
-import org.scijava.plugin.Parameter;
-import org.scijava.plugin.Plugin;
+import net.imagej.ImageJ;
 
-@Plugin(type = Command.class, menuPath = "Plugins>BIOP>EasyXT>Get Complete Imaris Dataset")
-public class GetImarisDatasetCommand implements Command {
+import java.io.File;
 
-    @Parameter(type = ItemIO.OUTPUT)
-    ImagePlus dataset;
+/**
+ * EasyXT Demo
+ * <p>
+ * - Creates a new instance of FIJI
+ * - Opens the demo image, a cell reaching metaphase, 3 channels, 40 timepoints, 8 bits
+ *
+ * @author Nicolas Chiaruttini
+ * <p>
+ * October 2020
+ * <p>
+ * EPFL - SV - PTECH - PTBIOP
+ */
 
-    @Override
-    public void run() {
-        try {
-            dataset = EasyXT.Dataset.getImagePlus(EasyXT.Dataset.getCurrent());
-        } catch (Error error) {
-            error.printStackTrace();
-        }
+public class FreshStartWithIJAndBIOPImsSample {
+
+    public static void main(String... args) throws Imaris.Error {
+        ImageJ ij = new ImageJ();
+        ij.ui().showUI();
+        File sample = EasyXT.Samples.getSampleFile();
+        EasyXT.Files.openImage(sample);
     }
+
 }

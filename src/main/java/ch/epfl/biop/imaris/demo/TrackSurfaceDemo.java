@@ -21,9 +21,12 @@
  */
 package ch.epfl.biop.imaris.demo;
 
+import Ice.ObjectPrx;
 import Imaris.Error;
+import Imaris.ISurfaces;
 import Imaris.ISurfacesPrx;
 import ch.epfl.biop.imaris.EasyXT;
+import ch.epfl.biop.imaris.ItemTracker;
 import ch.epfl.biop.imaris.SurfacesDetector;
 
 /**
@@ -35,7 +38,7 @@ import ch.epfl.biop.imaris.SurfacesDetector;
  * EPFL - SV - PTECH - PTBIOP
  */
 
-public class MakeAndGetSurfaceDemo {
+public class TrackSurfaceDemo {
 
     // Note : you need to be in the 3D View in order to perform
     public static void main(String... args) throws Exception {
@@ -55,12 +58,25 @@ public class MakeAndGetSurfaceDemo {
 
             // Adds the surface to the scene
             EasyXT.Scene.addItem(surface);
+/*
+            ISurfacesPrx surfaceTracked = (ISurfacesPrx) ItemTracker.Item(surface).
+                    setMethod("AutoregressiveMotion")
+                    .setMaxDistance((float) 5.0) // without a Max Distance, there is great chance you can't track object in time
+                    //.setGapSize(3) // Filter is optional
+                    //.setFilter("\"Track Duration\" above 50 s") // Filter is optional
+                    .build().track();
 
-            // Gets an existing surface
-            surface = EasyXT.Scene.findSurfaces("My Surface");
 
-            // Display surfaces
-            EasyXT.Surfaces.getMaskImage(surface).show();
+            ISurfacesPrx surfaceTracked = (ISurfacesPrx) ItemTracker.Item(surface)
+                    .useConnectedComponents()
+                    //.setFilter("\"Track Duration\" above 50 s") // Filter is optional
+                    .build().track();
+            */
+
+            ISurfacesPrx surfaceTracked = (ISurfacesPrx) EasyXT.Tracks.create(surface).useBrownianMotion().setGapSize(3).setMaxDistance(10).build().track();
+
+            if (surfaceTracked!=null) EasyXT.Scene.addItem(surfaceTracked);
+            else System.out.println("ERROR: can't create track");
 
         } catch (Error error) {
             System.out.println("ERROR:" + error.mDescription);

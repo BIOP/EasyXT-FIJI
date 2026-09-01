@@ -19,28 +19,28 @@
  * <http://www.gnu.org/licenses/gpl-2.0.html>.
  * #L%
  */
-package ch.epfl.biop.imaris.command;
+package ch.epfl.biop.imaris.demo;
 
 import Imaris.Error;
+import Imaris.IDataSetPrx;
 import ch.epfl.biop.imaris.EasyXT;
+import ij.IJ;
 import ij.ImagePlus;
-import org.scijava.ItemIO;
-import org.scijava.command.Command;
-import org.scijava.plugin.Parameter;
-import org.scijava.plugin.Plugin;
 
-@Plugin(type = Command.class, menuPath = "Plugins>BIOP>EasyXT>Get Complete Imaris Dataset")
-public class GetImarisDatasetCommand implements Command {
+/**
+ * EasyXT Demo
+ * This demo shows how you can send a dataset directly to Imaris from an ImagePlus
+ * @author Olivier Burri
+ * January 2021
+ * EPFL - SV - PTECH - PTBIOP
+ */
+public class CreateNewDataset {
+    public static void main(String[] args) throws Error {
+        EasyXT.main(args);
+        ImagePlus imp = IJ.openImage("https://imagej.net/images/confocal-series.zip");
 
-    @Parameter(type = ItemIO.OUTPUT)
-    ImagePlus dataset;
-
-    @Override
-    public void run() {
-        try {
-            dataset = EasyXT.Dataset.getImagePlus(EasyXT.Dataset.getCurrent());
-        } catch (Error error) {
-            error.printStackTrace();
-        }
+        // This creates the dataset from the given ImagePlus
+        IDataSetPrx dataset = EasyXT.Dataset.create(imp);
+        EasyXT.Dataset.setCurrent(dataset);
     }
 }

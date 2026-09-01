@@ -24,47 +24,33 @@ package ch.epfl.biop.imaris.command;
 import Imaris.Error;
 import Imaris.ISurfacesPrx;
 import ch.epfl.biop.imaris.EasyXT;
+import ij.ImagePlus;
+import ij.measure.ResultsTable;
+import org.scijava.ItemIO;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import org.scijava.util.ColorRGB;
 
-@Plugin(type = Command.class, menuPath = "Plugins>BIOP>EasyXT>Surface>Make Surface In Imaris")
-public class MakeSurfaceCommand implements Command {
-
-    @Parameter(label = "Channel, zero index based")
-    int channelIndex;
+@Plugin(type = Command.class, menuPath = "Plugins>BIOP>EasyXT>Surface>Get Surface Statistics")
+public class GetSurfaceStatisticsCommand implements Command {
 
     @Parameter
     String surfaceName;
 
-    @Parameter
-    ColorRGB color;
-
-    @Parameter
-    double smoothingWidth = -1;
-
-    @Parameter
-    double lowerThreshold;
+    @Parameter(type = ItemIO.OUTPUT)
+    ResultsTable results;
 
     @Override
     public void run() {
+        // Gets an existing surface
         try {
-            ISurfacesPrx surf = EasyXT.Surfaces.create(channelIndex)
-                    .setSmoothingWidth(smoothingWidth)
-                    .setLowerThreshold(lowerThreshold)
-                    .setName(surfaceName)
-                    .setColor(new Integer[]{color.getRed(), color.getGreen(), color.getBlue()})
-                    .build()
-                    .detect();
-
-            // Adds the surface to the scene
-            EasyXT.Scene.addItem(surf);
-            surf.SetVisible(false);
-            surf.SetVisible(true);
-
+            ISurfacesPrx surfprx = EasyXT.Surfaces.find(surfaceName);
+            results = EasyXT.Stats.export(surfprx);
+            results.show(surfaceName +" - all statistics");
         } catch (Error error) {
             error.printStackTrace();
         }
+
+
     }
 }

@@ -24,44 +24,34 @@ package ch.epfl.biop.imaris.command;
 import Imaris.Error;
 import Imaris.ISurfacesPrx;
 import ch.epfl.biop.imaris.EasyXT;
+import ij.ImagePlus;
 import org.scijava.command.Command;
 import org.scijava.plugin.Parameter;
 import org.scijava.plugin.Plugin;
-import org.scijava.util.ColorRGB;
 
-@Plugin(type = Command.class, menuPath = "Plugins>BIOP>EasyXT>Surface>Make Surface In Imaris")
-public class MakeSurfaceCommand implements Command {
-
-    @Parameter(label = "Channel, zero index based")
-    int channelIndex;
+@Plugin(type = Command.class, menuPath = "Plugins>BIOP>EasyXT>Surface>Send Labels Image as Surface(s) to Imaris")
+public class LabelsImageToSurfaceCommand implements Command {
 
     @Parameter
-    String surfaceName;
+    ImagePlus imp;
 
     @Parameter
-    ColorRGB color;
-
-    @Parameter
-    double smoothingWidth = -1;
-
-    @Parameter
-    double lowerThreshold;
+    Boolean sendImp;
 
     @Override
     public void run() {
+        // Using the Image Name as a key to access the surface
         try {
-            ISurfacesPrx surf = EasyXT.Surfaces.create(channelIndex)
-                    .setSmoothingWidth(smoothingWidth)
-                    .setLowerThreshold(lowerThreshold)
-                    .setName(surfaceName)
-                    .setColor(new Integer[]{color.getRed(), color.getGreen(), color.getBlue()})
-                    .build()
-                    .detect();
+            ISurfacesPrx surface = EasyXT.Surfaces.createFromLabels(imp);
+            EasyXT.Scene.addItem(surface);
 
-            // Adds the surface to the scene
-            EasyXT.Scene.addItem(surf);
-            surf.SetVisible(false);
-            surf.SetVisible(true);
+            if (sendImp) {
+                if ( imp.getBitDepth() == EasyXT.Dataset.getBitDepth(EasyXT.Dataset.getCurrent()) ){
+                    EasyXT.Dataset.addChannels(imp);
+                } else{
+                    System.out.println("Labels image and Imaris dataset have different bitdepth");
+                }
+            }
 
         } catch (Error error) {
             error.printStackTrace();

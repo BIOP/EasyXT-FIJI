@@ -1,3 +1,45 @@
+/*-
+ * #%L
+ * API and commands to facilitate communication between Imaris and FIJI
+ * %%
+ * Copyright (C) 2020 - 2024 ECOLE POLYTECHNIQUE FEDERALE DE LAUSANNE, Switzerland, BioImaging And Optics Platform (BIOP)
+ * %%
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as
+ * published by the Free Software Foundation, either version 2 of the
+ * License, or (at your option) any later version.
+ * 
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ * 
+ * You should have received a copy of the GNU General Public
+ * License along with this program.  If not, see
+ * <http://www.gnu.org/licenses/gpl-2.0.html>.
+ * #L%
+ */
+/*
+ * Copyright (c) 2021 Ecole Polytechnique Fédérale de Lausanne. All rights reserved.
+ * Redistribution and use in source and binary forms, with or without modification,
+ * are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice, this list of conditions
+ * and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions
+ * and the following disclaimer in the documentation and/or other materials provided with the distribution.
+ * 3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse
+ * or promote products derived from this software without specific prior written permission.
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+ * PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+ * ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
+ * TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+ * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+ * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
 package ch.epfl.biop.imaris;
 
 import Imaris.Error;
@@ -6,32 +48,26 @@ import Imaris.ISurfacesPrx;
 
 /**
  * Helper functions for surface detection in Imaris
- *
  * With the use of a builder pattern, this class combines the following Imaris functions :
  * - DetectSurfaces
  * - DetectSurfaceRegionGrowing TODO: implement and explain how the builder switch or not to this function
  * - DetectSurfacesRegionGrowingWithUpperThreshold TODO: implement and explain how the builder switch or not to this function
- *
  * The Builder is tuned to allow for an invisible switch between these functions depending on the builder methods calls
  * If an upper threshold is set {
- *     calling DetectSurfacesRegionGrowingWithUpperThreshold
+ * calling DetectSurfacesRegionGrowingWithUpperThreshold
  * } else if any of the seed detection parameters is set {
- *     calling DetectSurfaceRegionGrowing
+ * calling DetectSurfaceRegionGrowing
  * } else {
- *     calling DetectSurfaces
+ * calling DetectSurfaces
  * }
- *
- * Authors
- * Nicolas Chiaruttini, nicolas.chiaruttini@epfl.ch
- * Olivier Burri, olivier.burri@epfl.ch
- *
- * BIOP, EPFL,  Jan 2020
- *
+ * @author Nicolas Chiaruttini
+ * @author Olivier Burri
+ * @version 1.0
+ * BIOP, EPFL, Jan 2020
  * Useful links:
  * file:///C:/Program%20Files/Bitplane/Imaris%20x64%209.5.1/html/xtinterface/structImaris_1_1IImageProcessing.html
  * file:///C:/Program%20Files/Bitplane/Imaris%20x64%209.5.1/html/xtinterface/structImaris_1_1IImageProcessing.html#a41275043bc718252958bce85f4d4561a
  */
-
 public class SurfacesDetector {
 
     // Fields from Imaris API - DetectSurfaces
@@ -47,17 +83,17 @@ public class SurfacesDetector {
     Float aSmoothFilterWidth;
     Float aLocalContrastFilterWidth;
 
-    Boolean  	aIntensityLowerThresholdAutomatic; //Boolean aIntensityThresholdAutomatic;
-    Float  	aIntensityLowerThresholdManual; //Float aIntensityThresholdManual;
+    Boolean aIntensityLowerThresholdAutomatic;  //Boolean aIntensityThresholdAutomatic;
+    Float aIntensityLowerThresholdManual;     //Float aIntensityThresholdManual;
 
     String aSurfaceFiltersString;
 
     // Additional fields from Imaris API - DetectSurfacesRegionGrowing
     // Example of aSeedsFiltersString: '"Quality" above 7.000'
 
-    Float  	aSeedsEstimateDiameter;
+    Float aSeedsEstimateDiameter;
     Boolean aSeedsSubtractBackground;
-    String  aSeedsFiltersString;
+    String aSeedsFiltersString;
 
     // Additional fields from Imaris API - DetectSurfacesRegionGrowingWithUpperThreshold()
     // Detect Surfaces with upper (or double) threshold and region growing.
@@ -66,12 +102,12 @@ public class SurfacesDetector {
     //  If aUpperThresholdEnabled is true, aIntensityUpperThresholdAutomatic and aIntensityUpperThresholdManual are ignored.
     //  If aIntensityUpperThresholdAutomatic is true, aIntensityUpperThresholdManual is ignored.
 
-    Boolean 	aLowerThresholdEnabled;
+    Boolean aLowerThresholdEnabled;
     //Boolean  	aIntensityLowerThresholdAutomatic;
     //Float  	aIntensityLowerThresholdManual;
-    Boolean  	aUpperThresholdEnabled;
-    Boolean  	aIntensityUpperThresholdAutomatic;
-    Float  	aIntensityUpperThresholdManual;
+    Boolean aUpperThresholdEnabled;
+    Boolean aIntensityUpperThresholdAutomatic;
+    Float aIntensityUpperThresholdManual;
 
     // Fields added to modify output
 
@@ -82,9 +118,9 @@ public class SurfacesDetector {
 
         ISurfacesPrx surfaces;
 
-        if ((aUpperThresholdEnabled!=null)||
-            (aIntensityUpperThresholdAutomatic!=null)||
-            (aIntensityUpperThresholdManual!=null)) {
+        if ((aUpperThresholdEnabled != null) ||
+                (aIntensityUpperThresholdAutomatic != null) ||
+                (aIntensityUpperThresholdManual != null)) {
             // DetectSurfacesRegionGrowingWithUpperThreshold
 
             // ISurfaces* Imaris::IImageProcessing::DetectSurfacesRegionGrowingWithUpperThreshold 	( 	IDataSet *  	aDataSet,
@@ -105,23 +141,38 @@ public class SurfacesDetector {
             //	)
 
             // Need to deal with a Lower Threshold Enabled TODO
+            if (aSeedsEstimateDiameter == null) {
 
-            surfaces = EasyXT.getImaris().GetImageProcessing().DetectSurfacesRegionGrowingWithUpperThreshold(aDataSet,
-                    aRegionsOfInterest,
-                    aChannelIndex,
-                    aSmoothFilterWidth,
-                    aLocalContrastFilterWidth,
-                    aLowerThresholdEnabled,
-                    aIntensityLowerThresholdAutomatic,
-                    aIntensityLowerThresholdManual,
-                    aUpperThresholdEnabled,
-                    aIntensityUpperThresholdAutomatic,
-                    aIntensityUpperThresholdManual,
-                    aSeedsEstimateDiameter,
-                    aSeedsSubtractBackground,
-                    aSurfaceFiltersString,
-                    aSurfaceFiltersString);
+                surfaces = EasyXT.Utils.getImarisApp().GetImageProcessing().DetectSurfacesWithUpperThreshold(aDataSet,
+                        aRegionsOfInterest,
+                        aChannelIndex,
+                        aSmoothFilterWidth,
+                        aLocalContrastFilterWidth,
+                        aLowerThresholdEnabled,
+                        aIntensityLowerThresholdAutomatic,
+                        aIntensityLowerThresholdManual,
+                        aUpperThresholdEnabled,
+                        aIntensityUpperThresholdAutomatic,
+                        aIntensityUpperThresholdManual,
+                        aSurfaceFiltersString);
+            } else {
 
+                surfaces = EasyXT.Utils.getImarisApp().GetImageProcessing().DetectSurfacesRegionGrowingWithUpperThreshold(aDataSet,
+                        aRegionsOfInterest,
+                        aChannelIndex,
+                        aSmoothFilterWidth,
+                        aLocalContrastFilterWidth,
+                        aLowerThresholdEnabled,
+                        aIntensityLowerThresholdAutomatic,
+                        aIntensityLowerThresholdManual,
+                        aUpperThresholdEnabled,
+                        aIntensityUpperThresholdAutomatic,
+                        aIntensityUpperThresholdManual,
+                        aSeedsEstimateDiameter,
+                        aSeedsSubtractBackground,
+                        aSeedsFiltersString,
+                        aSurfaceFiltersString);
+            }
         } else {
             if ((aSeedsEstimateDiameter != null) || (aSeedsSubtractBackground != null) || (aSeedsFiltersString != null)) {
                 // DetectSurfaceRegionGrowing
@@ -138,7 +189,7 @@ public class SurfacesDetector {
                 //		string  	aSurfaceFiltersString
                 //	)
 
-                surfaces = EasyXT.getImaris().GetImageProcessing().DetectSurfacesRegionGrowing(aDataSet,
+                surfaces = EasyXT.Utils.getImarisApp().GetImageProcessing().DetectSurfacesRegionGrowing(aDataSet,
                         aRegionsOfInterest,
                         aChannelIndex,
                         aSmoothFilterWidth,
@@ -147,7 +198,7 @@ public class SurfacesDetector {
                         aIntensityLowerThresholdManual,
                         aSeedsEstimateDiameter,
                         aSeedsSubtractBackground,
-                        aSurfaceFiltersString,
+                        aSeedsFiltersString,
                         aSurfaceFiltersString);
 
             } else {
@@ -163,7 +214,7 @@ public class SurfacesDetector {
                 //		string  	aSurfaceFiltersString
                 //	)
 
-                surfaces = EasyXT.getImaris().GetImageProcessing().DetectSurfaces(aDataSet,
+                surfaces = EasyXT.Utils.getImarisApp().GetImageProcessing().DetectSurfaces(aDataSet,
                         aRegionsOfInterest,
                         aChannelIndex,
                         aSmoothFilterWidth,
@@ -176,20 +227,20 @@ public class SurfacesDetector {
 
         // EasyXT Specific
 
-        if (name!=null) {
+        if (name != null) {
             surfaces.SetName(name);
         } // or else it will have the default Imaris name
 
 
-        if (color!=null) {
-            surfaces.SetColorRGBA( color[0] + (color[1] * 256) + (color[2] * 256 * 256 ) );
+        if (color != null) {
+            surfaces.SetColorRGBA(color[0] + (color[1] * 256) + (color[2] * 256 * 256));
         }
 
         return surfaces;
     }
 
     // Removes a bit of the verbosity
-    public static SurfacesDetectorBuilder Channel(int indexChannel ) throws Error {
+    public static SurfacesDetectorBuilder Channel(int indexChannel) throws Error {
         return SurfacesDetectorBuilder.aSurfacesDetector(indexChannel);
     }
 
@@ -203,26 +254,26 @@ public class SurfacesDetector {
         //Boolean aIntensityThresholdAutomatic = new Boolean(true);  // If aIntensityThresholdAutomatic is true, aIntensityThresholdManual is ignored.
         //Float aIntensityThresholdManual = new Float(0); // Disabled by default because aIntensityThresholdAutomatic is true by default
         String aSurfaceFiltersString;
-        Float  	aSeedsEstimateDiameter;
+        Float aSeedsEstimateDiameter;
         Boolean aSeedsSubtractBackground;
-        String  aSeedsFiltersString;
-        Boolean 	aLowerThresholdEnabled;
-        Boolean  	aIntensityLowerThresholdAutomatic = new Boolean(true);
-        Float  	aIntensityLowerThresholdManual = new Float(0);
-        Boolean  	aUpperThresholdEnabled;
-        Boolean  	aIntensityUpperThresholdAutomatic;
-        Float  	aIntensityUpperThresholdManual;
+        String aSeedsFiltersString;
+        Boolean aLowerThresholdEnabled;
+        Boolean aIntensityLowerThresholdAutomatic = Boolean.TRUE;
+        Float aIntensityLowerThresholdManual = new Float(0);
+        Boolean aUpperThresholdEnabled;
+        Boolean aIntensityUpperThresholdAutomatic;
+        Float aIntensityUpperThresholdManual;
 
         Integer[] color;
         String name;
 
         private SurfacesDetectorBuilder(int channelIndex) throws Imaris.Error {
             // default values
-            aDataSet = EasyXT.getImaris().GetDataSet();
+            aDataSet = EasyXT.Utils.getImarisApp().GetDataSet();
             this.aChannelIndex = channelIndex;
         }
 
-        public static SurfacesDetectorBuilder aSurfacesDetector(int channelIndex) throws Imaris.Error  {
+        public static SurfacesDetectorBuilder aSurfacesDetector(int channelIndex) throws Imaris.Error {
             return new SurfacesDetectorBuilder(channelIndex);
         }
 
@@ -271,6 +322,12 @@ public class SurfacesDetector {
             this.aLowerThresholdEnabled = true;
             return this;
         }
+
+        /**
+         * @param aIntensityLowerThresholdManual , corresponds to "Manual Threshold Value" in the "Creation Parameters"
+         *                                       (in the "Creation" tab of a completed surface)
+         * @return the builder for detecting surfaces
+         */
 
         public SurfacesDetectorBuilder setLowerThreshold(double aIntensityLowerThresholdManual) {
             this.aIntensityLowerThresholdManual = new Float(aIntensityLowerThresholdManual);
